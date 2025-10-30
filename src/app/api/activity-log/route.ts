@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from "next/server";
+import { eq, and, gte, lte, desc, count } from "drizzle-orm";
+
+import { db, schema } from "@/db";
+
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url ?? "");
+  const page = Number(url.searchParams.get("page")) || 1;
+  const pageSize = Number(url.searchParams.get("pageSize")) || 20;
+  const userId = url.searchParams.get("userId") ?? undefined;
+  const moduleName = url.searchParams.get("module") ?? undefined;
+  const action = url.searchParams.get("action") ?? undefined;
+  const from = url.searchParams.get("from") ? new Date(url.searchParams.get("from")!) : undefined;
+  const to = url.searchParams.get("to") ? new Date(url.searchParams.get("to")!) : undefined;
+
+  const filters = [];
+  if (userId) {
+    filters.push(eq(schema.activityLog.userId, userId));
+  }
+  if (moduleName) {
+    filters.push(eq(schema.activityLog.module, moduleName));
+  }
+  if (action) {
+    filters.push(eq(schema.activityLog.action, action));
+  }
+  if (from) {
+    filters.push(gte(schema.activityLog.timestamp, from));
+  }
+  if (to) {
+    filters.push(lte(schema.activityLog.timestamp, to));
+  }
+
+  const predicate = filters.length ? and(...filters) : undefined;
+
+  const [results, [{ value: countVal } = { value: 0 }]] = await Promise.all([
+    db
+      .select({
+        ...schema.activityLog,
+        userName: schema.users.name,
+        userEmail: schema.users.email,
+      })
+      .from(schema.activityLog)
+      .leftJoin(schema.users, eq(schema.activityLog.userId, schema.users.id))
+      .where(predicate)
+      .orderBy(desc(schema.activityLog.timestamp))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db
+      .select({ value: count() })
+      .from(schema.activityLog)
+      .where(predicate),
+  ]);
+
+  return NextResponse.json({ logs: results, count: countVal });
+}

@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1761797902984,
+      "tag": "0000_loose_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1761809182475,
+      "tag": "0001_add-activity-log-module",
+      "breakpoints": true
+    }
+  ]
+}
