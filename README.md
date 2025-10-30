@@ -1,10 +1,8 @@
 # Competency Training Tracker
 
-Competency Training Tracker is a Foodstyles web application built with Next.js 16 and React 19. This document explains the technology stack and the steps required to prepare a local development environment so new team members can get productive quickly.
-
 ## Tech Stack
 
-- Next.js 16 (App Router) + React 19
+- Next.js 16 (App Router) + React 25.1.0
 - TypeScript 5 and ESLint for type safety and linting
 - Tailwind CSS 4 with `@tailwindcss/postcss` for styling
 - Drizzle ORM with PostgreSQL for data access
@@ -14,22 +12,21 @@ Competency Training Tracker is a Foodstyles web application built with Next.js 1
 
 ## Prerequisites
 
-- Node.js 18.17 or newer (Node 20 LTS recommended) and npm 10+
-- Local PostgreSQL instance (e.g., via Docker or a native install)
-- Access to the project repository on GitHub (SSH or HTTPS)
+- Node.js 25 or newer and npm 10+
+- Local PostgreSQL instance 
 
 ## Fresh Install
 
 1. Clone the repository and enter the project directory:
    ```bash
-   git clone <repo-url>
-   cd competency-training-tracker
+   git clone https://github.com/FoodStyles-Tech-Tools/training-tracker.git
+   cd training-tracker
    ```
 2. Copy the environment template and adjust values as needed:
    ```bash
    cp .env.example .env
    ```
-3. Ensure PostgreSQL is running and create a `foodstyles` database (or update `DATABASE_URL` to point at your own database).
+3. Ensure PostgreSQL is running and create a `training_tracker` database (or update `DATABASE_URL` to point at your own database).
 4. Install project dependencies:
    ```bash
    npm install
