@@ -2,8 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq, and, gte, lte, desc, count } from "drizzle-orm";
 
 import { db, schema } from "@/db";
+import { PermissionError, ensurePermission } from "@/lib/permissions";
+import { getCurrentSession } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
+  const session = await getCurrentSession();
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    await ensurePermission(session.user.id, "activity_log", "list");
+  } catch (error) {
+    if (error instanceof PermissionError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+
+    throw error;
+  }
+
   const url = new URL(req.url ?? "");
   const page = Number(url.searchParams.get("page")) || 1;
   const pageSize = Number(url.searchParams.get("pageSize")) || 20;
