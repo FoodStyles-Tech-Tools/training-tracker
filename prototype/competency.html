@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Competency List</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div class="prototype-content">
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-5xl flex-col gap-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Competencies</h1>
+                <p class="text-sm text-slate-400">
+                  Track competency progress, responsible trainers, and publish status.
+                </p>
+              </div>
+              <a
+                href="competency_form.html"
+                class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                + Add Competency
+              </a>
+            </div>
+
+            <div class="prototype-card overflow-hidden">
+              <table class="w-full border-collapse text-sm">
+                <thead class="bg-slate-950/70 text-slate-300">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium">No</th>
+                    <th class="px-4 py-3 text-left font-medium">Competency Name</th>
+                    <th class="px-4 py-3 text-left font-medium">Trainers</th>
+                    <th class="px-4 py-3 text-left font-medium">Status</th>
+                    <th class="px-4 py-3 text-left font-medium">Last Update</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">1</td>
+                    <td class="px-4 py-3 text-slate-100">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3 text-slate-300">Alex Morgan, Priya Desai</td>
+                    <td class="px-4 py-3">
+                      <span class="rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-200">
+                        Draft
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">29 Oct 2025 09:45:12</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">2</td>
+                    <td class="px-4 py-3 text-slate-100">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3 text-slate-300">Priya Desai, Jordan Lee</td>
+                    <td class="px-4 py-3">
+                      <span class="rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                        Published
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">28 Oct 2025 15:22:48</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">3</td>
+                    <td class="px-4 py-3 text-slate-100">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
+                    <td class="px-4 py-3">
+                      <span class="rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-semibold text-amber-200">
+                        Draft
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">20 Oct 2025 11:05:33</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
