@@ -3,7 +3,6 @@ import {
   boolean,
   pgEnum,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -83,21 +82,6 @@ export const users = pgTable(
   },
   (users) => ({
     emailIdx: uniqueIndex("users_email_idx").on(users.email),
-  }),
-);
-
-export const usersRoles = pgTable(
-  "users_roles",
-  {
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    roleId: uuid("role_id")
-      .notNull()
-      .references(() => rolesList.id, { onDelete: "cascade" }),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.roleId] }),
   }),
 );
 
@@ -194,7 +178,6 @@ export const activityLog = pgTable(
 export const rolesListRelations = relations(rolesList, ({ many }) => ({
   users: many(users),
   permissions: many(rolePermissions),
-  userLinks: many(usersRoles),
 }));
 
 export const rolePermissionsRelations = relations(
@@ -208,24 +191,12 @@ export const rolePermissionsRelations = relations(
 );
 
 export const usersRelations = relations(users, ({ many, one }) => ({
-  roles: many(usersRoles),
   role: one(rolesList, {
     fields: [users.roleId],
     references: [rolesList.id],
   }),
   accounts: many(accounts),
   sessions: many(sessions),
-}));
-
-export const usersRolesRelations = relations(usersRoles, ({ one }) => ({
-  user: one(users, {
-    fields: [usersRoles.userId],
-    references: [users.id],
-  }),
-  role: one(rolesList, {
-    fields: [usersRoles.roleId],
-    references: [rolesList.id],
-  }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -254,7 +225,6 @@ export const activityLogRelations = relations(activityLog, ({ one }) => ({
 export type Role = typeof rolesList.$inferSelect;
 export type RolePermission = typeof rolePermissions.$inferSelect;
 export type User = typeof users.$inferSelect;
-export type UserRole = typeof usersRoles.$inferSelect;
 export const MODULES = moduleNameEnum.enumValues;
 export type ModuleName = (typeof MODULES)[number];
 
