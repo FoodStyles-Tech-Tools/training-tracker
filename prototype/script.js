@@ -63,6 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
       initial: `<p>Trainer panel evaluates a live service initiative led by the candidate.</p>
 <p>Final review with operations leadership and documentation of impact.</p>`,
     },
+    {
+      selector: "#relevant-links",
+      field: "relevantLinks",
+      placeholder: "Add relevant links and resources.",
+      initial: ``,
+    },
   ];
 
   const quillInstances = new Map();
@@ -110,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       submission.basicPlan = form.querySelector("#basic-plan")?.value ?? "";
       submission.competentPlan = form.querySelector("#competent-plan")?.value ?? "";
       submission.advancedPlan = form.querySelector("#advanced-plan")?.value ?? "";
+      submission.relevantLinks = quillInstances.get("#relevant-links")?.root.innerHTML.trim() ?? "";
 
       console.info("Prototype competency publish", submission);
 
