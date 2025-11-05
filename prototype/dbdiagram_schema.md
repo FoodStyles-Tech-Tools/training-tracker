@@ -125,6 +125,7 @@ Table competencies {
   id uuid [pk, default: `gen_random_uuid()`]
   name text [not null]
   status int [not null, default: 0] // 0=draft, 1=published
+  relevant_links text // Rich text field for relevant links and resources
   is_deleted boolean [not null, default: false]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
@@ -154,6 +155,20 @@ Table competencies_trainer {
   Indexes {
     (competency_id, trainer_user_id) [pk]
     (trainer_user_id)
+  }
+}
+
+Table competency_requirements {
+  id uuid [pk, default: `gen_random_uuid()`]
+  competency_id uuid [not null] // The competency being defined
+  required_competency_level_id uuid [not null] // The required competency level (references competency_levels.id)
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (competency_id, required_competency_level_id) [unique]
+    (competency_id)
+    (required_competency_level_id)
   }
 }
 
@@ -352,6 +367,8 @@ Ref: activity_log.user_id > users.id [delete: cascade]
 Ref: competency_levels.competency_id > competencies.id [delete: cascade]
 Ref: competencies_trainer.competency_id > competencies.id [delete: cascade]
 Ref: competencies_trainer.trainer_user_id > users.id [delete: cascade]
+Ref: competency_requirements.competency_id > competencies.id [delete: cascade]
+Ref: competency_requirements.required_competency_level_id > competency_levels.id [delete: cascade]
 
 Ref: training_batch.competency_level_id > competency_levels.id [delete: cascade]
 Ref: training_batch.trainer_user_id > users.id [delete: cascade]
