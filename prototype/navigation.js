@@ -41,6 +41,7 @@ function renderHeader() {
 
 function renderSidebar(currentPage) {
   const navigation = [
+    { href: "waitlist.html", label: "Waitlist", id: "waitlist" },
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
@@ -91,7 +92,9 @@ function injectSidebar() {
     const currentPath = window.location.pathname;
     let currentPage = "";
 
-    if (currentPath.includes("learner_dashboard.html")) {
+    if (currentPath.includes("waitlist.html")) {
+      currentPage = "waitlist";
+    } else if (currentPath.includes("learner_dashboard.html")) {
       currentPage = "learner-dashboard";
     } else if (currentPath.includes("competency.html")) {
       currentPage = "competencies";
@@ -122,6 +125,7 @@ function injectSidebar() {
 // Function to render mobile navigation modal
 function renderMobileNav(currentPage) {
   const navigation = [
+    { href: "waitlist.html", label: "Waitlist", id: "waitlist" },
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
@@ -194,7 +198,9 @@ function injectMobileNav() {
   const currentPath = window.location.pathname;
   let currentPage = "";
 
-  if (currentPath.includes("learner_dashboard.html")) {
+  if (currentPath.includes("waitlist.html")) {
+    currentPage = "waitlist";
+  } else if (currentPath.includes("learner_dashboard.html")) {
     currentPage = "learner-dashboard";
   } else if (currentPath.includes("competency.html")) {
     currentPage = "competencies";
