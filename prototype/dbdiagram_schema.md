@@ -248,15 +248,16 @@ Table training_request {
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   training_batch_id uuid
-  status int [not null, default: 0] // 0=Not Started,1=In Queue,2=No batch match,3=In Progress,4=Training Complete,5=On Hold,6=Drop Off
+  status int [not null, default: 0] // 0=Not Started,1=Looking for trainer, 2=In Queue,3=No batch match,4=In Progress,5=Training Complete,6=On Hold,7=Drop Off
   on_hold_by int // 0=Learner, 1=Trainer
-  on_hold_dropoff_reason text
+  on_hold_reason text
+  drop_off_reason text
   is_blocked boolean [not null, default: false]
   blocked_reason text
   expected_unblocked_date date
   notes text
   response_due date
-  assigned_to uuid
+  assigned_to uuid // check if this still used
   response_date date
   definite_answer bool
   follow_up_date date
@@ -276,11 +277,11 @@ Table validation_project_approval {
   id uuid [pk, default: `gen_random_uuid()`]
   vpa_id text [not null] // human-readable, e.g., VPAxx
   tr_id text
-  requested_date date [not null]
+  requested_date date 
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   project_details text
-  status int [not null, default: 0] // 0 = Pending Validation Project Approval, 1 = Approved, 2 = Rejected, 3 = Resubmit for Re-validation
+  status int [not null, default: 0] // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected, 4 = Resubmit for Re-validation
   assigned_to uuid 
   response_due date // if status Pending Validation Project Approval, fill +1 from requested date
   response_date date

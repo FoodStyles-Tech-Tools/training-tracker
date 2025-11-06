@@ -44,6 +44,9 @@ function renderSidebar(currentPage) {
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
+    { href: "training_request.html", label: "Training Request", id: "training-request" },
+    { href: "validation_project_approval.html", label: "Validation Project Approval", id: "validation-project-approval" },
+    { href: "validation_schedule_request.html", label: "Validation Schedule Request", id: "validation-schedule-request" },
     { href: "users.html", label: "Users", id: "users" },
     { href: "roles.html", label: "Roles", id: "roles" },
     { href: "activity_log.html", label: "Activity Log", id: "activity-log" },
@@ -93,6 +96,12 @@ function injectSidebar() {
       currentPage = "competencies";
     } else if (currentPath.includes("training_batch.html")) {
       currentPage = "training-batches";
+    } else if (currentPath.includes("training_request.html")) {
+      currentPage = "training-request";
+    } else if (currentPath.includes("validation_project_approval.html")) {
+      currentPage = "validation-project-approval";
+    } else if (currentPath.includes("validation_schedule_request.html")) {
+      currentPage = "validation-schedule-request";
     } else if (currentPath.includes("competency_form.html")) {
       currentPage = "competencies"; // Form page uses competencies as active
     } else if (currentPath.includes("users.html")) {
@@ -113,6 +122,9 @@ function renderMobileNav(currentPage) {
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
+    { href: "training_request.html", label: "Training Request", id: "training-request" },
+    { href: "validation_project_approval.html", label: "Validation Project Approval", id: "validation-project-approval" },
+    { href: "validation_schedule_request.html", label: "Validation Schedule Request", id: "validation-schedule-request" },
     { href: "users.html", label: "Users", id: "users" },
     { href: "roles.html", label: "Roles", id: "roles" },
     { href: "activity_log.html", label: "Activity Log", id: "activity-log" },
@@ -184,6 +196,12 @@ function injectMobileNav() {
     currentPage = "competencies";
   } else if (currentPath.includes("training_batch.html")) {
     currentPage = "training-batches";
+  } else if (currentPath.includes("training_request.html")) {
+    currentPage = "training-request";
+  } else if (currentPath.includes("validation_project_approval.html")) {
+    currentPage = "validation-project-approval";
+  } else if (currentPath.includes("validation_schedule_request.html")) {
+    currentPage = "validation-schedule-request";
   } else if (currentPath.includes("competency_form.html")) {
     currentPage = "competencies";
   } else if (currentPath.includes("users.html")) {
