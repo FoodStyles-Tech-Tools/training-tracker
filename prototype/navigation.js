@@ -42,6 +42,8 @@ function renderHeader() {
 function renderSidebar(currentPage) {
   const navigation = [
     { href: "waitlist.html", label: "Waitlist", id: "waitlist" },
+    { href: "pending_project.html", label: "Pending Project", id: "pending-project" },
+    { href: "resubmit_project.html", label: "Resubmit Project", id: "resubmit-project" },
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
@@ -94,6 +96,10 @@ function injectSidebar() {
 
     if (currentPath.includes("waitlist.html")) {
       currentPage = "waitlist";
+    } else if (currentPath.includes("pending_project.html")) {
+      currentPage = "pending-project";
+    } else if (currentPath.includes("resubmit_project.html")) {
+      currentPage = "resubmit-project";
     } else if (currentPath.includes("learner_dashboard.html")) {
       currentPage = "learner-dashboard";
     } else if (currentPath.includes("competency.html")) {
@@ -126,6 +132,8 @@ function injectSidebar() {
 function renderMobileNav(currentPage) {
   const navigation = [
     { href: "waitlist.html", label: "Waitlist", id: "waitlist" },
+    { href: "pending_project.html", label: "Pending Project", id: "pending-project" },
+    { href: "resubmit_project.html", label: "Resubmit Project", id: "resubmit-project" },
     { href: "learner_dashboard.html", label: "Learner Dashboard", id: "learner-dashboard" },
     { href: "competency.html", label: "Competencies", id: "competencies" },
     { href: "training_batch.html", label: "Training Batches", id: "training-batches" },
@@ -200,6 +208,10 @@ function injectMobileNav() {
 
   if (currentPath.includes("waitlist.html")) {
     currentPage = "waitlist";
+  } else if (currentPath.includes("pending_project.html")) {
+    currentPage = "pending-project";
+  } else if (currentPath.includes("resubmit_project.html")) {
+    currentPage = "resubmit-project";
   } else if (currentPath.includes("learner_dashboard.html")) {
     currentPage = "learner-dashboard";
   } else if (currentPath.includes("competency.html")) {
