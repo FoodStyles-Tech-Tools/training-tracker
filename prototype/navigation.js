@@ -47,6 +47,7 @@ function renderSidebar(currentPage) {
     { href: "training_request.html", label: "Training Request", id: "training-request" },
     { href: "validation_project_approval.html", label: "Validation Project Approval", id: "validation-project-approval" },
     { href: "validation_schedule_request.html", label: "Validation Schedule Request", id: "validation-schedule-request" },
+    { href: "project_assignment_request.html", label: "Project Assignment Request", id: "project-assignment-request" },
     { href: "users.html", label: "Users", id: "users" },
     { href: "roles.html", label: "Roles", id: "roles" },
     { href: "activity_log.html", label: "Activity Log", id: "activity-log" },
@@ -100,6 +101,8 @@ function injectSidebar() {
       currentPage = "training-request";
     } else if (currentPath.includes("validation_project_approval.html")) {
       currentPage = "validation-project-approval";
+    } else if (currentPath.includes("project_assignment_request.html")) {
+      currentPage = "project-assignment-request";
     } else if (currentPath.includes("validation_schedule_request.html")) {
       currentPage = "validation-schedule-request";
     } else if (currentPath.includes("competency_form.html")) {
@@ -125,6 +128,7 @@ function renderMobileNav(currentPage) {
     { href: "training_request.html", label: "Training Request", id: "training-request" },
     { href: "validation_project_approval.html", label: "Validation Project Approval", id: "validation-project-approval" },
     { href: "validation_schedule_request.html", label: "Validation Schedule Request", id: "validation-schedule-request" },
+    { href: "project_assignment_request.html", label: "Project Assignment Request", id: "project-assignment-request" },
     { href: "users.html", label: "Users", id: "users" },
     { href: "roles.html", label: "Roles", id: "roles" },
     { href: "activity_log.html", label: "Activity Log", id: "activity-log" },
@@ -200,6 +204,8 @@ function injectMobileNav() {
     currentPage = "training-request";
   } else if (currentPath.includes("validation_project_approval.html")) {
     currentPage = "validation-project-approval";
+  } else if (currentPath.includes("project_assignment_request.html")) {
+    currentPage = "project-assignment-request";
   } else if (currentPath.includes("validation_schedule_request.html")) {
     currentPage = "validation-schedule-request";
   } else if (currentPath.includes("competency_form.html")) {
