@@ -40,9 +40,11 @@
   </head>
   <body class="antialiased">
     <div class="prototype-shell">
+      <div data-sidebar></div>
       <div class="prototype-content">
+        <div data-header></div>
         <main class="prototype-main px-4 py-6 sm:px-6">
-          <div class="mx-auto flex max-w-4xl flex-col gap-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
             <div class="prototype-card flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 class="text-2xl font-semibold text-white">Create Competency</h1>
@@ -202,7 +204,7 @@
 
               <div class="prototype-card space-y-5 p-6">
                 <div class="space-y-1">
-                  <h2 class="text-lg font-semibold text-slate-100">Trainer roster</h2>
+                  <h2 class="text-lg font-semibold text-slate-100">Trainer</h2>
                   <p class="text-sm text-slate-400">
                     Assign at least one trainer responsible for coaching and verification.
                   </p>
@@ -229,6 +231,113 @@
                     <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
                     <p class="text-sm font-medium text-slate-100">Chris Howard</p>
                   </label>
+                </div>
+              </div>
+
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Relevant Links</h2>
+                </div>
+                <div class="space-y-2">
+                  <div class="quill-wrapper">
+                    <div id="relevant-links"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Requirements</h2>
+                  <p class="text-sm text-slate-400">
+                    Select required competencies and levels for this competency.
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full border-collapse text-sm">
+                    <thead>
+                      <tr class="border-b border-slate-800/80">
+                        <th class="px-4 py-3 text-left font-medium text-slate-300">Competency</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Basic</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Competent</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Advanced</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/80">
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Guest Hospitality Standards</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Food Safety &amp; Sanitation</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Customer Recovery Playbook</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Beverage Quality Assurance</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Digital Ordering Experience</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Inventory Control Systems</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -287,6 +396,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="navigation.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

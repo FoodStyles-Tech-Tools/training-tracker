@@ -30,6 +30,54 @@ a {
   text-decoration: none;
 }
 
+select {
+  display: flex;
+  height: 2.5rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #f1f5f9;
+  font-family: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem 1rem;
+}
+
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #3b82f6;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+select option,
+select optgroup {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+select option:checked,
+select option:hover,
+select option:focus {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
 /* High level layout helpers */
 .prototype-shell {
   display: flex;
