@@ -141,7 +141,7 @@
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-guest-hospitality">Guest Hospitality Standards</span>
-                      <span id="level-badge-guest-hospitality" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-guest-hospitality" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <div class="flex items-center gap-2">
                       <button
@@ -591,7 +591,7 @@ Final review with operations leadership and documentation of impact.</textarea>
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-food-safety">Food Safety & Sanitation</span>
-                      <span id="level-badge-food-safety" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-food-safety" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <button
                       type="button"
@@ -771,7 +771,7 @@ Successful completion of health department audit preparation.</textarea>
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-customer-recovery">Customer Recovery Playbook</span>
-                      <span id="level-badge-customer-recovery" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-customer-recovery" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <button
                       type="button"
@@ -951,7 +951,7 @@ Demonstration of training delivery to other team members.</textarea>
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-beverage-quality">Beverage Quality Assurance</span>
-                      <span id="level-badge-beverage-quality" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-beverage-quality" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <button
                       type="button"
@@ -1130,7 +1130,7 @@ Financial review confirms margin improvement and guest adoption.</textarea>
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-digital-ordering">Digital Ordering Experience</span>
-                      <span id="level-badge-digital-ordering" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-digital-ordering" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <button
                       type="button"
@@ -1309,7 +1309,7 @@ User research demonstrates improved NPS and repeat activation.</textarea>
                   <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
                       <span id="competency-name-inventory-systems">Inventory Control Systems</span>
-                      <span id="level-badge-inventory-systems" class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-200">Basic</span>
+                      <span id="level-badge-inventory-systems" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
                     </h2>
                     <button
                       type="button"
@@ -1477,7 +1477,7 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
           </p>
           <div class="mb-6 flex items-center gap-3">
             <span id="modal-competency-name" class="text-lg font-semibold text-white"></span>
-            <span id="modal-level-badge" class="rounded-full px-3 py-1 text-xs font-semibold"></span>
+            <span id="modal-level-badge" class="rounded-md px-2 py-0.5 text-sm font-semibold"></span>
           </div>
           <div class="flex items-center justify-end gap-3">
             <button
@@ -1493,6 +1493,39 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               Yes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requirements Modal -->
+    <div
+      id="requirements-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeRequirementsModal(event)"
+    >
+      <div
+        class="prototype-card max-w-md overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">Requirements needed</h2>
+        </div>
+        <div class="p-6">
+          <p class="mb-4 text-sm text-slate-300">
+            To apply this competency, you need to finish the following competencies:
+          </p>
+          <div class="mb-6 space-y-2" id="requirements-list">
+            <!-- Requirements will be populated here -->
+          </div>
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeRequirementsModal()"
+              class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              Close
             </button>
           </div>
         </div>
@@ -1564,7 +1597,7 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
               const levelBadge = document.getElementById(`level-badge-${competencyId}`);
               if (levelBadge) {
                 levelBadge.textContent = "Basic";
-                levelBadge.className = "rounded-full px-3 py-1 text-xs font-semibold bg-blue-500/20 text-blue-200";
+                levelBadge.className = "rounded-md px-2 py-0.5 text-sm font-semibold bg-blue-500/20 text-blue-200";
               }
               
               // Update Apply button data attributes to Basic
@@ -1673,7 +1706,7 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
               const levelBadge = document.getElementById(`level-badge-${competencyId}`);
               if (levelBadge) {
                 let levelText = "";
-                let badgeClasses = "rounded-full px-3 py-1 text-xs font-semibold";
+                let badgeClasses = "rounded-md px-2 py-0.5 text-sm font-semibold";
                 
                 if (levelId === "basic") {
                   levelText = "Basic";
@@ -1939,10 +1972,54 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
             const level = button.getAttribute("data-level");
             const levelType = button.getAttribute("data-level-type");
             
-            openApplyModal(competencyName, level, levelType);
+            // Check if it's Food Safety & Sanitation - Basic
+            if (competencyName === "Food Safety & Sanitation" && levelType === "basic") {
+              openRequirementsModal();
+            } else {
+              openApplyModal(competencyName, level, levelType);
+            }
           });
         });
       });
+
+      function openRequirementsModal() {
+        const modal = document.getElementById("requirements-modal");
+        const requirementsList = document.getElementById("requirements-list");
+        
+        // Define the required competencies with completion status
+        const requiredCompetencies = [
+          { name: "Guest Hospitality Standards - Basic", completed: false },
+          { name: "Beverage Quality - Basic", completed: true },
+          { name: "Customer Recovery - Basic", completed: false }
+        ];
+        
+        // Populate the requirements list
+        requirementsList.innerHTML = requiredCompetencies.map(comp => {
+          const checkmark = comp.completed 
+            ? `<svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <path d="M20 6L9 17l-5-5"></path>
+               </svg>`
+            : '';
+          return `<div class="flex items-center gap-2 text-sm text-slate-200">${comp.name}${checkmark}</div>`;
+        }).join("");
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeRequirementsModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        
+        const modal = document.getElementById("requirements-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
 
       function openApplyModal(competencyName, level, levelType) {
         const modal = document.getElementById("apply-modal");
@@ -1954,7 +2031,7 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
         
         // Set level badge with appropriate color
         modalLevelBadge.textContent = level;
-        modalLevelBadge.className = "rounded-full px-3 py-1 text-xs font-semibold";
+        modalLevelBadge.className = "rounded-md px-2 py-0.5 text-sm font-semibold";
         
         if (levelType === "basic") {
           modalLevelBadge.classList.add("bg-blue-500/20", "text-blue-200");
@@ -1994,9 +2071,12 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          const modal = document.getElementById("apply-modal");
-          if (!modal.classList.contains("hidden")) {
+          const applyModal = document.getElementById("apply-modal");
+          const requirementsModal = document.getElementById("requirements-modal");
+          if (!applyModal.classList.contains("hidden")) {
             closeApplyModal();
+          } else if (!requirementsModal.classList.contains("hidden")) {
+            closeRequirementsModal();
           }
         }
       });
