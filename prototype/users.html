@@ -41,7 +41,7 @@
       <div class="prototype-content">
         <div data-header></div>
         <main class="prototype-main px-4 py-6 sm:px-6">
-          <div class="mx-auto flex max-w-[70.4rem] flex-col gap-6">
+          <div class="mx-auto flex max-w-[80rem] flex-col gap-6">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 class="text-2xl font-semibold text-white">Users</h1>
@@ -51,7 +51,7 @@
               </div>
               <button
                 type="button"
-                class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                class="self-start inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 onclick="openUserModal()"
               >
                 + Add Users
@@ -61,7 +61,7 @@
             <!-- Search Form -->
             <div class="prototype-card p-4">
               <form class="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-                <div class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
                   <label for="search-name" class="mb-1.5 block text-xs font-medium text-slate-300">
                     Name
                   </label>
@@ -73,7 +73,7 @@
                     class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                <div class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
                   <label for="search-email" class="mb-1.5 block text-xs font-medium text-slate-300">
                     Email
                   </label>
@@ -85,7 +85,7 @@
                     class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                <div class="flex-1 min-w-[200px]">
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
                   <label for="search-role" class="mb-1.5 block text-xs font-medium text-slate-300">
                     Role
                   </label>
@@ -101,16 +101,16 @@
                     <option value="learner">Learner</option>
                   </select>
                 </div>
-                <div class="flex items-end gap-2">
+                <div class="flex w-full sm:w-auto items-end gap-2">
                   <button
                     type="submit"
-                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                    class="flex-1 sm:flex-none rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                   >
                     Search
                   </button>
                   <button
                     type="reset"
-                    class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    class="flex-1 sm:flex-none rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                   >
                     Clear
                   </button>
