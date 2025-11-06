@@ -78,7 +78,7 @@
                                   Basic
                                 </span>
                               </td>
-                              <td class="px-2 py-2 text-slate-100">John Smith</td>
+                              <td class="px-2 py-2"><button type="button" class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer" onclick="openUnifiedModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', 'VPA1', '0', '10 Nov 2025', 'VSR1', '0', '10 Nov 2025')">John Smith</button></td>
                               <td class="px-2 py-2">
                                 <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
                                   Not Started
@@ -173,7 +173,7 @@
                                   Basic
                                 </span>
                               </td>
-                              <td class="px-2 py-2 text-slate-100">John Smith</td>
+                              <td class="px-2 py-2"><button type="button" class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer" onclick="openUnifiedModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', 'VPA1', '0', '10 Nov 2025', 'VSR1', '0', '10 Nov 2025')">John Smith</button></td>
                               <td class="px-2 py-2">
                                 <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
                                   Pending Project Submission
@@ -283,7 +283,7 @@
                                   Basic
                                 </span>
                               </td>
-                              <td class="px-2 py-2 text-slate-100">John Smith</td>
+                              <td class="px-2 py-2"><button type="button" class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer" onclick="openUnifiedModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', 'VPA1', '0', '10 Nov 2025', 'VSR1', '0', '10 Nov 2025')">John Smith</button></td>
                               <td class="px-2 py-2">
                                 <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
                                   Pending Validation
@@ -408,7 +408,7 @@
                                   Basic
                                 </span>
                               </td>
-                              <td class="px-2 py-2 text-slate-100">John Smith</td>
+                              <td class="px-2 py-2"><button type="button" class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer" onclick="openUnifiedModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', 'VPA1', '0', '10 Nov 2025', 'VSR1', '0', '10 Nov 2025')">John Smith</button></td>
                               <td class="px-2 py-2">
                                 <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
                                   New
@@ -1272,7 +1272,1061 @@
       </div>
     </div>
 
+    <!-- Unified Module Details Modal -->
+    <div
+      id="unified-module-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeUnifiedModal(event)"
+    >
+      <div
+        class="prototype-card max-h-[90vh] w-full max-w-5xl overflow-y-auto"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Module Details - Streamlined Management</h2>
+            <p class="text-sm text-slate-400">Update any module details from anywhere</p>
+          </div>
+          <button
+            type="button"
+            onclick="closeUnifiedModal()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <form class="space-y-6" onsubmit="event.preventDefault()">
+            
+            <!-- Tab Navigation -->
+            <div class="flex gap-2 border-b border-slate-800/80 mb-6">
+              <button
+                type="button"
+                id="tab-tr"
+                onclick="switchTab('tr')"
+                class="px-4 py-2 text-sm font-medium transition border-b-2 border-blue-500 text-blue-400"
+              >
+                Training Request
+              </button>
+              <button
+                type="button"
+                id="tab-vpa"
+                onclick="switchTab('vpa')"
+                class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
+              >
+                Validation Project Approval
+              </button>
+              <button
+                type="button"
+                id="tab-vsr"
+                onclick="switchTab('vsr')"
+                class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
+              >
+                Validation Schedule Request
+              </button>
+            </div>
+
+            <!-- Training Request Section -->
+            <div id="content-tr" class="space-y-4 tab-content">
+            <!-- Basic Information -->
+            <div class="space-y-4">
+              <!-- Row 1: TR ID | Name -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="unified-tr-id" class="block text-sm font-medium text-slate-300">TR ID</label>
+                  <input
+                    id="unified-tr-id"
+                    type="text"
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-name" class="block text-sm font-medium text-slate-300">Name</label>
+                  <input
+                    id="unified-name"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 2: Competency | Level -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="unified-tr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                  <input
+                    id="unified-tr-competency"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-tr-level" class="block text-sm font-medium text-slate-300">Level</label>
+                  <input
+                    id="unified-tr-level"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 3: Trainer | Batch -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="unified-tr-trainer" class="block text-sm font-medium text-slate-300">Trainer</label>
+                  <input
+                    id="unified-tr-trainer"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-tr-batch" class="block text-sm font-medium text-slate-300">Batch</label>
+                  <input
+                    id="unified-tr-batch"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 4: Status | Requested date -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="unified-tr-status" class="block text-sm font-medium text-slate-300">Status</label>
+                  <select
+                    id="unified-tr-status"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleUnifiedTRStatusChange()"
+                  >
+                    <option value="Not Started">Not Started</option>
+                    <option value="Looking for Trainer">Looking for Trainer</option>
+                    <option value="In Queue">In Queue</option>
+                    <option value="No batch match">No batch match</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Training Complete">Training Complete</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Drop Off">Drop Off</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-tr-requested-date" class="block text-sm font-medium text-slate-300">Requested date</label>
+                  <input
+                    id="unified-tr-requested-date"
+                    type="text"
+                    class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <!-- Looking for Trainer Fields (conditional) -->
+              <div id="unified-looking-for-trainer-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-tr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                    <input
+                      id="unified-tr-response-due"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-tr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                    <input
+                      id="unified-tr-assigned-to"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter assigned person..."
+                    />
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-tr-response-date" class="block text-sm font-medium text-slate-300">Response date</label>
+                  <input
+                    id="unified-tr-response-date"
+                    type="text"
+                    class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <!-- On Hold Fields (conditional) -->
+              <div id="unified-on-hold-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="unified-tr-on-hold-by" class="block text-sm font-medium text-slate-300">On hold by</label>
+                  <select
+                    id="unified-tr-on-hold-by"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="trainer">Trainer</option>
+                    <option value="learner">Learner</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label for="unified-tr-on-hold-reason" class="block text-sm font-medium text-slate-300">On hold reason</label>
+                  <textarea
+                    id="unified-tr-on-hold-reason"
+                    rows="3"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Enter reason for holding..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Drop Off Fields (conditional) -->
+              <div id="unified-drop-off-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="unified-tr-drop-off-reason" class="block text-sm font-medium text-slate-300">Drop-off reason</label>
+                  <textarea
+                    id="unified-tr-drop-off-reason"
+                    rows="3"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Enter reason for drop-off..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Blocked Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="unified-tr-blocked"
+                    class="h-4 w-4 rounded border-slate-700 bg-slate-900/80 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    onchange="handleUnifiedBlockedChange()"
+                  />
+                  <label for="unified-tr-blocked" class="text-sm font-medium text-slate-300">Blocked</label>
+                </div>
+                <div id="unified-blocked-fields" class="hidden space-y-4 pl-7">
+                  <div class="space-y-2">
+                    <label for="unified-tr-block-reason" class="block text-sm font-medium text-slate-300">Block reason</label>
+                    <textarea
+                      id="unified-tr-block-reason"
+                      rows="3"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter reason for blocking..."
+                    ></textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-tr-expected-unblock-date" class="block text-sm font-medium text-slate-300">Expected unblocked date</label>
+                    <input
+                      id="unified-tr-expected-unblock-date"
+                      type="text"
+                      class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="space-y-2 border-t border-slate-800/80 pt-4">
+                <label for="unified-tr-notes" class="block text-sm font-medium text-slate-300">Notes</label>
+                <textarea
+                  id="unified-tr-notes"
+                  rows="4"
+                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Enter any additional notes..."
+                ></textarea>
+              </div>
+            </div>
+            </div>
+
+            <!-- Validation Project Approval Section -->
+            <div id="content-vpa" class="space-y-4 tab-content hidden">
+              <!-- Basic Information -->
+              <div class="space-y-4">
+                <!-- Row 1: VPA ID | Submitted Date -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vpa-id" class="block text-sm font-medium text-slate-300">VPA ID</label>
+                    <input
+                      id="unified-vpa-id"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vpa-requested-date" class="block text-sm font-medium text-slate-300">Submitted Date</label>
+                    <input
+                      id="unified-vpa-requested-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 2: Competency | Level -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vpa-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                    <input
+                      id="unified-vpa-competency"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vpa-level" class="block text-sm font-medium text-slate-300">Level</label>
+                    <input
+                      id="unified-vpa-level"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 3: Status | Assigned to -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vpa-status" class="block text-sm font-medium text-slate-300">Status</label>
+                    <select
+                      id="unified-vpa-status"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      onchange="handleUnifiedVPAStatusChange()"
+                    >
+                      <option value="0">Pending Project Submission</option>
+                      <option value="1">Pending Validation Project Approval</option>
+                      <option value="2">Approved</option>
+                      <option value="3">Rejected</option>
+                      <option value="4">Resubmit for Re-validation</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vpa-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                    <input
+                      id="unified-vpa-assigned-to"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter assigned person..."
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 4: Response Due | Response Date (conditional based on status) -->
+                <div id="unified-vpa-response-fields" class="hidden grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vpa-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                    <input
+                      id="unified-vpa-response-due"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vpa-response-date" class="block text-sm font-medium text-slate-300">Response Date</label>
+                    <input
+                      id="unified-vpa-response-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+
+                <!-- Project Details -->
+                <div class="space-y-2 border-t border-slate-800/80 pt-4">
+                  <label for="unified-vpa-project-details" class="block text-sm font-medium text-slate-300">Project Details</label>
+                  <textarea
+                    id="unified-vpa-project-details"
+                    rows="6"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Project details..."
+                  ></textarea>
+                </div>
+
+                <!-- Definite Answer Fields -->
+                <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                  <div class="space-y-2">
+                    <label for="unified-vpa-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                    <select
+                      id="unified-vpa-definite-answer"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      onchange="handleUnifiedVPADefiniteAnswerChange()"
+                    >
+                      <option value="">Select...</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+                  <div id="unified-vpa-definite-answer-fields" class="hidden space-y-4">
+                    <div class="space-y-2">
+                      <label for="unified-vpa-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
+                      <input
+                        id="unified-vpa-follow-date"
+                        type="text"
+                        readonly
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                      />
+                    </div>
+                    <div class="space-y-2">
+                      <label for="unified-vpa-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
+                      <input
+                        id="unified-vpa-followup-date"
+                        type="text"
+                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Select date"
+                        readonly
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Schedule Request Section -->
+            <div id="content-vsr" class="space-y-4 tab-content hidden">
+              <!-- Basic Information -->
+              <div class="space-y-4">
+                <!-- Row 1: VSR ID | Requested Date -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vsr-id" class="block text-sm font-medium text-slate-300">VSR ID</label>
+                    <input
+                      id="unified-vsr-id"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vsr-requested-date" class="block text-sm font-medium text-slate-300">Requested Date</label>
+                    <input
+                      id="unified-vsr-requested-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 2: Competency | Level -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vsr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                    <input
+                      id="unified-vsr-competency"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vsr-level" class="block text-sm font-medium text-slate-300">Level</label>
+                    <input
+                      id="unified-vsr-level"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 3: Status | Assigned to -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vsr-status" class="block text-sm font-medium text-slate-300">Status</label>
+                    <select
+                      id="unified-vsr-status"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      onchange="handleUnifiedVSRStatusChange()"
+                    >
+                      <option value="0">Pending Validation</option>
+                      <option value="1">Pending Re-validation</option>
+                      <option value="2">Validation Only</option>
+                      <option value="3">Validation Scheduled</option>
+                      <option value="4">Fail</option>
+                      <option value="5">Pass</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vsr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                    <input
+                      id="unified-vsr-assigned-to"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter assigned person..."
+                    />
+                  </div>
+                </div>
+              
+                <!-- Row 4: Response Due | Response Date (conditional based on status) -->
+                <div id="unified-vsr-response-fields" class="hidden grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="unified-vsr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                    <input
+                      id="unified-vsr-response-due"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="unified-vsr-response-date" class="block text-sm font-medium text-slate-300">Response Date</label>
+                    <input
+                      id="unified-vsr-response-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+
+                <!-- Schedule Section (shown for Pending Validation, Pending Re-validation, or Validation Scheduled) -->
+                <div id="unified-vsr-schedule-section" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                  <h4 class="text-sm font-semibold text-white">Schedule</h4>
+                  
+                  <!-- Row 1: Validator Ops | Validator Trainer -->
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <div class="space-y-2">
+                      <label for="unified-vsr-validator-ops" class="block text-sm font-medium text-slate-300">Validator Ops</label>
+                      <select
+                        id="unified-vsr-validator-ops"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">Select Validator Ops...</option>
+                        <option value="john-doe">John Doe</option>
+                        <option value="jane-smith">Jane Smith</option>
+                        <option value="mike-wilson">Mike Wilson</option>
+                        <option value="sarah-johnson">Sarah Johnson</option>
+                      </select>
+                    </div>
+                    <div class="space-y-2">
+                      <label for="unified-vsr-validator-trainer" class="block text-sm font-medium text-slate-300">Validator Trainer</label>
+                      <select
+                        id="unified-vsr-validator-trainer"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">Select Validator Trainer...</option>
+                        <option value="david-brown">David Brown</option>
+                        <option value="emily-davis">Emily Davis</option>
+                        <option value="robert-taylor">Robert Taylor</option>
+                        <option value="lisa-anderson">Lisa Anderson</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <!-- Row 2: Scheduled Date Time -->
+                  <div class="space-y-2">
+                    <label for="unified-vsr-scheduled-datetime" class="block text-sm font-medium text-slate-300">Scheduled Date Time</label>
+                    <input
+                      id="unified-vsr-scheduled-datetime"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date and time"
+                      readonly
+                    />
+                  </div>
+                                  
+                  <!-- Google Calendar (shown for Pending Validation or Pending Re-validation) -->
+                  <div id="unified-vsr-calendar-section" class="hidden space-y-2">
+                    <label class="block text-sm font-medium text-slate-300">Calendar</label>
+                    <iframe
+                      src="https://calendar.google.com/calendar/embed?src=claudy.novianto%40foodstyles.com&ctz=Asia%2FJakarta"
+                      style="border: 0"
+                      width="100%"
+                      height="600"
+                      frameborder="0"
+                      scrolling="no"
+                      class="rounded-md"
+                    ></iframe>
+                  </div></div>
+
+                <!-- Definite Answer Fields -->
+                <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                  <div class="space-y-2">
+                    <label for="unified-vsr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                    <select
+                      id="unified-vsr-definite-answer"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      onchange="handleUnifiedVSRDefiniteAnswerChange()"
+                    >
+                      <option value="">Select...</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+                  <div id="unified-vsr-definite-answer-fields" class="hidden space-y-4">
+                    <div class="space-y-2">
+                      <label for="unified-vsr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
+                      <input
+                        id="unified-vsr-follow-date"
+                        type="text"
+                        readonly
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                      />
+                    </div>
+                    <div class="space-y-2">
+                      <label for="unified-vsr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
+                      <input
+                        id="unified-vsr-followup-date"
+                        type="text"
+                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Select date"
+                        readonly
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+              <button
+                type="button"
+                onclick="closeUnifiedModal()"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                Save All Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    
+
     <script src="navigation.js"></script>
-  </body>
+    <script src="table-sort.js"></script>
+    <script>
+      function openUnifiedModal(trId, name, competency, level, status, batch, trainer, vpaId, vpaStatus, vpaDate, vsrId, vsrStatus, vsrDate) {
+        const modal = document.getElementById("unified-module-modal");
+        if (!modal) {
+          console.error("Unified modal not found!");
+          return;
+        }
+        
+        // Populate Training Request fields
+        const trIdEl = document.getElementById("unified-tr-id");
+        const nameEl = document.getElementById("unified-name");
+        const trCompetencyEl = document.getElementById("unified-tr-competency");
+        const trLevelEl = document.getElementById("unified-tr-level");
+        const trStatusEl = document.getElementById("unified-tr-status");
+        const trBatchEl = document.getElementById("unified-tr-batch");
+        const trTrainerEl = document.getElementById("unified-tr-trainer");
+        
+        if (trIdEl) trIdEl.value = trId || "";
+        if (nameEl) nameEl.value = name || "";
+        if (trCompetencyEl) trCompetencyEl.value = competency || "";
+        if (trLevelEl) trLevelEl.value = level || "";
+        if (trStatusEl) trStatusEl.value = status || "";
+        if (trBatchEl) trBatchEl.value = batch === "-" ? "" : batch || "";
+        if (trTrainerEl) trTrainerEl.value = trainer === "-" ? "" : trainer || "";
+        
+        // Populate VPA fields
+        const vpaIdEl = document.getElementById("unified-vpa-id");
+        const vpaCompetencyEl = document.getElementById("unified-vpa-competency");
+        const vpaLevelEl = document.getElementById("unified-vpa-level");
+        const vpaStatusEl = document.getElementById("unified-vpa-status");
+        const vpaDateEl = document.getElementById("unified-vpa-requested-date");
+        const vpaProjectEl = document.getElementById("unified-vpa-project-details");
+        
+        if (vpaIdEl) vpaIdEl.value = vpaId || "";
+        if (vpaCompetencyEl) vpaCompetencyEl.value = competency || "";
+        if (vpaLevelEl) vpaLevelEl.value = level || "";
+        if (vpaStatusEl) vpaStatusEl.value = vpaStatus || "0";
+        if (vpaDateEl) vpaDateEl.value = vpaDate || "";
+        if (vpaProjectEl && vpaId) {
+          const projectDetails = `This is a sample validation project for ${competency} at ${level} level. The project involves demonstrating practical competency through real-world scenarios and case studies.`;
+          vpaProjectEl.value = projectDetails;
+        }
+        
+        // Populate VSR fields
+        const vsrIdEl = document.getElementById("unified-vsr-id");
+        const vsrCompetencyEl = document.getElementById("unified-vsr-competency");
+        const vsrLevelEl = document.getElementById("unified-vsr-level");
+        const vsrStatusEl = document.getElementById("unified-vsr-status");
+        const vsrDateEl = document.getElementById("unified-vsr-requested-date");
+        
+        if (vsrIdEl) vsrIdEl.value = vsrId || "";
+        if (vsrCompetencyEl) vsrCompetencyEl.value = competency || "";
+        if (vsrLevelEl) vsrLevelEl.value = level || "";
+        if (vsrStatusEl) vsrStatusEl.value = vsrStatus || "0";
+        if (vsrDateEl) vsrDateEl.value = vsrDate || "";
+        
+        // Clear conditional fields
+        const trOnHoldByEl = document.getElementById("unified-tr-on-hold-by");
+        const trOnHoldReasonEl = document.getElementById("unified-tr-on-hold-reason");
+        const trDropOffReasonEl = document.getElementById("unified-tr-drop-off-reason");
+        const trAssignedToEl = document.getElementById("unified-tr-assigned-to");
+        const trBlockedEl = document.getElementById("unified-tr-blocked");
+        const trBlockReasonEl = document.getElementById("unified-tr-block-reason");
+        const trNotesEl = document.getElementById("unified-tr-notes");
+        const vpaAssignedToEl = document.getElementById("unified-vpa-assigned-to");
+        const vpaDefiniteAnswerEl = document.getElementById("unified-vpa-definite-answer");
+        const vsrAssignedToEl = document.getElementById("unified-vsr-assigned-to");
+        const vsrDefiniteAnswerEl = document.getElementById("unified-vsr-definite-answer");
+        
+        if (trOnHoldByEl) trOnHoldByEl.value = "";
+        if (trOnHoldReasonEl) trOnHoldReasonEl.value = "";
+        if (trDropOffReasonEl) trDropOffReasonEl.value = "";
+        if (trAssignedToEl) trAssignedToEl.value = "";
+        if (trBlockedEl) trBlockedEl.checked = false;
+        if (trBlockReasonEl) trBlockReasonEl.value = "";
+        if (trNotesEl) trNotesEl.value = "";
+        if (vpaAssignedToEl) vpaAssignedToEl.value = "";
+        if (vpaDefiniteAnswerEl) vpaDefiniteAnswerEl.value = "";
+        if (vsrAssignedToEl) vsrAssignedToEl.value = "";
+        if (vsrDefiniteAnswerEl) vsrDefiniteAnswerEl.value = "";
+        
+        // Handle conditional fields visibility
+        if (typeof handleUnifiedTRStatusChange === 'function') handleUnifiedTRStatusChange();
+        if (typeof handleUnifiedBlockedChange === 'function') handleUnifiedBlockedChange();
+        if (typeof handleUnifiedVPAStatusChange === 'function') handleUnifiedVPAStatusChange();
+        if (typeof handleUnifiedVSRStatusChange === 'function') handleUnifiedVSRStatusChange();
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        
+        // Switch to first tab (Training Request)
+        if (typeof switchTab === 'function') switchTab('tr');
+        
+        // Initialize Flatpickr and set dates after modal is shown
+        setTimeout(function() {
+          if (typeof initializeUnifiedFlatpickr === 'function') {
+            initializeUnifiedFlatpickr();
+            
+            // Set requested date with today's date if not provided
+            const trRequestedDateInput = document.getElementById("unified-tr-requested-date");
+            if (trRequestedDateInput && !trRequestedDateInput.value) {
+              const today = new Date();
+              const day = today.getDate();
+              const month = today.toLocaleString('en-US', { month: 'short' });
+              const year = today.getFullYear();
+              const formattedDate = `${day} ${month} ${year}`;
+              trRequestedDateInput.value = formattedDate;
+            }
+          }
+        }, 100);
+      }
+
+      function closeUnifiedModal(event) {
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        const modal = document.getElementById("unified-module-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function handleUnifiedTRStatusChange() {
+        const status = document.getElementById("unified-tr-status").value;
+        const onHoldFields = document.getElementById("unified-on-hold-fields");
+        const dropOffFields = document.getElementById("unified-drop-off-fields");
+        const lookingForTrainerFields = document.getElementById("unified-looking-for-trainer-fields");
+        
+        if (status === "Looking for Trainer") {
+          lookingForTrainerFields.classList.remove("hidden");
+        } else {
+          lookingForTrainerFields.classList.add("hidden");
+        }
+        
+        if (status === "On Hold") {
+          onHoldFields.classList.remove("hidden");
+        } else {
+          onHoldFields.classList.add("hidden");
+        }
+        
+        if (status === "Drop Off") {
+          dropOffFields.classList.remove("hidden");
+        } else {
+          dropOffFields.classList.add("hidden");
+        }
+      }
+
+      function handleUnifiedBlockedChange() {
+        const blocked = document.getElementById("unified-tr-blocked").checked;
+        const blockedFields = document.getElementById("unified-blocked-fields");
+        
+        if (blocked) {
+          blockedFields.classList.remove("hidden");
+        } else {
+          blockedFields.classList.add("hidden");
+        }
+      }
+
+      function handleUnifiedVPAStatusChange() {
+        const status = document.getElementById("unified-vpa-status").value;
+        const responseFields = document.getElementById("unified-vpa-response-fields");
+        
+        if (status == 1) {
+          responseFields.classList.remove("hidden");
+        } else {
+          responseFields.classList.add("hidden");
+        }
+      }
+
+      function handleUnifiedVPADefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("unified-vpa-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("unified-vpa-definite-answer-fields");
+        
+        if (definiteAnswer === "no") {
+          definiteAnswerFields.classList.remove("hidden");
+          setTimeout(function() {
+            initializeUnifiedFlatpickr();
+          }, 50);
+        } else {
+          definiteAnswerFields.classList.add("hidden");
+        }
+      }
+
+      function handleUnifiedVSRStatusChange() {
+        const status = document.getElementById("unified-vsr-status").value;
+        const responseFields = document.getElementById("unified-vsr-response-fields");
+        const scheduleSection = document.getElementById("unified-vsr-schedule-section");
+        const calendarSection = document.getElementById("unified-vsr-calendar-section");
+        
+        if (status == 0 || status == 1) {
+          responseFields.classList.remove("hidden");
+        } else {
+          responseFields.classList.add("hidden");
+        }
+        
+        if (status == 0 || status == 1 || status == 3) {
+          scheduleSection.classList.remove("hidden");
+        } else {
+          scheduleSection.classList.add("hidden");
+        }
+        
+        // Show calendar only for Pending Validation (0) or Pending Re-validation (1)
+        if (status == 0 || status == 1) {
+          if (calendarSection) {
+            calendarSection.classList.remove("hidden");
+          }
+        } else {
+          if (calendarSection) {
+            calendarSection.classList.add("hidden");
+          }
+        }
+      }
+
+      function handleUnifiedVSRDefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("unified-vsr-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("unified-vsr-definite-answer-fields");
+        
+        if (definiteAnswer === "no") {
+          definiteAnswerFields.classList.remove("hidden");
+          setTimeout(function() {
+            initializeUnifiedFlatpickr();
+          }, 50);
+        } else {
+          definiteAnswerFields.classList.add("hidden");
+        }
+      }
+
+      // Tab switching functionality
+      function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.add('hidden');
+        });
+        
+        // Remove active state from all tabs
+        document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+          tab.classList.remove('border-blue-500', 'text-blue-400');
+          tab.classList.add('border-transparent', 'text-slate-400');
+        });
+        
+        // Show selected tab content
+        const content = document.getElementById('content-' + tabName);
+        if (content) {
+          content.classList.remove('hidden');
+        }
+        
+        // Activate selected tab
+        const tab = document.getElementById('tab-' + tabName);
+        if (tab) {
+          tab.classList.remove('border-transparent', 'text-slate-400');
+          tab.classList.add('border-blue-500', 'text-blue-400');
+        }
+      }
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("unified-module-modal");
+          if (!modal.classList.contains("hidden")) {
+            closeUnifiedModal();
+          }
+        }
+      });
+
+      // Flatpickr instances storage
+      let flatpickrInstances = {};
+
+      // Initialize Flatpickr for unified modal date inputs
+      function initializeUnifiedFlatpickr() {
+        const dateInputs = [
+          { id: 'unified-tr-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-tr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vpa-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vpa-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vpa-followup-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vsr-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vsr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'unified-vsr-scheduled-datetime', config: { dateFormat: "d M Y h:i K", enableTime: true, time_24hr: false } },
+          { id: 'unified-vsr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
+        ];
+
+        const baseConfig = {
+          theme: "dark",
+          disableMobile: false,
+          animate: true,
+          allowInput: false,
+          clickOpens: true,
+          onReady: function(selectedDates, dateStr, instance) {
+            instance.input.addEventListener('mousedown', function(e) {
+              if (document.activeElement === this) {
+                e.preventDefault();
+              }
+            });
+          }
+        };
+
+        dateInputs.forEach(function(item) {
+          const input = document.getElementById(item.id);
+          if (input) {
+            // Destroy existing instance if it exists
+            if (flatpickrInstances[item.id]) {
+              try {
+                flatpickrInstances[item.id].destroy();
+              } catch (e) {
+                // Instance might already be destroyed
+              }
+              delete flatpickrInstances[item.id];
+            }
+            // Create new instance (works even if input is in hidden tab)
+            const config = Object.assign({}, baseConfig, item.config);
+            try {
+              flatpickrInstances[item.id] = flatpickr(input, config);
+            } catch (e) {
+              console.error('Error initializing Flatpickr for ' + item.id + ':', e);
+            }
+          }
+        });
+      }
+
+
+
+    </script>
+    <style>
+      /* Tab Navigation Styling */
+      [id^="tab-"] {
+        position: relative;
+        transition: all 0.2s ease;
+      }
+      
+      [id^="tab-"]:hover {
+        color: #cbd5e1;
+      }
+      
+      [id^="tab-"].border-blue-500 {
+        color: #60a5fa;
+        border-bottom-color: #3b82f6;
+      }
+      
+      /* Tab Content Animation */
+      .tab-content {
+        animation: fadeIn 0.2s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* Custom Flatpickr dark theme styling */
+      .flatpickr-calendar {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+      }
+      
+      .flatpickr-months {
+        background: #1e293b !important;
+      }
+      
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: #1e293b !important;
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-current-month input.cur-year {
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-day {
+        color: #e2e8f0 !important;
+        border: none !important;
+      }
+      
+      .flatpickr-day.today {
+        background: #334155 !important;
+        border-color: #3b82f6 !important;
+      }
+      
+      .flatpickr-day.selected, .flatpickr-day.selected:hover {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+      }
+      
+      .flatpickr-day:hover {
+        background: #334155 !important;
+        border-color: #334155 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #3b82f6 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        fill: #94a3b8 !important;
+      }
+      
+      .flatpickr-weekday {
+        color: #94a3b8 !important;
+      }
+      
+      .flatpickr-disabled, .flatpickr-disabled:hover {
+        color: #475569 !important;
+      }
+    </style>
+</body>
 </html>
 
