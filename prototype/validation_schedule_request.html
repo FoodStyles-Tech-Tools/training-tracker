@@ -147,7 +147,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', '0', '10 Nov 2025')"
+                        onclick="openVSRModal('VSR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', '0', '10 Nov 2025', 'Sarah Williams')"
                       >
                         John Smith
                       </button>
@@ -172,7 +172,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', '1', '11 Nov 2025')"
+                        onclick="openVSRModal('VSR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', '1', '11 Nov 2025', 'Michael Chen')"
                       >
                         Sarah Johnson
                       </button>
@@ -197,7 +197,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR3', 'Michael Brown', 'Customer Recovery Playbook', 'Advanced', '2', '12 Nov 2025')"
+                        onclick="openVSRModal('VSR3', 'Michael Brown', 'Customer Recovery Playbook', 'Advanced', '2', '12 Nov 2025', 'Emily Rodriguez')"
                       >
                         Michael Brown
                       </button>
@@ -222,7 +222,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR4', 'Emily Davis', 'Guest Hospitality Standards', 'Competent', '3', '13 Nov 2025')"
+                        onclick="openVSRModal('VSR4', 'Emily Davis', 'Guest Hospitality Standards', 'Competent', '3', '13 Nov 2025', 'David Kim')"
                       >
                         Emily Davis
                       </button>
@@ -247,7 +247,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR5', 'David Wilson', 'Food Safety & Sanitation', 'Basic', '4', '14 Nov 2025')"
+                        onclick="openVSRModal('VSR5', 'David Wilson', 'Food Safety & Sanitation', 'Basic', '4', '14 Nov 2025', 'Jessica Thompson')"
                       >
                         David Wilson
                       </button>
@@ -272,7 +272,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR6', 'Jessica Martinez', 'Customer Recovery Playbook', 'Basic', '5', '15 Nov 2025')"
+                        onclick="openVSRModal('VSR6', 'Jessica Martinez', 'Customer Recovery Playbook', 'Basic', '5', '15 Nov 2025', 'Robert Singh')"
                       >
                         Jessica Martinez
                       </button>
@@ -297,7 +297,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR7', 'Robert Taylor', 'Guest Hospitality Standards', 'Advanced', '0', '16 Nov 2025')"
+                        onclick="openVSRModal('VSR7', 'Robert Taylor', 'Guest Hospitality Standards', 'Advanced', '0', '16 Nov 2025', 'Lisa Park')"
                       >
                         Robert Taylor
                       </button>
@@ -322,7 +322,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR8', 'Lisa Anderson', 'Food Safety & Sanitation', 'Competent', '3', '17 Nov 2025')"
+                        onclick="openVSRModal('VSR8', 'Lisa Anderson', 'Food Safety & Sanitation', 'Competent', '3', '17 Nov 2025', 'James O\'Brien')"
                       >
                         Lisa Anderson
                       </button>
@@ -347,7 +347,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR9', 'James White', 'Customer Recovery Playbook', 'Competent', '4', '18 Nov 2025')"
+                        onclick="openVSRModal('VSR9', 'James White', 'Customer Recovery Playbook', 'Competent', '4', '18 Nov 2025', 'Amanda Foster')"
                       >
                         James White
                       </button>
@@ -372,7 +372,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openVSRModal('VSR10', 'Amanda Lee', 'Guest Hospitality Standards', 'Basic', '5', '19 Nov 2025')"
+                        onclick="openVSRModal('VSR10', 'Amanda Lee', 'Guest Hospitality Standards', 'Basic', '5', '19 Nov 2025', 'Thomas Nguyen')"
                       >
                         Amanda Lee
                       </button>
@@ -560,8 +560,8 @@
                   <input
                     id="vsr-assigned-to"
                     type="text"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="Enter assigned person..."
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
                   />
                 </div>
               </div>
@@ -698,6 +698,20 @@
                 Cancel
               </button>
               <button
+                type="button"
+                onclick="setVSRStatus('4')"
+                class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                Fail
+              </button>
+              <button
+                type="button"
+                onclick="setVSRStatus('5')"
+                class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              >
+                Pass
+              </button>
+              <button
                 type="submit"
                 class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               >
@@ -713,7 +727,7 @@
     <script src="table-sort.js"></script>
     <script>
       // Open VSR Modal
-      window.openVSRModal = function(vsrId, name, competency, level, vsrStatus, vsrDate) {
+      window.openVSRModal = function(vsrId, name, competency, level, vsrStatus, vsrDate, batchTrainer) {
         const modal = document.getElementById("vsr-modal");
         
         // Populate VSR fields
@@ -722,9 +736,9 @@
         document.getElementById("vsr-level").value = level || "";
         document.getElementById("vsr-status").value = vsrStatus || "0";
         document.getElementById("vsr-requested-date").value = vsrDate || "";
+        document.getElementById("vsr-assigned-to").value = batchTrainer || "";
         
         // Clear conditional fields
-        document.getElementById("vsr-assigned-to").value = "";
         document.getElementById("vsr-definite-answer").value = "";
         
         // Handle conditional fields visibility
@@ -793,6 +807,12 @@
         } else {
           definiteAnswerFields.classList.add("hidden");
         }
+      }
+
+      function setVSRStatus(status) {
+        const statusSelect = document.getElementById("vsr-status");
+        statusSelect.value = status;
+        handleVSRStatusChange();
       }
 
       // Close modal on Escape key

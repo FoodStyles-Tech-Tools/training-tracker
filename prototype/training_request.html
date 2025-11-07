@@ -237,7 +237,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-20T10:00:00">20 Nov 2025 10:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-20T10:00:00">20 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">15 Nov 2025 10:30:00</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -265,7 +265,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-19T14:00:00">19 Nov 2025 14:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-19T14:00:00">19 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">16 Nov 2025 14:15:22</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -293,7 +293,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-18T09:00:00">18 Nov 2025 09:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-18T09:00:00">18 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">17 Nov 2025 09:45:33</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -321,7 +321,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-001</td>
                     <td class="px-4 py-3 text-slate-300">Alex Morgan</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-17T11:00:00">17 Nov 2025 11:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-17T11:00:00">17 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">18 Nov 2025 11:20:15</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -349,7 +349,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-002</td>
                     <td class="px-4 py-3 text-slate-300">Priya Desai</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-16T16:00:00">16 Nov 2025 16:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-16T16:00:00">16 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">19 Nov 2025 16:45:00</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -377,7 +377,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-004</td>
                     <td class="px-4 py-3 text-slate-300">Jordan Lee</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-15T08:00:00">15 Nov 2025 08:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-15T08:00:00">15 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">20 Nov 2025 08:30:45</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -405,7 +405,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-003</td>
                     <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
-                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-14T13:00:00">14 Nov 2025 13:00</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-14T13:00:00">14 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">21 Nov 2025 13:15:10</td>
                   </tr>
                 </tbody>
@@ -1094,9 +1094,7 @@
             const day = dueDate.getDate();
             const month = dueDate.toLocaleString('en-US', { month: 'short' });
             const year = dueDate.getFullYear();
-            const hours = dueDate.getHours().toString().padStart(2, '0');
-            const minutes = dueDate.getMinutes().toString().padStart(2, '0');
-            responseDueCell.textContent = `${day} ${month} ${year} ${hours}:${minutes}`;
+            responseDueCell.textContent = `${day} ${month} ${year}`;
           }
         });
 
