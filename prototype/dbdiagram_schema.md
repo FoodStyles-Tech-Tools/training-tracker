@@ -276,10 +276,11 @@ Table training_request {
   blocked_reason text
   expected_unblocked_date date
   notes text
-  response_due date
   assigned_to uuid // check if this still used
+  response_due date
   response_date date
   definite_answer bool
+  no_follow_up_date date
   follow_up_date date
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
@@ -305,9 +306,6 @@ Table validation_project_approval {
   assigned_to uuid 
   response_due date // if status Pending Validation Project Approval, fill +1 from requested date
   response_date date
-  definite_answer bool
-  no_follow_up_date date
-  follow_up_date date
   updated_at timestamptz [not null, default: `now()`]
   created_at timestamptz [not null, default: `now()`]
 
