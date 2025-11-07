@@ -133,6 +133,7 @@
                     <th class="px-4 py-3 text-left font-medium">Batch Name</th>
                     <th class="px-4 py-3 text-left font-medium">Trainer</th>
                     <th class="px-4 py-3 text-left font-medium">Learners</th>
+                    <th class="px-4 py-3 text-left font-medium">Estimate start date</th>
                     <th class="px-4 py-3 text-left font-medium">Actions</th>
                   </tr>
                 </thead>
@@ -148,23 +149,28 @@
                     <td class="px-4 py-3 text-slate-100">Batch-2025-001</td>
                     <td class="px-4 py-3 text-slate-300">Alex Morgan</td>
                     <td class="px-4 py-3">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
-                        data-batch-id="batch-001"
-                        data-batch-name="Batch-2025-001"
-                        data-learners-count="12"
-                        onclick="openLearnersModal(this)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        12
-                      </button>
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-001"
+                          data-batch-name="Batch-2025-001"
+                          data-learners-count="12"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          12
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 8</span>
+                      </div>
                     </td>
+                    <td class="px-4 py-3 text-slate-300">2025-02-15</td>
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
                         <a
@@ -193,23 +199,28 @@
                     <td class="px-4 py-3 text-slate-100">Batch-2025-002</td>
                     <td class="px-4 py-3 text-slate-300">Priya Desai</td>
                     <td class="px-4 py-3">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
-                        data-batch-id="batch-002"
-                        data-batch-name="Batch-2025-002"
-                        data-learners-count="8"
-                        onclick="openLearnersModal(this)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        8
-                      </button>
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-002"
+                          data-batch-name="Batch-2025-002"
+                          data-learners-count="8"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          8
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 12</span>
+                      </div>
                     </td>
+                    <td class="px-4 py-3 text-slate-300">2025-02-20</td>
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
                         <a
@@ -238,23 +249,28 @@
                     <td class="px-4 py-3 text-slate-100">Batch-2025-003</td>
                     <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
                     <td class="px-4 py-3">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
-                        data-batch-id="batch-003"
-                        data-batch-name="Batch-2025-003"
-                        data-learners-count="5"
-                        onclick="openLearnersModal(this)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        5
-                      </button>
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-003"
+                          data-batch-name="Batch-2025-003"
+                          data-learners-count="5"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          5
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 15</span>
+                      </div>
                     </td>
+                    <td class="px-4 py-3 text-slate-300">2025-03-01</td>
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
                         <a
@@ -283,23 +299,28 @@
                     <td class="px-4 py-3 text-slate-100">Batch-2025-004</td>
                     <td class="px-4 py-3 text-slate-300">Jordan Lee</td>
                     <td class="px-4 py-3">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
-                        data-batch-id="batch-004"
-                        data-batch-name="Batch-2025-004"
-                        data-learners-count="15"
-                        onclick="openLearnersModal(this)"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        15
-                      </button>
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-004"
+                          data-batch-name="Batch-2025-004"
+                          data-learners-count="15"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          15
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 5</span>
+                      </div>
                     </td>
+                    <td class="px-4 py-3 text-slate-300">2025-03-10</td>
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
                         <a
@@ -484,6 +505,7 @@
         const batchId = button.getAttribute("data-batch-id");
         const batchName = button.getAttribute("data-batch-name");
         const learnersCount = button.getAttribute("data-learners-count");
+        const maxCapacity = button.getAttribute("data-max-capacity") || "20";
 
         const modal = document.getElementById("learners-modal");
         const modalBatchName = document.getElementById("modal-batch-name");
@@ -506,10 +528,21 @@
               <p class="font-medium text-slate-100">${learner.name}</p>
               <p class="text-sm text-slate-400">${learner.email}</p>
             </div>
-            <div>
-              <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
-                ${learner.status}
-              </span>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                onclick="removeFromBatch('${learner.id}', '${batchId}')"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Remove from Batch
+              </button>
+              <button
+                type="button"
+                onclick="dropOffLearner('${learner.id}', '${batchId}')"
+                class="rounded-md border border-red-700 bg-red-800/50 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                Drop-off
+              </button>
             </div>
           </div>
         `
@@ -520,6 +553,20 @@
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         document.body.style.overflow = "hidden";
+      }
+
+      function removeFromBatch(learnerId, batchId) {
+        // Handle remove from batch action
+        console.log(`Removing learner ${learnerId} from batch ${batchId}`);
+        // Add your remove logic here
+        alert(`Remove learner ${learnerId} from batch ${batchId}`);
+      }
+
+      function dropOffLearner(learnerId, batchId) {
+        // Handle drop-off action
+        console.log(`Dropping off learner ${learnerId} from batch ${batchId}`);
+        // Add your drop-off logic here
+        alert(`Drop-off learner ${learnerId} from batch ${batchId}`);
       }
 
       function closeLearnersModal(event) {
@@ -533,6 +580,22 @@
         modal.classList.remove("flex");
         document.body.style.overflow = "";
       }
+
+      // Calculate and update spots left for all batches
+      function updateSpotsLeft() {
+        document.querySelectorAll('[data-learners-count][data-max-capacity]').forEach(button => {
+          const learnersCount = parseInt(button.getAttribute("data-learners-count")) || 0;
+          const maxCapacity = parseInt(button.getAttribute("data-max-capacity")) || 20;
+          const spotsLeft = maxCapacity - learnersCount;
+          const spotsLeftElement = button.parentElement.querySelector('.text-xs.text-slate-500');
+          if (spotsLeftElement) {
+            spotsLeftElement.textContent = `Spot left ${spotsLeft}`;
+          }
+        });
+      }
+
+      // Update spots left on page load
+      updateSpotsLeft();
 
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
