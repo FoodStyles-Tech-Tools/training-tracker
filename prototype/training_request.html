@@ -719,6 +719,43 @@
                   placeholder="Enter any additional notes..."
                 ></textarea>
               </div>
+
+              <!-- Definite Answer Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="tr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                  <select
+                    id="tr-definite-answer"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleTRDefiniteAnswerChange()"
+                  >
+                    <option value="">Select...</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div id="tr-definite-answer-fields" class="hidden space-y-4">
+                  <div class="space-y-2">
+                    <label for="tr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
+                    <input
+                      id="tr-follow-date"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="tr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
+                    <input
+                      id="tr-followup-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Action Buttons -->
@@ -811,6 +848,9 @@
         const trBlockedEl = document.getElementById("tr-blocked");
         const trBlockReasonEl = document.getElementById("tr-block-reason");
         const trNotesEl = document.getElementById("tr-notes");
+        const trDefiniteAnswerEl = document.getElementById("tr-definite-answer");
+        const trFollowDateEl = document.getElementById("tr-follow-date");
+        const trFollowupDateEl = document.getElementById("tr-followup-date");
         
         if (trOnHoldByEl) trOnHoldByEl.value = "";
         if (trOnHoldReasonEl) trOnHoldReasonEl.value = "";
@@ -819,10 +859,18 @@
         if (trBlockedEl) trBlockedEl.checked = false;
         if (trBlockReasonEl) trBlockReasonEl.value = "";
         if (trNotesEl) trNotesEl.value = "";
+        if (trDefiniteAnswerEl) trDefiniteAnswerEl.value = "";
+        if (trFollowDateEl) trFollowDateEl.value = "";
+        if (trFollowupDateEl) trFollowupDateEl.value = "";
+        
+        // Hide conditional fields
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
+        if (definiteAnswerFields) definiteAnswerFields.classList.add("hidden");
         
         // Handle conditional fields visibility
         if (typeof handleTRStatusChange === 'function') handleTRStatusChange();
         if (typeof handleBlockedChange === 'function') handleBlockedChange();
+        if (typeof handleTRDefiniteAnswerChange === 'function') handleTRDefiniteAnswerChange();
         
         // Show modal
         modal.classList.remove("hidden");
@@ -904,6 +952,34 @@
         }
       }
 
+      function handleTRDefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("tr-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
+        
+        if (definiteAnswer === "no") {
+          definiteAnswerFields.classList.remove("hidden");
+          
+          // Calculate follow date (+3 days from today)
+          const today = new Date();
+          const followDate = new Date(today);
+          followDate.setDate(followDate.getDate() + 3);
+          
+          const followDateInput = document.getElementById("tr-follow-date");
+          if (followDateInput) {
+            const day = followDate.getDate();
+            const month = followDate.toLocaleString('en-US', { month: 'short' });
+            const year = followDate.getFullYear();
+            followDateInput.value = `${day} ${month} ${year}`;
+          }
+          
+          setTimeout(function() {
+            initializeTRFlatpickr();
+          }, 50);
+        } else {
+          definiteAnswerFields.classList.add("hidden");
+        }
+      }
+
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
@@ -944,7 +1020,8 @@
             } 
           },
           { id: 'tr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } }
+          { id: 'tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'tr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
         ];
 
         const baseConfig = {
