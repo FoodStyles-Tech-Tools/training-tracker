@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  index,
   pgEnum,
   pgTable,
   text,
@@ -10,6 +11,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log"]);
+export const userStatusEnum = pgEnum("user_status", ["active", "inactive"]);
+export const userDepartmentEnum = pgEnum("user_department", ["curator", "scraping"]);
 
 export const rolesList = pgTable(
   "roles_list",
@@ -64,6 +67,9 @@ export const users = pgTable(
     emailVerified: boolean("email_verified").notNull().default(false),
     image: text("image"),
     discordId: text("discord_id"),
+    status: userStatusEnum("status").notNull().default("active"),
+    department: userDepartmentEnum("department").notNull(),
+    googleCalendarTag: text("google_calendar_tag"),
     roleId: uuid("role_id").references(() => rolesList.id, {
       onDelete: "set null",
     }),
@@ -82,6 +88,8 @@ export const users = pgTable(
   },
   (users) => ({
     emailIdx: uniqueIndex("users_email_idx").on(users.email),
+    statusIdx: index("users_status_idx").on(users.status),
+    departmentIdx: index("users_department_idx").on(users.department),
   }),
 );
 
