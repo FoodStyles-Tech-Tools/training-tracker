@@ -57,107 +57,137 @@
 
             <!-- Search Form -->
             <div class="prototype-card p-4">
-              <form class="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-name" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="search-name"
-                    name="name"
-                    placeholder="Search by name..."
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
+              <form class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:flex-row sm:flex-nowrap sm:gap-3">
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-name" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      id="search-name"
+                      name="name"
+                      placeholder="Search by name..."
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-competency" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Competency
+                    </label>
+                    <select
+                      id="search-competency"
+                      name="competency"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Competencies</option>
+                      <option value="Guest Hospitality Standards">Guest Hospitality Standards</option>
+                      <option value="Food Safety & Sanitation">Food Safety & Sanitation</option>
+                      <option value="Customer Recovery Playbook">Customer Recovery Playbook</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[120px]">
+                    <label for="search-level" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Level
+                    </label>
+                    <select
+                      id="search-level"
+                      name="level"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Levels</option>
+                      <option value="basic">Basic</option>
+                      <option value="competent">Competent</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-status" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Status
+                    </label>
+                    <select
+                      id="search-status"
+                      name="status"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Status</option>
+                      <option value="not-started">Not Started</option>
+                      <option value="in-queue">In Queue</option>
+                      <option value="no-batch-match">No batch match</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="training-complete">Training Complete</option>
+                      <option value="on-hold">On Hold</option>
+                      <option value="drop-off">Drop Off</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-trainer" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Trainer
+                    </label>
+                    <select
+                      id="search-trainer"
+                      name="trainer"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Trainers</option>
+                      <option value="Alex Morgan">Alex Morgan</option>
+                      <option value="Priya Desai">Priya Desai</option>
+                      <option value="Jordan Lee">Jordan Lee</option>
+                      <option value="Sofia Alvarez">Sofia Alvarez</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[150px]">
+                    <label for="search-batch" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Batch
+                    </label>
+                    <select
+                      id="search-batch"
+                      name="batch"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Batches</option>
+                      <option value="Batch-2025-001">Batch-2025-001</option>
+                      <option value="Batch-2025-002">Batch-2025-002</option>
+                      <option value="Batch-2025-003">Batch-2025-003</option>
+                      <option value="Batch-2025-004">Batch-2025-004</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-competency" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Competency
-                  </label>
-                  <input
-                    type="text"
-                    id="search-competency"
-                    name="competency"
-                    placeholder="Search by competency..."
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-level" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Level
-                  </label>
-                  <select
-                    id="search-level"
-                    name="level"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                <div class="flex gap-2 flex-wrap items-center">
+                  <button
+                    type="button"
+                    class="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
                   >
-                    <option value="">All Levels</option>
-                    <option value="basic">Basic</option>
-                    <option value="competent">Competent</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-status" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Status
-                  </label>
-                  <select
-                    id="search-status"
-                    name="status"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    Due in 24h (1)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
                   >
-                    <option value="">All Status</option>
-                    <option value="not-started">Not Started</option>
-                    <option value="in-queue">In Queue</option>
-                    <option value="no-batch-match">No batch match</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="training-complete">Training Complete</option>
-                    <option value="on-hold">On Hold</option>
-                    <option value="drop-off">Drop Off</option>
-                  </select>
-                </div>
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-trainer" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Trainer
-                  </label>
-                  <select
-                    id="search-trainer"
-                    name="trainer"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    Due in 3d (2)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                   >
-                    <option value="">All Trainers</option>
-                    <option value="Alex Morgan">Alex Morgan</option>
-                    <option value="Priya Desai">Priya Desai</option>
-                    <option value="Jordan Lee">Jordan Lee</option>
-                    <option value="Sofia Alvarez">Sofia Alvarez</option>
-                  </select>
-                </div>
-                <div class="flex-1 min-w-0 sm:min-w-[200px]">
-                  <label for="search-batch" class="mb-1.5 block text-xs font-medium text-slate-300">
-                    Batch
-                  </label>
-                  <select
-                    id="search-batch"
-                    name="batch"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    Overdue (3)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                   >
-                    <option value="">All Batches</option>
-                    <option value="Batch-2025-001">Guest Hospitality Standards - Basic - Batch-2025-001</option>
-                    <option value="Batch-2025-002">Food Safety & Sanitation - Competent - Batch-2025-002</option>
-                    <option value="Batch-2025-003">Customer Recovery Playbook - Advanced - Batch-2025-003</option>
-                    <option value="Batch-2025-004">Guest Hospitality Standards - Competent - Batch-2025-004</option>
-                  </select>
-                </div>
-                <div class="flex w-full sm:w-auto items-end gap-2">
+                    Blocked (2)
+                  </button>
+                  <div class="flex-1"></div>
                   <button
                     type="submit"
-                    class="flex-1 sm:flex-none rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                   >
                     Search
                   </button>
                   <button
                     type="reset"
-                    class="flex-1 sm:flex-none rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                    class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                   >
                     Clear
                   </button>
@@ -177,6 +207,7 @@
                     <th class="px-4 py-3 text-left font-medium">Status</th>
                     <th class="px-4 py-3 text-left font-medium">Batch</th>
                     <th class="px-4 py-3 text-left font-medium">Trainer</th>
+                    <th class="px-4 py-3 text-left font-medium">Response Due Date</th>
                     <th class="px-4 py-3 text-left font-medium">Last Update</th>
                   </tr>
                 </thead>
@@ -188,7 +219,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', 'VPA1', '0', '10 Nov 2025', 'VSR1', '0', '10 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', '10 Nov 2025')"
                       >
                         John Smith
                       </button>
@@ -206,6 +237,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-20T10:00:00">20 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">15 Nov 2025 10:30:00</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -215,7 +247,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', 'In Queue', '-', '-', 'VPA2', '1', '11 Nov 2025', 'VSR2', '1', '11 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', 'In Queue', '-', '-', '11 Nov 2025')"
                       >
                         Sarah Johnson
                       </button>
@@ -233,6 +265,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-19T14:00:00">19 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">16 Nov 2025 14:15:22</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -242,7 +275,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR3', 'Michael Chen', 'Customer Recovery Playbook', 'Advanced', 'No batch match', '-', '-', 'VPA3', '2', '12 Nov 2025', 'VSR3', '2', '12 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR3', 'Michael Chen', 'Customer Recovery Playbook', 'Advanced', 'No batch match', '-', '-', '12 Nov 2025')"
                       >
                         Michael Chen
                       </button>
@@ -260,6 +293,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-300">-</td>
                     <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-18T09:00:00">18 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">17 Nov 2025 09:45:33</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -269,7 +303,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR4', 'Emily Davis', 'Guest Hospitality Standards', 'Basic', 'In Progress', 'Batch-2025-001', 'Alex Morgan', 'VPA4', '3', '13 Nov 2025', 'VSR4', '3', '13 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR4', 'Emily Davis', 'Guest Hospitality Standards', 'Basic', 'In Progress', 'Batch-2025-001', 'Alex Morgan', '13 Nov 2025')"
                       >
                         Emily Davis
                       </button>
@@ -287,6 +321,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-001</td>
                     <td class="px-4 py-3 text-slate-300">Alex Morgan</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-17T11:00:00">17 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">18 Nov 2025 11:20:15</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -296,7 +331,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR5', 'David Wilson', 'Food Safety & Sanitation', 'Competent', 'Training Complete', 'Batch-2025-002', 'Priya Desai', 'VPA5', '0', '14 Nov 2025', 'VSR5', '4', '14 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR5', 'David Wilson', 'Food Safety & Sanitation', 'Competent', 'Training Complete', 'Batch-2025-002', 'Priya Desai', '14 Nov 2025')"
                       >
                         David Wilson
                       </button>
@@ -314,6 +349,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-002</td>
                     <td class="px-4 py-3 text-slate-300">Priya Desai</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-16T16:00:00">16 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">19 Nov 2025 16:45:00</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -323,7 +359,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR6', 'Lisa Anderson', 'Guest Hospitality Standards', 'Competent', 'On Hold', 'Batch-2025-004', 'Jordan Lee', 'VPA6', '1', '15 Nov 2025', 'VSR6', '5', '15 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR6', 'Lisa Anderson', 'Guest Hospitality Standards', 'Competent', 'On Hold', 'Batch-2025-004', 'Jordan Lee', '15 Nov 2025')"
                       >
                         Lisa Anderson
                       </button>
@@ -341,6 +377,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-004</td>
                     <td class="px-4 py-3 text-slate-300">Jordan Lee</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-15T08:00:00">15 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">20 Nov 2025 08:30:45</td>
                   </tr>
                   <tr class="hover:bg-slate-900/60">
@@ -350,7 +387,7 @@
                       <button
                         type="button"
                         class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        onclick="openUnifiedModal('TR7', 'James Brown', 'Customer Recovery Playbook', 'Advanced', 'Drop Off', 'Batch-2025-003', 'Sofia Alvarez', 'VPA7', '0', '16 Nov 2025', 'VSR7', '0', '16 Nov 2025')"
+                        onclick="openTrainingRequestModal('TR7', 'James Brown', 'Customer Recovery Playbook', 'Advanced', 'Drop Off', 'Batch-2025-003', 'Sofia Alvarez', '16 Nov 2025')"
                       >
                         James Brown
                       </button>
@@ -368,6 +405,7 @@
                     </td>
                     <td class="px-4 py-3 text-slate-100">Batch-2025-003</td>
                     <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-14T13:00:00">14 Nov 2025</td>
                     <td class="px-4 py-3 text-slate-400">21 Nov 2025 13:15:10</td>
                   </tr>
                 </tbody>
@@ -444,11 +482,11 @@
       </div>
     </div>
 
-    <!-- Unified Module Details Modal -->
+    <!-- Training Request Modal -->
     <div
-      id="unified-module-modal"
+      id="training-request-modal"
       class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
-      onclick="closeUnifiedModal(event)"
+      onclick="closeTrainingRequestModal(event)"
     >
       <div
         class="prototype-card max-h-[90vh] w-full max-w-5xl overflow-y-auto"
@@ -456,12 +494,12 @@
       >
         <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
           <div>
-            <h2 class="text-lg font-semibold text-white">Module Details - Streamlined Management</h2>
-            <p class="text-sm text-slate-400">Update any module details from anywhere</p>
+            <h2 class="text-lg font-semibold text-white">Training Request Details</h2>
+            <p class="text-sm text-slate-400">Update training request information</p>
           </div>
           <button
             type="button"
-            onclick="closeUnifiedModal()"
+            onclick="closeTrainingRequestModal()"
             class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             aria-label="Close modal"
           >
@@ -472,54 +510,23 @@
         </div>
         <div class="p-6">
           <form class="space-y-6" onsubmit="event.preventDefault()">
-            
-            <!-- Tab Navigation -->
-            <div class="flex gap-2 border-b border-slate-800/80 mb-6">
-              <button
-                type="button"
-                id="tab-tr"
-                onclick="switchTab('tr')"
-                class="px-4 py-2 text-sm font-medium transition border-b-2 border-blue-500 text-blue-400"
-              >
-                Training Request
-              </button>
-              <button
-                type="button"
-                id="tab-vpa"
-                onclick="switchTab('vpa')"
-                class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
-              >
-                Validation Project Approval
-              </button>
-              <button
-                type="button"
-                id="tab-vsr"
-                onclick="switchTab('vsr')"
-                class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
-              >
-                Validation Schedule Request
-              </button>
-            </div>
-
             <!-- Training Request Section -->
-            <div id="content-tr" class="space-y-4 tab-content">
-            <!-- Basic Information -->
             <div class="space-y-4">
               <!-- Row 1: TR ID | Name -->
               <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                  <label for="unified-tr-id" class="block text-sm font-medium text-slate-300">TR ID</label>
+                  <label for="tr-id" class="block text-sm font-medium text-slate-300">TR ID</label>
                   <input
-                    id="unified-tr-id"
+                    id="tr-id"
                     type="text"
                     readonly
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
                   />
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-name" class="block text-sm font-medium text-slate-300">Name</label>
+                  <label for="tr-name" class="block text-sm font-medium text-slate-300">Name</label>
                   <input
-                    id="unified-name"
+                    id="tr-name"
                     type="text"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -529,17 +536,17 @@
               <!-- Row 2: Competency | Level -->
               <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                  <label for="unified-tr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                  <label for="tr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
                   <input
-                    id="unified-tr-competency"
+                    id="tr-competency"
                     type="text"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-tr-level" class="block text-sm font-medium text-slate-300">Level</label>
+                  <label for="tr-level" class="block text-sm font-medium text-slate-300">Level</label>
                   <input
-                    id="unified-tr-level"
+                    id="tr-level"
                     type="text"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -549,17 +556,17 @@
               <!-- Row 3: Trainer | Batch -->
               <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                  <label for="unified-tr-trainer" class="block text-sm font-medium text-slate-300">Trainer</label>
+                  <label for="tr-trainer" class="block text-sm font-medium text-slate-300">Trainer</label>
                   <input
-                    id="unified-tr-trainer"
+                    id="tr-trainer"
                     type="text"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-tr-batch" class="block text-sm font-medium text-slate-300">Batch</label>
+                  <label for="tr-batch" class="block text-sm font-medium text-slate-300">Batch</label>
                   <input
-                    id="unified-tr-batch"
+                    id="tr-batch"
                     type="text"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
@@ -569,11 +576,11 @@
               <!-- Row 4: Status | Requested date -->
               <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                  <label for="unified-tr-status" class="block text-sm font-medium text-slate-300">Status</label>
+                  <label for="tr-status" class="block text-sm font-medium text-slate-300">Status</label>
                   <select
-                    id="unified-tr-status"
+                    id="tr-status"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    onchange="handleUnifiedTRStatusChange()"
+                    onchange="handleTRStatusChange()"
                   >
                     <option value="Not Started">Not Started</option>
                     <option value="Looking for Trainer">Looking for Trainer</option>
@@ -586,9 +593,9 @@
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-tr-requested-date" class="block text-sm font-medium text-slate-300">Requested date</label>
+                  <label for="tr-requested-date" class="block text-sm font-medium text-slate-300">Requested date</label>
                   <input
-                    id="unified-tr-requested-date"
+                    id="tr-requested-date"
                     type="text"
                     class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                     placeholder="Select date"
@@ -598,21 +605,21 @@
               </div>
 
               <!-- Looking for Trainer Fields (conditional) -->
-              <div id="unified-looking-for-trainer-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+              <div id="looking-for-trainer-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
                 <div class="grid gap-4 md:grid-cols-2">
                   <div class="space-y-2">
-                    <label for="unified-tr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                    <label for="tr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
                     <input
-                      id="unified-tr-response-due"
+                      id="tr-response-due"
                       type="text"
                       readonly
                       class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
                     />
                   </div>
                   <div class="space-y-2">
-                    <label for="unified-tr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                    <label for="tr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
                     <input
-                      id="unified-tr-assigned-to"
+                      id="tr-assigned-to"
                       type="text"
                       class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="Enter assigned person..."
@@ -620,9 +627,9 @@
                   </div>
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-tr-response-date" class="block text-sm font-medium text-slate-300">Response date</label>
+                  <label for="tr-response-date" class="block text-sm font-medium text-slate-300">Response date</label>
                   <input
-                    id="unified-tr-response-date"
+                    id="tr-response-date"
                     type="text"
                     class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                     placeholder="Select date"
@@ -632,11 +639,11 @@
               </div>
 
               <!-- On Hold Fields (conditional) -->
-              <div id="unified-on-hold-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+              <div id="on-hold-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
                 <div class="space-y-2">
-                  <label for="unified-tr-on-hold-by" class="block text-sm font-medium text-slate-300">On hold by</label>
+                  <label for="tr-on-hold-by" class="block text-sm font-medium text-slate-300">On hold by</label>
                   <select
-                    id="unified-tr-on-hold-by"
+                    id="tr-on-hold-by"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="">Select...</option>
@@ -645,9 +652,9 @@
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label for="unified-tr-on-hold-reason" class="block text-sm font-medium text-slate-300">On hold reason</label>
+                  <label for="tr-on-hold-reason" class="block text-sm font-medium text-slate-300">On hold reason</label>
                   <textarea
-                    id="unified-tr-on-hold-reason"
+                    id="tr-on-hold-reason"
                     rows="3"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Enter reason for holding..."
@@ -656,11 +663,11 @@
               </div>
 
               <!-- Drop Off Fields (conditional) -->
-              <div id="unified-drop-off-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+              <div id="drop-off-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
                 <div class="space-y-2">
-                  <label for="unified-tr-drop-off-reason" class="block text-sm font-medium text-slate-300">Drop-off reason</label>
+                  <label for="tr-drop-off-reason" class="block text-sm font-medium text-slate-300">Drop-off reason</label>
                   <textarea
-                    id="unified-tr-drop-off-reason"
+                    id="tr-drop-off-reason"
                     rows="3"
                     class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Enter reason for drop-off..."
@@ -673,26 +680,26 @@
                 <div class="flex items-center gap-3">
                   <input
                     type="checkbox"
-                    id="unified-tr-blocked"
+                    id="tr-blocked"
                     class="h-4 w-4 rounded border-slate-700 bg-slate-900/80 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                    onchange="handleUnifiedBlockedChange()"
+                    onchange="handleBlockedChange()"
                   />
-                  <label for="unified-tr-blocked" class="text-sm font-medium text-slate-300">Blocked</label>
+                  <label for="tr-blocked" class="text-sm font-medium text-slate-300">Blocked</label>
                 </div>
-                <div id="unified-blocked-fields" class="hidden space-y-4 pl-7">
+                <div id="blocked-fields" class="hidden space-y-4 pl-7">
                   <div class="space-y-2">
-                    <label for="unified-tr-block-reason" class="block text-sm font-medium text-slate-300">Block reason</label>
+                    <label for="tr-block-reason" class="block text-sm font-medium text-slate-300">Block reason</label>
                     <textarea
-                      id="unified-tr-block-reason"
+                      id="tr-block-reason"
                       rows="3"
                       class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="Enter reason for blocking..."
                     ></textarea>
                   </div>
                   <div class="space-y-2">
-                    <label for="unified-tr-expected-unblock-date" class="block text-sm font-medium text-slate-300">Expected unblocked date</label>
+                    <label for="tr-expected-unblock-date" class="block text-sm font-medium text-slate-300">Expected unblocked date</label>
                     <input
-                      id="unified-tr-expected-unblock-date"
+                      id="tr-expected-unblock-date"
                       type="text"
                       class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       placeholder="Select date"
@@ -704,357 +711,48 @@
 
               <!-- Notes -->
               <div class="space-y-2 border-t border-slate-800/80 pt-4">
-                <label for="unified-tr-notes" class="block text-sm font-medium text-slate-300">Notes</label>
+                <label for="tr-notes" class="block text-sm font-medium text-slate-300">Notes</label>
                 <textarea
-                  id="unified-tr-notes"
+                  id="tr-notes"
                   rows="4"
                   class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Enter any additional notes..."
                 ></textarea>
               </div>
-            </div>
-            </div>
 
-            <!-- Validation Project Approval Section -->
-            <div id="content-vpa" class="space-y-4 tab-content hidden">
-              <!-- Basic Information -->
-              <div class="space-y-4">
-                <!-- Row 1: VPA ID | Submitted Date -->
-                <div class="grid gap-4 md:grid-cols-2">
+              <!-- Definite Answer Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="tr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                  <select
+                    id="tr-definite-answer"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleTRDefiniteAnswerChange()"
+                  >
+                    <option value="">Select...</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div id="tr-definite-answer-fields" class="hidden space-y-4">
                   <div class="space-y-2">
-                    <label for="unified-vpa-id" class="block text-sm font-medium text-slate-300">VPA ID</label>
+                    <label for="tr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
                     <input
-                      id="unified-vpa-id"
+                      id="tr-follow-date"
                       type="text"
                       readonly
                       class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
                     />
                   </div>
                   <div class="space-y-2">
-                    <label for="unified-vpa-requested-date" class="block text-sm font-medium text-slate-300">Submitted Date</label>
+                    <label for="tr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
                     <input
-                      id="unified-vpa-requested-date"
+                      id="tr-followup-date"
                       type="text"
                       class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       placeholder="Select date"
                       readonly
                     />
-                  </div>
-                </div>
-              
-                <!-- Row 2: Competency | Level -->
-                <div class="grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vpa-competency" class="block text-sm font-medium text-slate-300">Competency</label>
-                    <input
-                      id="unified-vpa-competency"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vpa-level" class="block text-sm font-medium text-slate-300">Level</label>
-                    <input
-                      id="unified-vpa-level"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              
-                <!-- Row 3: Status | Assigned to -->
-                <div class="grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vpa-status" class="block text-sm font-medium text-slate-300">Status</label>
-                    <select
-                      id="unified-vpa-status"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      onchange="handleUnifiedVPAStatusChange()"
-                    >
-                      <option value="0">Pending Project Submission</option>
-                      <option value="1">Pending Validation Project Approval</option>
-                      <option value="2">Approved</option>
-                      <option value="3">Rejected</option>
-                      <option value="4">Resubmit for Re-validation</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vpa-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
-                    <input
-                      id="unified-vpa-assigned-to"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder="Enter assigned person..."
-                    />
-                  </div>
-                </div>
-              
-                <!-- Row 4: Response Due | Response Date (conditional based on status) -->
-                <div id="unified-vpa-response-fields" class="hidden grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vpa-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
-                    <input
-                      id="unified-vpa-response-due"
-                      type="text"
-                      readonly
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vpa-response-date" class="block text-sm font-medium text-slate-300">Response Date</label>
-                    <input
-                      id="unified-vpa-response-date"
-                      type="text"
-                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                      placeholder="Select date"
-                      readonly
-                    />
-                  </div>
-                </div>
-
-                <!-- Project Details -->
-                <div class="space-y-2 border-t border-slate-800/80 pt-4">
-                  <label for="unified-vpa-project-details" class="block text-sm font-medium text-slate-300">Project Details</label>
-                  <textarea
-                    id="unified-vpa-project-details"
-                    rows="6"
-                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="Project details..."
-                  ></textarea>
-                </div>
-
-                <!-- Definite Answer Fields -->
-                <div class="space-y-4 border-t border-slate-800/80 pt-4">
-                  <div class="space-y-2">
-                    <label for="unified-vpa-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
-                    <select
-                      id="unified-vpa-definite-answer"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      onchange="handleUnifiedVPADefiniteAnswerChange()"
-                    >
-                      <option value="">Select...</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-                  <div id="unified-vpa-definite-answer-fields" class="hidden space-y-4">
-                    <div class="space-y-2">
-                      <label for="unified-vpa-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
-                      <input
-                        id="unified-vpa-follow-date"
-                        type="text"
-                        readonly
-                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
-                      />
-                    </div>
-                    <div class="space-y-2">
-                      <label for="unified-vpa-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
-                      <input
-                        id="unified-vpa-followup-date"
-                        type="text"
-                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                        placeholder="Select date"
-                        readonly
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Validation Schedule Request Section -->
-            <div id="content-vsr" class="space-y-4 tab-content hidden">
-              <!-- Basic Information -->
-              <div class="space-y-4">
-                <!-- Row 1: VSR ID | Requested Date -->
-                <div class="grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vsr-id" class="block text-sm font-medium text-slate-300">VSR ID</label>
-                    <input
-                      id="unified-vsr-id"
-                      type="text"
-                      readonly
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vsr-requested-date" class="block text-sm font-medium text-slate-300">Requested Date</label>
-                    <input
-                      id="unified-vsr-requested-date"
-                      type="text"
-                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                      placeholder="Select date"
-                      readonly
-                    />
-                  </div>
-                </div>
-              
-                <!-- Row 2: Competency | Level -->
-                <div class="grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vsr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
-                    <input
-                      id="unified-vsr-competency"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vsr-level" class="block text-sm font-medium text-slate-300">Level</label>
-                    <input
-                      id="unified-vsr-level"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              
-                <!-- Row 3: Status | Assigned to -->
-                <div class="grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vsr-status" class="block text-sm font-medium text-slate-300">Status</label>
-                    <select
-                      id="unified-vsr-status"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      onchange="handleUnifiedVSRStatusChange()"
-                    >
-                      <option value="0">Pending Validation</option>
-                      <option value="1">Pending Re-validation</option>
-                      <option value="2">Validation Only</option>
-                      <option value="3">Validation Scheduled</option>
-                      <option value="4">Fail</option>
-                      <option value="5">Pass</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vsr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
-                    <input
-                      id="unified-vsr-assigned-to"
-                      type="text"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder="Enter assigned person..."
-                    />
-                  </div>
-                </div>
-              
-                <!-- Row 4: Response Due | Response Date (conditional based on status) -->
-                <div id="unified-vsr-response-fields" class="hidden grid gap-4 md:grid-cols-2">
-                  <div class="space-y-2">
-                    <label for="unified-vsr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
-                    <input
-                      id="unified-vsr-response-due"
-                      type="text"
-                      readonly
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
-                    />
-                  </div>
-                  <div class="space-y-2">
-                    <label for="unified-vsr-response-date" class="block text-sm font-medium text-slate-300">Response Date</label>
-                    <input
-                      id="unified-vsr-response-date"
-                      type="text"
-                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                      placeholder="Select date"
-                      readonly
-                    />
-                  </div>
-                </div>
-
-                <!-- Schedule Section (shown for Pending Validation, Pending Re-validation, or Validation Scheduled) -->
-                <div id="unified-vsr-schedule-section" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
-                  <h4 class="text-sm font-semibold text-white">Schedule</h4>
-                  
-                  <!-- Row 1: Validator Ops | Validator Trainer -->
-                  <div class="grid gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                      <label for="unified-vsr-validator-ops" class="block text-sm font-medium text-slate-300">Validator Ops</label>
-                      <select
-                        id="unified-vsr-validator-ops"
-                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="">Select Validator Ops...</option>
-                        <option value="john-doe">John Doe</option>
-                        <option value="jane-smith">Jane Smith</option>
-                        <option value="mike-wilson">Mike Wilson</option>
-                        <option value="sarah-johnson">Sarah Johnson</option>
-                      </select>
-                    </div>
-                    <div class="space-y-2">
-                      <label for="unified-vsr-validator-trainer" class="block text-sm font-medium text-slate-300">Validator Trainer</label>
-                      <select
-                        id="unified-vsr-validator-trainer"
-                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="">Select Validator Trainer...</option>
-                        <option value="david-brown">David Brown</option>
-                        <option value="emily-davis">Emily Davis</option>
-                        <option value="robert-taylor">Robert Taylor</option>
-                        <option value="lisa-anderson">Lisa Anderson</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <!-- Row 2: Scheduled Date Time -->
-                  <div class="space-y-2">
-                    <label for="unified-vsr-scheduled-datetime" class="block text-sm font-medium text-slate-300">Scheduled Date Time</label>
-                    <input
-                      id="unified-vsr-scheduled-datetime"
-                      type="text"
-                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                      placeholder="Select date and time"
-                      readonly
-                    />
-                  </div>
-                  
-                  <!-- Google Calendar (shown for Pending Validation or Pending Re-validation) -->
-                  <div id="unified-vsr-calendar-section" class="hidden space-y-2">
-                    <label class="block text-sm font-medium text-slate-300">Calendar</label>
-                    <iframe
-                      src="https://calendar.google.com/calendar/embed?src=claudy.novianto%40foodstyles.com&ctz=Asia%2FJakarta"
-                      style="border: 0"
-                      width="100%"
-                      height="600"
-                      frameborder="0"
-                      scrolling="no"
-                      class="rounded-md"
-                    ></iframe>
-                  </div>
-                </div>
-
-                <!-- Definite Answer Fields -->
-                <div class="space-y-4 border-t border-slate-800/80 pt-4">
-                  <div class="space-y-2">
-                    <label for="unified-vsr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
-                    <select
-                      id="unified-vsr-definite-answer"
-                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      onchange="handleUnifiedVSRDefiniteAnswerChange()"
-                    >
-                      <option value="">Select...</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-                  <div id="unified-vsr-definite-answer-fields" class="hidden space-y-4">
-                    <div class="space-y-2">
-                      <label for="unified-vsr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
-                      <input
-                        id="unified-vsr-follow-date"
-                        type="text"
-                        readonly
-                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
-                      />
-                    </div>
-                    <div class="space-y-2">
-                      <label for="unified-vsr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
-                      <input
-                        id="unified-vsr-followup-date"
-                        type="text"
-                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                        placeholder="Select date"
-                        readonly
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1064,7 +762,7 @@
             <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
               <button
                 type="button"
-                onclick="closeUnifiedModal()"
+                onclick="closeTrainingRequestModal()"
                 class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
               >
                 Cancel
@@ -1073,7 +771,7 @@
                 type="submit"
                 class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               >
-                Save All Changes
+                Save Changes
               </button>
             </div>
           </form>
@@ -1084,21 +782,22 @@
     <script src="navigation.js"></script>
     <script src="table-sort.js"></script>
     <script>
-      function openUnifiedModal(trId, name, competency, level, status, batch, trainer, vpaId, vpaStatus, vpaDate, vsrId, vsrStatus, vsrDate) {
-        const modal = document.getElementById("unified-module-modal");
+      function openTrainingRequestModal(trId, name, competency, level, status, batch, trainer, requestedDate) {
+        const modal = document.getElementById("training-request-modal");
         if (!modal) {
-          console.error("Unified modal not found!");
+          console.error("Training request modal not found!");
           return;
         }
         
         // Populate Training Request fields
-        const trIdEl = document.getElementById("unified-tr-id");
-        const nameEl = document.getElementById("unified-name");
-        const trCompetencyEl = document.getElementById("unified-tr-competency");
-        const trLevelEl = document.getElementById("unified-tr-level");
-        const trStatusEl = document.getElementById("unified-tr-status");
-        const trBatchEl = document.getElementById("unified-tr-batch");
-        const trTrainerEl = document.getElementById("unified-tr-trainer");
+        const trIdEl = document.getElementById("tr-id");
+        const nameEl = document.getElementById("tr-name");
+        const trCompetencyEl = document.getElementById("tr-competency");
+        const trLevelEl = document.getElementById("tr-level");
+        const trStatusEl = document.getElementById("tr-status");
+        const trBatchEl = document.getElementById("tr-batch");
+        const trTrainerEl = document.getElementById("tr-trainer");
+        const trRequestedDateEl = document.getElementById("tr-requested-date");
         
         if (trIdEl) trIdEl.value = trId || "";
         if (nameEl) nameEl.value = name || "";
@@ -1107,50 +806,51 @@
         if (trStatusEl) trStatusEl.value = status || "";
         if (trBatchEl) trBatchEl.value = batch === "-" ? "" : batch || "";
         if (trTrainerEl) trTrainerEl.value = trainer === "-" ? "" : trainer || "";
-        
-        // Populate VPA fields
-        const vpaIdEl = document.getElementById("unified-vpa-id");
-        const vpaCompetencyEl = document.getElementById("unified-vpa-competency");
-        const vpaLevelEl = document.getElementById("unified-vpa-level");
-        const vpaStatusEl = document.getElementById("unified-vpa-status");
-        const vpaDateEl = document.getElementById("unified-vpa-requested-date");
-        const vpaProjectEl = document.getElementById("unified-vpa-project-details");
-        
-        if (vpaIdEl) vpaIdEl.value = vpaId || "";
-        if (vpaCompetencyEl) vpaCompetencyEl.value = competency || "";
-        if (vpaLevelEl) vpaLevelEl.value = level || "";
-        if (vpaStatusEl) vpaStatusEl.value = vpaStatus || "0";
-        if (vpaDateEl) vpaDateEl.value = vpaDate || "";
-        if (vpaProjectEl && vpaId) {
-          const projectDetails = `This is a sample validation project for ${competency} at ${level} level. The project involves demonstrating practical competency through real-world scenarios and case studies.`;
-          vpaProjectEl.value = projectDetails;
+        if (trRequestedDateEl) {
+          trRequestedDateEl.value = requestedDate || "";
+          
+          // Auto-calculate Response Due date (+1 day from requested date) if requested date exists
+          if (requestedDate) {
+            try {
+              // Parse the requested date (format: "10 Nov 2025")
+              const dateParts = requestedDate.split(' ');
+              if (dateParts.length === 3) {
+                const day = parseInt(dateParts[0]);
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = monthNames.indexOf(dateParts[1]);
+                const year = parseInt(dateParts[2]);
+                
+                if (month !== -1) {
+                  const requestedDateObj = new Date(year, month, day);
+                  const responseDueDate = new Date(requestedDateObj);
+                  responseDueDate.setDate(responseDueDate.getDate() + 1);
+                  
+                  const responseDueInput = document.getElementById('tr-response-due');
+                  if (responseDueInput) {
+                    const responseDay = responseDueDate.getDate();
+                    const responseMonth = responseDueDate.toLocaleString('en-US', { month: 'short' });
+                    const responseYear = responseDueDate.getFullYear();
+                    responseDueInput.value = `${responseDay} ${responseMonth} ${responseYear}`;
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('Error calculating response due date:', e);
+            }
+          }
         }
         
-        // Populate VSR fields
-        const vsrIdEl = document.getElementById("unified-vsr-id");
-        const vsrCompetencyEl = document.getElementById("unified-vsr-competency");
-        const vsrLevelEl = document.getElementById("unified-vsr-level");
-        const vsrStatusEl = document.getElementById("unified-vsr-status");
-        const vsrDateEl = document.getElementById("unified-vsr-requested-date");
-        
-        if (vsrIdEl) vsrIdEl.value = vsrId || "";
-        if (vsrCompetencyEl) vsrCompetencyEl.value = competency || "";
-        if (vsrLevelEl) vsrLevelEl.value = level || "";
-        if (vsrStatusEl) vsrStatusEl.value = vsrStatus || "0";
-        if (vsrDateEl) vsrDateEl.value = vsrDate || "";
-        
         // Clear conditional fields
-        const trOnHoldByEl = document.getElementById("unified-tr-on-hold-by");
-        const trOnHoldReasonEl = document.getElementById("unified-tr-on-hold-reason");
-        const trDropOffReasonEl = document.getElementById("unified-tr-drop-off-reason");
-        const trAssignedToEl = document.getElementById("unified-tr-assigned-to");
-        const trBlockedEl = document.getElementById("unified-tr-blocked");
-        const trBlockReasonEl = document.getElementById("unified-tr-block-reason");
-        const trNotesEl = document.getElementById("unified-tr-notes");
-        const vpaAssignedToEl = document.getElementById("unified-vpa-assigned-to");
-        const vpaDefiniteAnswerEl = document.getElementById("unified-vpa-definite-answer");
-        const vsrAssignedToEl = document.getElementById("unified-vsr-assigned-to");
-        const vsrDefiniteAnswerEl = document.getElementById("unified-vsr-definite-answer");
+        const trOnHoldByEl = document.getElementById("tr-on-hold-by");
+        const trOnHoldReasonEl = document.getElementById("tr-on-hold-reason");
+        const trDropOffReasonEl = document.getElementById("tr-drop-off-reason");
+        const trAssignedToEl = document.getElementById("tr-assigned-to");
+        const trBlockedEl = document.getElementById("tr-blocked");
+        const trBlockReasonEl = document.getElementById("tr-block-reason");
+        const trNotesEl = document.getElementById("tr-notes");
+        const trDefiniteAnswerEl = document.getElementById("tr-definite-answer");
+        const trFollowDateEl = document.getElementById("tr-follow-date");
+        const trFollowupDateEl = document.getElementById("tr-followup-date");
         
         if (trOnHoldByEl) trOnHoldByEl.value = "";
         if (trOnHoldReasonEl) trOnHoldReasonEl.value = "";
@@ -1159,59 +859,68 @@
         if (trBlockedEl) trBlockedEl.checked = false;
         if (trBlockReasonEl) trBlockReasonEl.value = "";
         if (trNotesEl) trNotesEl.value = "";
-        if (vpaAssignedToEl) vpaAssignedToEl.value = "";
-        if (vpaDefiniteAnswerEl) vpaDefiniteAnswerEl.value = "";
-        if (vsrAssignedToEl) vsrAssignedToEl.value = "";
-        if (vsrDefiniteAnswerEl) vsrDefiniteAnswerEl.value = "";
+        if (trDefiniteAnswerEl) trDefiniteAnswerEl.value = "";
+        if (trFollowDateEl) trFollowDateEl.value = "";
+        if (trFollowupDateEl) trFollowupDateEl.value = "";
+        
+        // Hide conditional fields
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
+        if (definiteAnswerFields) definiteAnswerFields.classList.add("hidden");
         
         // Handle conditional fields visibility
-        if (typeof handleUnifiedTRStatusChange === 'function') handleUnifiedTRStatusChange();
-        if (typeof handleUnifiedBlockedChange === 'function') handleUnifiedBlockedChange();
-        if (typeof handleUnifiedVPAStatusChange === 'function') handleUnifiedVPAStatusChange();
-        if (typeof handleUnifiedVSRStatusChange === 'function') handleUnifiedVSRStatusChange();
+        if (typeof handleTRStatusChange === 'function') handleTRStatusChange();
+        if (typeof handleBlockedChange === 'function') handleBlockedChange();
+        if (typeof handleTRDefiniteAnswerChange === 'function') handleTRDefiniteAnswerChange();
         
         // Show modal
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         document.body.style.overflow = "hidden";
         
-        // Switch to first tab (Training Request)
-        if (typeof switchTab === 'function') switchTab('tr');
-        
         // Initialize Flatpickr and set dates after modal is shown
         setTimeout(function() {
-          if (typeof initializeUnifiedFlatpickr === 'function') {
-            initializeUnifiedFlatpickr();
+          if (typeof initializeTRFlatpickr === 'function') {
+            initializeTRFlatpickr();
             
             // Set requested date with today's date if not provided
-            const trRequestedDateInput = document.getElementById("unified-tr-requested-date");
-            if (trRequestedDateInput && !trRequestedDateInput.value) {
+            if (trRequestedDateEl && !trRequestedDateEl.value) {
               const today = new Date();
               const day = today.getDate();
               const month = today.toLocaleString('en-US', { month: 'short' });
               const year = today.getFullYear();
               const formattedDate = `${day} ${month} ${year}`;
-              trRequestedDateInput.value = formattedDate;
+              trRequestedDateEl.value = formattedDate;
+              
+              // Auto-calculate Response Due date (+1 day from today)
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              const responseDueInput = document.getElementById('tr-response-due');
+              if (responseDueInput) {
+                const responseDay = tomorrow.getDate();
+                const responseMonth = tomorrow.toLocaleString('en-US', { month: 'short' });
+                const responseYear = tomorrow.getFullYear();
+                responseDueInput.value = `${responseDay} ${responseMonth} ${responseYear}`;
+              }
             }
           }
         }, 100);
       }
 
-      function closeUnifiedModal(event) {
+      function closeTrainingRequestModal(event) {
         if (event && event.target !== event.currentTarget) {
           return;
         }
-        const modal = document.getElementById("unified-module-modal");
+        const modal = document.getElementById("training-request-modal");
         modal.classList.add("hidden");
         modal.classList.remove("flex");
         document.body.style.overflow = "";
       }
 
-      function handleUnifiedTRStatusChange() {
-        const status = document.getElementById("unified-tr-status").value;
-        const onHoldFields = document.getElementById("unified-on-hold-fields");
-        const dropOffFields = document.getElementById("unified-drop-off-fields");
-        const lookingForTrainerFields = document.getElementById("unified-looking-for-trainer-fields");
+      function handleTRStatusChange() {
+        const status = document.getElementById("tr-status").value;
+        const onHoldFields = document.getElementById("on-hold-fields");
+        const dropOffFields = document.getElementById("drop-off-fields");
+        const lookingForTrainerFields = document.getElementById("looking-for-trainer-fields");
         
         if (status === "Looking for Trainer") {
           lookingForTrainerFields.classList.remove("hidden");
@@ -1232,9 +941,9 @@
         }
       }
 
-      function handleUnifiedBlockedChange() {
-        const blocked = document.getElementById("unified-tr-blocked").checked;
-        const blockedFields = document.getElementById("unified-blocked-fields");
+      function handleBlockedChange() {
+        const blocked = document.getElementById("tr-blocked").checked;
+        const blockedFields = document.getElementById("blocked-fields");
         
         if (blocked) {
           blockedFields.classList.remove("hidden");
@@ -1243,113 +952,40 @@
         }
       }
 
-      function handleUnifiedVPAStatusChange() {
-        const status = document.getElementById("unified-vpa-status").value;
-        const responseFields = document.getElementById("unified-vpa-response-fields");
-        
-        if (status == 1) {
-          responseFields.classList.remove("hidden");
-        } else {
-          responseFields.classList.add("hidden");
-        }
-      }
-
-      function handleUnifiedVPADefiniteAnswerChange() {
-        const definiteAnswer = document.getElementById("unified-vpa-definite-answer").value;
-        const definiteAnswerFields = document.getElementById("unified-vpa-definite-answer-fields");
+      function handleTRDefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("tr-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
         
         if (definiteAnswer === "no") {
           definiteAnswerFields.classList.remove("hidden");
+          
+          // Calculate follow date (+3 days from today)
+          const today = new Date();
+          const followDate = new Date(today);
+          followDate.setDate(followDate.getDate() + 3);
+          
+          const followDateInput = document.getElementById("tr-follow-date");
+          if (followDateInput) {
+            const day = followDate.getDate();
+            const month = followDate.toLocaleString('en-US', { month: 'short' });
+            const year = followDate.getFullYear();
+            followDateInput.value = `${day} ${month} ${year}`;
+          }
+          
           setTimeout(function() {
-            initializeUnifiedFlatpickr();
+            initializeTRFlatpickr();
           }, 50);
         } else {
           definiteAnswerFields.classList.add("hidden");
         }
-      }
-
-      function handleUnifiedVSRStatusChange() {
-        const status = document.getElementById("unified-vsr-status").value;
-        const responseFields = document.getElementById("unified-vsr-response-fields");
-        const scheduleSection = document.getElementById("unified-vsr-schedule-section");
-        const calendarSection = document.getElementById("unified-vsr-calendar-section");
-        
-        if (status == 0 || status == 1) {
-          responseFields.classList.remove("hidden");
-        } else {
-          responseFields.classList.add("hidden");
-        }
-        
-        if (status == 0 || status == 1 || status == 3) {
-          scheduleSection.classList.remove("hidden");
-        } else {
-          scheduleSection.classList.add("hidden");
-        }
-        
-        // Show calendar only for Pending Validation (0) or Pending Re-validation (1)
-        if (status == 0 || status == 1) {
-          if (calendarSection) {
-            calendarSection.classList.remove("hidden");
-          }
-        } else {
-          if (calendarSection) {
-            calendarSection.classList.add("hidden");
-          }
-        }
-      }
-
-      function handleUnifiedVSRDefiniteAnswerChange() {
-        const definiteAnswer = document.getElementById("unified-vsr-definite-answer").value;
-        const definiteAnswerFields = document.getElementById("unified-vsr-definite-answer-fields");
-        
-        if (definiteAnswer === "no") {
-          definiteAnswerFields.classList.remove("hidden");
-          setTimeout(function() {
-            initializeUnifiedFlatpickr();
-          }, 50);
-        } else {
-          definiteAnswerFields.classList.add("hidden");
-        }
-      }
-
-      // Tab switching functionality
-      function switchTab(tabName) {
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.add('hidden');
-        });
-        
-        // Remove active state from all tabs
-        document.querySelectorAll('[id^="tab-"]').forEach(tab => {
-          tab.classList.remove('border-blue-500', 'text-blue-400');
-          tab.classList.add('border-transparent', 'text-slate-400');
-        });
-        
-        // Show selected tab content
-        const content = document.getElementById('content-' + tabName);
-        if (content) {
-          content.classList.remove('hidden');
-        }
-        
-        // Activate selected tab
-        const tab = document.getElementById('tab-' + tabName);
-        if (tab) {
-          tab.classList.remove('border-transparent', 'text-slate-400');
-          tab.classList.add('border-blue-500', 'text-blue-400');
-        }
-        
-        // Reinitialize Flatpickr after tab switch to ensure date pickers work
-        setTimeout(function() {
-          initializeUnifiedFlatpickr();
-        }, 50);
       }
 
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          const modal = document.getElementById("unified-module-modal");
+          const modal = document.getElementById("training-request-modal");
           if (!modal.classList.contains("hidden")) {
-            closeUnifiedModal();
+            closeTrainingRequestModal();
           }
         }
       });
@@ -1357,19 +993,35 @@
       // Flatpickr instances storage
       let flatpickrInstances = {};
 
-      // Initialize Flatpickr for unified modal date inputs
-      function initializeUnifiedFlatpickr() {
+      // Initialize Flatpickr for training request modal date inputs
+      function initializeTRFlatpickr() {
         const dateInputs = [
-          { id: 'unified-tr-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-tr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vpa-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vpa-response-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vpa-followup-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vsr-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vsr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
-          { id: 'unified-vsr-scheduled-datetime', config: { dateFormat: "d M Y h:i K", enableTime: true, time_24hr: false } },
-          { id: 'unified-vsr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
+          { 
+            id: 'tr-requested-date', 
+            config: { 
+              dateFormat: "d M Y", 
+              enableTime: false,
+              onChange: function(selectedDates, dateStr, instance) {
+                // Auto-fill Response Due date (+1 day from requested date)
+                if (selectedDates.length > 0) {
+                  const requestedDate = selectedDates[0];
+                  const responseDueDate = new Date(requestedDate);
+                  responseDueDate.setDate(responseDueDate.getDate() + 1);
+                  
+                  const responseDueInput = document.getElementById('tr-response-due');
+                  if (responseDueInput) {
+                    const day = responseDueDate.getDate();
+                    const month = responseDueDate.toLocaleString('en-US', { month: 'short' });
+                    const year = responseDueDate.getFullYear();
+                    responseDueInput.value = `${day} ${month} ${year}`;
+                  }
+                }
+              }
+            } 
+          },
+          { id: 'tr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'tr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
         ];
 
         const baseConfig = {
@@ -1399,7 +1051,7 @@
               }
               delete flatpickrInstances[item.id];
             }
-            // Create new instance (works even if input is in hidden tab)
+            // Create new instance
             const config = Object.assign({}, baseConfig, item.config);
             try {
               flatpickrInstances[item.id] = flatpickr(input, config);
@@ -1410,41 +1062,92 @@
         });
       }
 
+      // Sort table by Response Due Date (descending) and color rows
+      function sortAndColorTableByResponseDue() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
 
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        // Set sample dates relative to now for demonstration
+        // Some overdue, some within 24 hours, some future
+        const sampleDates = [
+          now.getTime() - (2 * 24 * 60 * 60 * 1000), // 2 days ago (overdue)
+          now.getTime() - (1 * 24 * 60 * 60 * 1000), // 1 day ago (overdue)
+          now.getTime() - (12 * 60 * 60 * 1000),    // 12 hours ago (overdue)
+          now.getTime() + (6 * 60 * 60 * 1000),      // 6 hours from now (near due)
+          now.getTime() + (18 * 60 * 60 * 1000),     // 18 hours from now (near due)
+          now.getTime() + (3 * 24 * 60 * 60 * 1000), // 3 days from now (future)
+          now.getTime() + (5 * 24 * 60 * 60 * 1000), // 5 days from now (future)
+        ];
+
+        // Update response due dates in table cells
+        rows.forEach((row, index) => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          if (responseDueCell && index < sampleDates.length) {
+            const dueDate = new Date(sampleDates[index]);
+            const dateStr = dueDate.toISOString();
+            responseDueCell.setAttribute('data-response-due', dateStr);
+            
+            // Format date for display
+            const day = dueDate.getDate();
+            const month = dueDate.toLocaleString('en-US', { month: 'short' });
+            const year = dueDate.getFullYear();
+            responseDueCell.textContent = `${day} ${month} ${year}`;
+          }
+        });
+
+        // Color rows based on TR ID
+        rows.forEach(row => {
+          // Get TR ID from first cell
+          const firstCell = row.querySelector('td:first-child');
+          if (!firstCell) return;
+          
+          const trId = firstCell.textContent.trim();
+          
+          // Remove existing color classes
+          row.classList.remove('bg-yellow-500/30', 'bg-red-500/30');
+          
+          // Apply colors based on TR ID
+          if (trId === 'TR1' || trId === 'TR2') {
+            // TR1 and TR2: yellow
+            row.classList.add('bg-yellow-500/30');
+          } else if (trId === 'TR3' || trId === 'TR4' || trId === 'TR5') {
+            // TR3, TR4, TR5: light red
+            row.classList.add('bg-red-500/30');
+          }
+          // TR6 and TR7: no color (already removed above)
+        });
+
+        // Sort all rows by response due date (descending) for display
+        rows.sort((a, b) => {
+          const aCell = a.querySelector('[data-response-due]');
+          const bCell = b.querySelector('[data-response-due]');
+          
+          if (!aCell || !aCell.getAttribute('data-response-due')) return 1;
+          if (!bCell || !bCell.getAttribute('data-response-due')) return -1;
+          
+          const aDate = new Date(aCell.getAttribute('data-response-due'));
+          const bDate = new Date(bCell.getAttribute('data-response-due'));
+          
+          return bDate - aDate; // Descending order
+        });
+
+        // Re-append all rows in sorted order
+        rows.forEach(row => tbody.appendChild(row));
+      }
+
+      // Run on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        sortAndColorTableByResponseDue();
+      });
+
+      // Also run after a short delay to ensure table is fully loaded
+      setTimeout(sortAndColorTableByResponseDue, 100);
 
     </script>
     <style>
-      /* Tab Navigation Styling */
-      [id^="tab-"] {
-        position: relative;
-        transition: all 0.2s ease;
-      }
-      
-      [id^="tab-"]:hover {
-        color: #cbd5e1;
-      }
-      
-      [id^="tab-"].border-blue-500 {
-        color: #60a5fa;
-        border-bottom-color: #3b82f6;
-      }
-      
-      /* Tab Content Animation */
-      .tab-content {
-        animation: fadeIn 0.2s ease-in;
-      }
-      
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(4px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      
       /* Custom Flatpickr dark theme styling */
       .flatpickr-calendar {
         background: #1e293b !important;

@@ -10,6 +10,16 @@ Enum module_name {
   activity_log
 }
 
+Enum user_status {
+  active
+  inactive
+}
+
+Enum user_department {
+  curator
+  scraping
+}
+
 Table roles_list {
   id uuid [pk, default: `gen_random_uuid()`]
   role_name text [not null]
@@ -44,7 +54,9 @@ Table users {
   email_verified boolean [not null, default: false]
   image text
   discord_id text
-  is_active boolean [not null, default: true] // TODO: Not yet implemented in actual schema
+  status user_status [not null, default: 'active']
+  department user_department
+  google_calendar_tag text
   role_id uuid
   created_date timestamptz [not null, default: `now()`]
   updated_date timestamptz [not null, default: `now()`]
@@ -52,6 +64,8 @@ Table users {
   Indexes {
     (email) [unique]
     (role_id)
+    (status)
+    (department)
   }
 }
 
@@ -177,18 +191,33 @@ Table training_batch {
   competency_level_id uuid [not null]
   trainer_user_id uuid [not null]
   batch_name text [not null]
-  session1_date date
-  session2_date date
-  session3_date date
-  session4_date date
-  session5_date date
-  session6_date date
+  session_count int [not null, default: 0]
+  duration_hrs numeric
+  estimated_start date
+  batch_start_date date
+  capacity int [not null, default: 0]
+  current_participant int [not null, default: 0]
+  spot_left int [not null, default: 0]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (competency_level_id)
     (trainer_user_id)
+  }
+}
+
+Table training_batch_sessions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  training_batch_id uuid [not null]
+  session_number int [not null]
+  session_date date
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (training_batch_id, session_number) [unique]
+    (training_batch_id)
   }
 }
 
@@ -204,25 +233,30 @@ Table training_batch_learners {
   }
 }
 
-Table training_batch_attendance {
+Table training_batch_attendance_sessions {
   training_batch_id uuid [not null]
   learner_user_id uuid [not null]
-  session1_attended boolean [not null, default: false]
-  session2_attended boolean [not null, default: false]
-  session3_attended boolean [not null, default: false]
-  session4_attended boolean [not null, default: false]
-  session5_attended boolean [not null, default: false]
-  session6_attended boolean [not null, default: false]
-  homework1_date date
-  homework2_date date
-  homework3_date date
-  homework4_date date
-  homework5_date date
-  homework6_date date
+  session_id uuid [not null]
+  attended boolean [not null, default: false]
 
   Indexes {
-    (training_batch_id, learner_user_id) [pk]
+    (training_batch_id, learner_user_id, session_id) [pk]
     (learner_user_id)
+    (session_id)
+  }
+}
+
+Table training_batch_homework_sessions {
+  training_batch_id uuid [not null]
+  learner_user_id uuid [not null]
+  session_id uuid [not null]
+  completed boolean [not null, default: false]
+  homework_url text
+
+  Indexes {
+    (training_batch_id, learner_user_id, session_id) [pk]
+    (learner_user_id)
+    (session_id)
   }
 }
   
@@ -256,10 +290,11 @@ Table training_request {
   blocked_reason text
   expected_unblocked_date date
   notes text
-  response_due date
   assigned_to uuid // check if this still used
+  response_due date
   response_date date
   definite_answer bool
+  no_follow_up_date date
   follow_up_date date
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
@@ -285,9 +320,6 @@ Table validation_project_approval {
   assigned_to uuid 
   response_due date // if status Pending Validation Project Approval, fill +1 from requested date
   response_date date
-  definite_answer bool
-  no_follow_up_date date
-  follow_up_date date
   updated_at timestamptz [not null, default: `now()`]
   created_at timestamptz [not null, default: `now()`]
 
@@ -378,8 +410,15 @@ Ref: training_batch_learners.training_batch_id > training_batch.id [delete: casc
 Ref: training_batch_learners.learner_user_id > users.id [delete: cascade]
 Ref: training_batch_learners.training_request_id > training_request.id [delete: cascade]
 
-Ref: training_batch_attendance.training_batch_id > training_batch.id [delete: cascade]
-Ref: training_batch_attendance.learner_user_id > users.id [delete: cascade]
+Ref: training_batch_sessions.training_batch_id > training_batch.id [delete: cascade]
+
+Ref: training_batch_attendance_sessions.training_batch_id > training_batch.id [delete: cascade]
+Ref: training_batch_attendance_sessions.learner_user_id > users.id [delete: cascade]
+Ref: training_batch_attendance_sessions.session_id > training_batch_sessions.id [delete: cascade]
+
+Ref: training_batch_homework_sessions.training_batch_id > training_batch.id [delete: cascade]
+Ref: training_batch_homework_sessions.learner_user_id > users.id [delete: cascade]
+Ref: training_batch_homework_sessions.session_id > training_batch_sessions.id [delete: cascade]
 
 Ref: training_request.learner_user_id > users.id [delete: cascade]
 Ref: training_request.competency_level_id > competency_levels.id [delete: cascade]
