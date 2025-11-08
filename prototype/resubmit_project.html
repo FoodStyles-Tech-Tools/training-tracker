@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resubmit Project</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div>
+              <h1 class="text-2xl font-semibold text-white">Resubmit Project</h1>
+              <p class="text-sm text-slate-400">
+                View all rejected projects across competencies that require resubmission.
+              </p>
+            </div>
+
+            <!-- Filter Forms -->
+            <div class="prototype-card">
+              <div class="p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Filters</h2>
+                <form id="filter-form" class="space-y-4" onsubmit="event.preventDefault(); applyFilters();">
+                  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5 items-end">
+                    <!-- Competency Filter -->
+                    <div class="space-y-2">
+                      <label for="filter-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                      <select
+                        id="filter-competency"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">All Competencies</option>
+                        <option value="Guest Hospitality Standards">Guest Hospitality Standards</option>
+                        <option value="Food Safety & Sanitation">Food Safety & Sanitation</option>
+                        <option value="Customer Recovery Playbook">Customer Recovery Playbook</option>
+                      </select>
+                    </div>
+
+                    <!-- Level Filter -->
+                    <div class="space-y-2">
+                      <label for="filter-level" class="block text-sm font-medium text-slate-300">Level</label>
+                      <select
+                        id="filter-level"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">All Levels</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Competent">Competent</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                    </div>
+
+                    <!-- Training Status Filter -->
+                    <div class="space-y-2">
+                      <label for="filter-status" class="block text-sm font-medium text-slate-300">Training Status</label>
+                      <select
+                        id="filter-status"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="">All Statuses</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Resubmit for Re-validation">Resubmit for Re-validation</option>
+                      </select>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onclick="resetFilters()"
+                        class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 whitespace-nowrap"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 whitespace-nowrap"
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Resubmit Project Table -->
+            <div class="prototype-card overflow-hidden p-0">
+              <div class="p-6">
+                <div class="overflow-x-auto -mx-6 px-6">
+                  <table id="resubmit-table" class="w-full min-w-[1000px] border-collapse text-sm">
+                    <thead class="bg-slate-950/70 text-slate-300">
+                      <tr>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Competency</th>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Level</th>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Learner</th>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Training Status</th>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Rejected Date</th>
+                        <th class="px-3 py-3 text-left font-medium whitespace-nowrap">Days Count</th>
+                      </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-800/80">
+                      <!-- Guest Hospitality Standards -->
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Guest Hospitality Standards" data-level="Basic" data-learner="John Smith" data-status="Rejected" data-date="12 Nov 2025" data-days="8">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Guest Hospitality Standards</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200 whitespace-nowrap">
+                            Basic
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">John Smith</td>
+                        <td class="px-4 py-3">
+                          <span class="whitespace-nowrap rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-semibold text-red-200">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">12 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">8</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Guest Hospitality Standards" data-level="Competent" data-learner="Sarah Johnson" data-status="Resubmit for Re-validation" data-date="14 Nov 2025" data-days="6">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Guest Hospitality Standards</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200 whitespace-nowrap">
+                            Competent
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Sarah Johnson</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">14 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">6</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Guest Hospitality Standards" data-level="Advanced" data-learner="Michael Brown" data-status="Rejected" data-date="16 Nov 2025" data-days="4">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Guest Hospitality Standards</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200 whitespace-nowrap">
+                            Advanced
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Michael Brown</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200 whitespace-nowrap">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">16 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">4</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Guest Hospitality Standards" data-level="Basic" data-learner="Emily Davis" data-status="Resubmit for Re-validation" data-date="18 Nov 2025" data-days="2">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Guest Hospitality Standards</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200 whitespace-nowrap">
+                            Basic
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Emily Davis</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">18 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">2</td>
+                      </tr>
+                      <!-- Food Safety & Sanitation -->
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Food Safety & Sanitation" data-level="Competent" data-learner="Sarah Johnson" data-status="Resubmit for Re-validation" data-date="15 Nov 2025" data-days="5">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Food Safety & Sanitation</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200 whitespace-nowrap">
+                            Competent
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Sarah Johnson</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">15 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">5</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Food Safety & Sanitation" data-level="Basic" data-learner="David Wilson" data-status="Rejected" data-date="17 Nov 2025" data-days="3">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Food Safety & Sanitation</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200 whitespace-nowrap">
+                            Basic
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">David Wilson</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200 whitespace-nowrap">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">17 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">3</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Food Safety & Sanitation" data-level="Advanced" data-learner="Michael Brown" data-status="Resubmit for Re-validation" data-date="19 Nov 2025" data-days="1">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Food Safety & Sanitation</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200 whitespace-nowrap">
+                            Advanced
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Michael Brown</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">19 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">1</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Food Safety & Sanitation" data-level="Competent" data-learner="Jessica Martinez" data-status="Rejected" data-date="13 Nov 2025" data-days="7">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Food Safety & Sanitation</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200 whitespace-nowrap">
+                            Competent
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Jessica Martinez</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200 whitespace-nowrap">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">13 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">7</td>
+                      </tr>
+                      <!-- Customer Recovery Playbook -->
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Customer Recovery Playbook" data-level="Advanced" data-learner="Michael Brown" data-status="Rejected" data-date="20 Nov 2025" data-days="0">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Customer Recovery Playbook</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200 whitespace-nowrap">
+                            Advanced
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Michael Brown</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200 whitespace-nowrap">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">20 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">0</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Customer Recovery Playbook" data-level="Competent" data-learner="Christopher Green" data-status="Resubmit for Re-validation" data-date="18 Nov 2025" data-days="2">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Customer Recovery Playbook</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200 whitespace-nowrap">
+                            Competent
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Christopher Green</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">18 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">2</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Customer Recovery Playbook" data-level="Basic" data-learner="Patricia Harris" data-status="Rejected" data-date="16 Nov 2025" data-days="4">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Customer Recovery Playbook</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200 whitespace-nowrap">
+                            Basic
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Patricia Harris</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200 whitespace-nowrap">
+                            Rejected
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">16 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">4</td>
+                      </tr>
+                      <tr class="table-row hover:bg-slate-900/60" data-competency="Customer Recovery Playbook" data-level="Advanced" data-learner="Daniel Clark" data-status="Resubmit for Re-validation" data-date="21 Nov 2025" data-days="-1">
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Customer Recovery Playbook</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200 whitespace-nowrap">
+                            Advanced
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-100 whitespace-nowrap">Daniel Clark</td>
+                        <td class="px-3 py-3">
+                          <span class="inline-block rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200 whitespace-nowrap">
+                            Resubmit for Re-validation
+                          </span>
+                        </td>
+                        <td class="px-3 py-3 text-slate-300 whitespace-nowrap">21 Nov 2025</td>
+                        <td class="px-3 py-3 text-slate-400 whitespace-nowrap">-1</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <!-- Pagination -->
+            <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between border-t border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">Rows:</span>
+                <select class="rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-8 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <span>Showing 1 to 50 of 2500 entries</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  4
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  5
+                </button>
+                <span class="text-sm text-slate-400">...</span>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  50
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="table-sort.js"></script>
+    <script>
+
+      // Filter functionality
+      function applyFilters() {
+        const competency = document.getElementById("filter-competency").value;
+        const level = document.getElementById("filter-level").value;
+        const status = document.getElementById("filter-status").value;
+
+        const rows = document.querySelectorAll("#table-body .table-row");
+        
+        rows.forEach(row => {
+          let show = true;
+          
+          // Competency filter
+          if (competency && row.dataset.competency !== competency) {
+            show = false;
+          }
+          
+          // Level filter
+          if (level && row.dataset.level !== level) {
+            show = false;
+          }
+          
+          // Status filter
+          if (status && row.dataset.status !== status) {
+            show = false;
+          }
+          
+          // Show/hide row
+          if (show) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      }
+
+      function resetFilters() {
+        document.getElementById("filter-competency").value = "";
+        document.getElementById("filter-level").value = "";
+        document.getElementById("filter-status").value = "";
+        
+        // Show all rows
+        const rows = document.querySelectorAll("#table-body .table-row");
+        rows.forEach(row => {
+          row.style.display = "";
+        });
+      }
+    </script>
+</body>
+</html>
+

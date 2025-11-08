@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Learner Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+                400: "#94a3b8",
+                300: "#cbd5f5",
+                200: "#e2e8f0",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+              },
+            },
+            borderRadius: {
+              xl: "14px",
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div class="prototype-card flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Learner Dashboard</h1>
+                <p class="text-sm text-slate-400">
+                  Browse available competencies and apply for training levels.
+                </p>
+              </div>
+            </div>
+
+            <!-- Dropdown for Competencies -->
+            <div class="prototype-card overflow-hidden p-0">
+              <div class="border-b border-slate-800 bg-slate-950/50 px-6 py-4">
+                <label for="competency-select" class="block text-sm font-medium text-slate-300 mb-2">
+                  Select Competency
+                </label>
+                <select
+                  id="competency-select"
+                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-4 py-2.5 text-sm font-semibold text-white transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                >
+                  <option value="guest-hospitality" selected>Guest Hospitality Standards</option>
+                  <option value="food-safety">Food Safety & Sanitation</option>
+                  <option value="customer-recovery">Customer Recovery Playbook</option>
+                  <option value="beverage-quality">Beverage Quality Assurance</option>
+                  <option value="digital-ordering">Digital Ordering Experience</option>
+                  <option value="inventory-systems">Inventory Control Systems</option>
+                </select>
+              </div>
+
+              <!-- Tab Content -->
+              <div class="p-6">
+                <!-- Guest Hospitality Standards Tab -->
+                <div class="tab-content active" data-competency-content="guest-hospitality">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="guest-hospitality"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="guest-hospitality"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="guest-hospitality"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-guest-hospitality">Guest Hospitality Standards</span>
+                      <span id="level-badge-guest-hospitality" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                        data-competency-name="Guest Hospitality Standards"
+                        data-level="Basic"
+                        data-level-type="basic"
+                        id="apply-button-guest-hospitality"
+                        disabled
+                      >
+                        Applied
+                      </button>
+                      <button
+                        type="button"
+                        id="request-project-button-guest-hospitality-advanced"
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 hidden"
+                      >
+                        Request Project
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Training Request Container for Guest Hospitality - Competent -->
+                  <div id="training-request-guest-hospitality-competent" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Training Request</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Applied at:</span>
+                        <span class="text-slate-200">5 Nov 2020</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Training Status:</span>
+                        <span class="text-slate-200">Training Completed</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Submit Project Containers for Guest Hospitality - Competent (All States for Prototyping) -->
+                  <!-- Submit Project Container - Initial State -->
+                  <section id="submit-project-initial-guest-hospitality-competent" class="mb-6 prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Submit Project</h3>
+                    <div class="space-y-3">
+                      <label class="text-sm font-medium text-slate-200">Project details</label>
+                      <div class="quill-wrapper">
+                        <div id="project-details-editor-guest-hospitality-competent" class="min-h-[200px]"></div>
+                      </div>
+                      <button
+                        type="button"
+                        id="submit-project-button-guest-hospitality-competent"
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Submit Project Container - Submitted State -->
+                  <section id="submit-project-submitted-guest-hospitality-competent" class="mb-6 prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Submit Project</h3>
+                    <div class="space-y-3">
+                      <label class="text-sm font-medium text-slate-200">Project details</label>
+                      <div class="quill-wrapper">
+                        <div id="project-details-editor-submitted-guest-hospitality-competent" class="min-h-[200px]"></div>
+                      </div>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Submitted Date:</span>
+                          <span class="text-slate-200" id="submitted-date-guest-hospitality-competent">5 Nov 2020</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Status:</span>
+                          <span class="text-slate-200">Pending Validation Project Approval</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition opacity-50 cursor-not-allowed"
+                      >
+                        Submitted
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Submit Project Container - Rejected State -->
+                  <section id="submit-project-rejected-guest-hospitality-competent" class="mb-6 prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Submit Project</h3>
+                    <div class="space-y-3">
+                      <label class="text-sm font-medium text-slate-200">Project details</label>
+                      <div class="quill-wrapper">
+                        <div id="project-details-editor-rejected-guest-hospitality-competent" class="min-h-[200px]"></div>
+                      </div>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Status:</span>
+                          <span class="text-red-400 font-semibold">Rejected</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Rejected by:</span>
+                          <span class="text-slate-200" id="rejected-by-guest-hospitality-competent">Trainer Name</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Rejected at:</span>
+                          <span class="text-slate-200">20 Nov 2025</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        id="resubmit-project-button-guest-hospitality-competent"
+                        class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      >
+                        Resubmit
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Submit Project Container - Approved State -->
+                  <section id="submit-project-approved-guest-hospitality-competent" class="mb-6 prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Submit Project</h3>
+                    <div class="space-y-3">
+                      <label class="text-sm font-medium text-slate-200">Project details</label>
+                      <div class="quill-wrapper">
+                        <div id="project-details-editor-approved-guest-hospitality-competent" class="min-h-[200px]"></div>
+                      </div>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Status:</span>
+                          <span class="text-emerald-400 font-semibold">Approved</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Approved by:</span>
+                          <span class="text-slate-200" id="approved-by-guest-hospitality-competent">Trainer Name</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Approved at:</span>
+                          <span class="text-slate-200">20 Nov 2025</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled
+                        class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition opacity-50 cursor-not-allowed"
+                      >
+                        Approved
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Training Request and Validation Container Row for Guest Hospitality - Advanced -->
+                  <div class="mb-6 flex flex-col gap-6 sm:flex-row">
+                    <!-- Training Request Container for Guest Hospitality - Advanced -->
+                    <div id="training-request-guest-hospitality-advanced" class="flex-1 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                      <h3 class="text-lg font-semibold text-white">Training Request</h3>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Applied at:</span>
+                          <span class="text-slate-200">5 Nov 2020</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Training Status:</span>
+                          <span class="text-slate-200">Training Completed</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Validation Container for Guest Hospitality - Advanced (Validation Scheduled) -->
+                    <section id="validation-scheduled-guest-hospitality-advanced" class="flex-1 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                      <h3 class="text-lg font-semibold text-white">Validation</h3>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Validation Status:</span>
+                          <span class="text-slate-200">Validation Scheduled</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Scheduled Date:</span>
+                          <span class="text-slate-200" id="scheduled-date-validation-guest-hospitality-advanced">20 Nov 2025</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Validator OPS:</span>
+                          <span class="text-slate-200" id="validator-ops-guest-hospitality-advanced">Sarah Johnson</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Validator Trainer:</span>
+                          <span class="text-slate-200" id="validator-trainer-guest-hospitality-advanced">Michael Brown</span>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+
+                  <!-- Submit Project Container - Approved State for Advanced -->
+                  <section id="submit-project-approved-guest-hospitality-advanced" class="mb-6 prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Submit Project</h3>
+                    <div class="space-y-3">
+                      <label class="text-sm font-medium text-slate-200">Project details</label>
+                      <div class="quill-wrapper">
+                        <div id="project-details-editor-approved-guest-hospitality-advanced" class="min-h-[200px]"></div>
+                      </div>
+                      <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Status:</span>
+                          <span class="text-emerald-400 font-semibold">Approved</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Approved by:</span>
+                          <span class="text-slate-200" id="approved-by-guest-hospitality-advanced">Trainer Name</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium text-slate-300">Approved at:</span>
+                          <span class="text-slate-200">20 Nov 2025</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled
+                        class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition opacity-50 cursor-not-allowed"
+                      >
+                        Approved
+                      </button>
+                    </div>
+                  </section>
+
+                  <!-- Validation Container for Guest Hospitality - Advanced (Pending) -->
+                  <section id="validation-guest-hospitality-advanced" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Validation</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Validation Status:</span>
+                        <span class="text-slate-200">Pending Validation</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Validation Container for Guest Hospitality - Advanced (Pass) -->
+                  <section id="validation-pass-guest-hospitality-advanced" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Validation</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Validation Status:</span>
+                        <span class="text-emerald-400 font-semibold">Pass</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Finalized by:</span>
+                        <span class="text-slate-200" id="finalized-by-pass-guest-hospitality-advanced">Trainer Name</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Finalized at:</span>
+                        <span class="text-slate-200">20 Nov 2025</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Validation Container for Guest Hospitality - Advanced (Fail) -->
+                  <section id="validation-fail-guest-hospitality-advanced" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 hidden">
+                    <h3 class="text-lg font-semibold text-white">Validation</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Validation Status:</span>
+                        <span class="text-red-400 font-semibold">Fail</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Finalized by:</span>
+                        <span class="text-slate-200" id="finalized-by-fail-guest-hospitality-advanced">Trainer Name</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Finalized at:</span>
+                        <span class="text-slate-200">20 Nov 2025</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <!-- Training Request Container (shown only for Guest Hospitality - Basic) -->
+                  <div id="training-request-guest-hospitality-basic" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                    <h3 class="text-lg font-semibold text-white">Training Request</h3>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Applied at:</span>
+                        <span class="text-slate-200">5 Nov 2020</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-300">Training Status:</span>
+                        <span class="text-slate-200">In queue</span>
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          id="submit-homework-button"
+                          class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        >
+                          Submit Homework
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Level Content -->
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="guest-hospitality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/guest-hospitality-basic-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Understands brand values and delivers a warm greeting to every guest.
+
+Follows checklist for opening duties with minimal supervision.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed onboarding modules and shadowed at least 2 full shifts.
+
+Scored 85%+ on the hospitality fundamentals quiz.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer signs off after observing checklist execution across two shifts.
+
+Feedback recorded in LMS with notes and follow-up actions.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="guest-hospitality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/guest-hospitality-competent-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Resolves most guest issues independently using the recovery playbook.
+
+Coaches newer teammates on daily standards and best practices.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic level verification within the last 60 days.
+
+Logged 120+ hours on the floor with positive guest sentiment.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer shadows one peak shift and a closing shift, confirming playbook usage.
+
+Competency panel reviews guest feedback and peer endorsements.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="guest-hospitality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/guest-hospitality-advanced-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Leads strategic guest recovery initiatives and mentors future trainers.
+
+Analyzes service data to identify trends and propose improvements.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent level status for 6+ months with exceptional performance.
+
+Completed leadership micro-learning series and trainer observation hours.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer panel evaluates a live service initiative led by the candidate.
+
+Final review with operations leadership and documentation of impact.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Food Safety & Sanitation Tab -->
+                <div class="tab-content hidden" data-competency-content="food-safety">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="food-safety"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="food-safety"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="food-safety"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-food-safety">Food Safety & Sanitation</span>
+                      <span id="level-badge-food-safety" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <button
+                      type="button"
+                      class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                      data-competency-name="Food Safety & Sanitation"
+                      data-level="Basic"
+                      data-level-type="basic"
+                      id="apply-button-food-safety"
+                      disabled
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  <!-- Requirements Section for Food Safety & Sanitation Basic -->
+                  <div id="requirements-section-food-safety" class="mb-6 prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                    <div class="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <h3 class="text-sm font-semibold text-amber-400">Requirements needed</h3>
+                    </div>
+                    <p class="text-sm text-slate-300">
+                      To apply for this competency, you need to complete the following:
+                    </p>
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2 text-sm text-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="12"></line>
+                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>Guest Hospitality Standards - Basic</span>
+                      </div>
+                      <div class="flex items-center gap-2 text-sm text-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span class="text-slate-300">Beverage Quality Assurance - Basic</span>
+                      </div>
+                      <div class="flex items-center gap-2 text-sm text-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="12"></line>
+                          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>Customer Recovery Playbook - Basic</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Level Content -->
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="food-safety">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/food-safety-basic-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Understands proper handwashing procedures and temperature control basics.
+
+Follows food storage protocols and cross-contamination prevention.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed food safety certification course.
+
+Passed basic food safety assessment with 90%+ score.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer observes proper food handling during three shifts.
+
+Documentation of compliance with safety standards.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="food-safety">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/food-safety-competent-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Identifies and corrects food safety violations independently.
+
+Trains new team members on sanitation protocols.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic level and maintained compliance for 90+ days.
+
+No food safety incidents in the past 6 months.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer conducts comprehensive safety audit across multiple stations.
+
+Demonstration of teaching food safety principles to others.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="food-safety">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/food-safety-advanced-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Develops and implements food safety improvement initiatives.
+
+Serves as subject matter expert for health inspections and audits.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent level for 12+ months with zero violations.
+
+Completed advanced food safety management certification.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Leadership review of implemented safety improvements.
+
+Successful completion of health department audit preparation.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Customer Recovery Playbook Tab -->
+                <div class="tab-content hidden" data-competency-content="customer-recovery">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="customer-recovery"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="customer-recovery"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="customer-recovery"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-customer-recovery">Customer Recovery Playbook</span>
+                      <span id="level-badge-customer-recovery" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <button
+                      type="button"
+                      class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      data-competency-name="Customer Recovery Playbook"
+                      data-level="Basic"
+                      data-level-type="basic"
+                      id="apply-button-customer-recovery"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  <!-- Level Content -->
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="customer-recovery">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/customer-recovery-basic-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Recognizes common customer complaints and follows basic recovery steps.
+
+Escalates issues appropriately when beyond their authority.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed customer service fundamentals training.
+
+Minimum 30 days of customer-facing experience.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer observes recovery interactions during two service periods.
+
+Documentation of successful complaint resolution.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="customer-recovery">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/customer-recovery-competent-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Handles complex recovery situations with minimal supervision.
+
+Uses de-escalation techniques effectively and documents incidents.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic level and resolved 20+ customer complaints.
+
+Maintained 4.5+ customer satisfaction rating in recovery cases.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer reviews recovery case studies and role-play scenarios.
+
+Analysis of recovery outcomes and customer feedback.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="customer-recovery">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                          <div class="text-sm text-slate-300">
+                            <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                              https://docs.example.com/customer-recovery-advanced-plan
+                            </a>
+                          </div>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Designs recovery strategies and trains other team members.
+
+Analyzes recovery data to identify systemic issues and improvements.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent level for 9+ months with exceptional recovery rates.
+
+Completed advanced conflict resolution and leadership training.</textarea>
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Verification</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Presentation of recovery improvement initiative to leadership.
+
+Demonstration of training delivery to other team members.</textarea>
+                        </div>
+                      </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Beverage Quality Assurance Tab -->
+                <div class="tab-content hidden" data-competency-content="beverage-quality">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="beverage-quality"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="beverage-quality"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="beverage-quality"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-beverage-quality">Beverage Quality Assurance</span>
+                      <span id="level-badge-beverage-quality" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <button
+                      type="button"
+                      class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      data-competency-name="Beverage Quality Assurance"
+                      data-level="Basic"
+                      data-level-type="basic"
+                      id="apply-button-beverage-quality"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="beverage-quality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/beverage-quality-basic-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Understands drink recipes and measures ingredients precisely.
+
+Maintains freshness checks on juices, syrups, and garnishes.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed beverage station onboarding and sanitation training.
+
+Shadowed a senior bar lead for at least three full shifts.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer observes production of five signature drinks with consistent quality.
+
+Guest feedback forms demonstrate accurate flavor profile delivery.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="beverage-quality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/beverage-quality-competent-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Calibrates draft and espresso equipment for optimal extraction.
+
+Coaches peers on sensory evaluation and product presentation.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic verification within the last 60 days.
+
+Documented zero beverage waste incidents for four consecutive weeks.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer audits calibration logs and mystery-shopper tastings.
+
+Ops lead reviews beverage cost variance and guest sentiment reports.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="beverage-quality">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/beverage-quality-advanced-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Designs seasonal beverage menus aligned with brand positioning.
+
+Analyzes sales mix to optimize product placement and pricing.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent status for at least six months with exemplary QA scores.
+
+Completed supplier partnership workshop and sensory certification.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Leadership evaluates rollout of a beverage innovation project.
+
+Financial review confirms margin improvement and guest adoption.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Digital Ordering Experience Tab -->
+                <div class="tab-content hidden" data-competency-content="digital-ordering">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="digital-ordering"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="digital-ordering"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="digital-ordering"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-digital-ordering">Digital Ordering Experience</span>
+                      <span id="level-badge-digital-ordering" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <button
+                      type="button"
+                      class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      data-competency-name="Digital Ordering Experience"
+                      data-level="Basic"
+                      data-level-type="basic"
+                      id="apply-button-digital-ordering"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="digital-ordering">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/digital-ordering-basic-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Navigates POS and third-party delivery dashboards with confidence.
+
+Troubleshoots common customer account and payment questions.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed digital onboarding modules and privacy compliance training.
+
+Demonstrated accurate order entry for three consecutive shifts.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer audits ten online orders for accuracy and timing.
+
+Customer satisfaction surveys confirm smooth ordering support.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="digital-ordering">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/digital-ordering-competent-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Optimizes menu layout for conversion and reduces cart abandonment.
+
+Configures promo codes and delivery windows across platforms.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic verification and managed order channels for 90 days.
+
+Maintained SLA compliance above 95% for two payroll periods.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Digital lead reviews analytics dashboard and escalation handling logs.
+
+Cross-functional partners validate update cadence and accuracy.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="digital-ordering">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/digital-ordering-advanced-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Leads roadmap for new ordering features and integrations.
+
+Runs experiments to improve digital conversion and retention.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent status for six months with growth KPIs achieved.
+
+Completed product management sprint and stakeholder engagement labs.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Executive review of digital initiative business case and outcomes.
+
+User research demonstrates improved NPS and repeat activation.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Inventory Control Systems Tab -->
+                <div class="tab-content hidden" data-competency-content="inventory-systems">
+                  <!-- Level Tabs -->
+                  <div class="mb-6 border-b border-slate-800">
+                    <nav class="-mb-px flex space-x-6" aria-label="Levels">
+                      <button
+                        type="button"
+                        class="level-tab-button active border-b-2 border-blue-500 px-1 py-3 text-sm font-semibold text-blue-200 transition"
+                        data-level="basic"
+                        data-competency="inventory-systems"
+                      >
+                        Basic
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="competent"
+                        data-competency="inventory-systems"
+                      >
+                        Competent
+                      </button>
+                      <button
+                        type="button"
+                        class="level-tab-button border-b-2 border-transparent px-1 py-3 text-sm font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-200"
+                        data-level="advanced"
+                        data-competency="inventory-systems"
+                      >
+                        Advanced
+                      </button>
+                    </nav>
+                  </div>
+
+                  <!-- Competency Name and Level -->
+                  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold text-white">
+                      <span id="competency-name-inventory-systems">Inventory Control Systems</span>
+                      <span id="level-badge-inventory-systems" class="rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">Basic</span>
+                    </h2>
+                    <button
+                      type="button"
+                      class="apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                      data-competency-name="Inventory Control Systems"
+                      data-level="Basic"
+                      data-level-type="basic"
+                      id="apply-button-inventory-systems"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  <div class="level-content-wrapper">
+                    <!-- Basic Level -->
+                    <div class="level-content active" data-level-content="basic" data-competency="inventory-systems">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/inventory-systems-basic-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Receives deliveries accurately and follows FIFO rotations.
+
+Uses handheld scanners to log counts without variance.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed stockroom safety training and basic POS inventory course.
+
+Shadowed inventory specialist for two delivery cycles.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer verifies cycle count accuracy within 2% variance.
+
+Documentation confirms proper storage temperatures and labeling.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Competent Level -->
+                    <div class="level-content hidden" data-level-content="competent" data-competency="inventory-systems">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/inventory-systems-competent-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Builds order guides using sales trends and seasonality.
+
+Investigates shrink and implements corrective actions with teams.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Completed Basic verification and maintained variance under 1% for 60 days.
+
+Certified on vendor portal and purchase order workflows.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Trainer reviews order guides and waste logs for accuracy.
+
+Finance partner confirms improved cost of goods vs. budget.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+
+                    <!-- Advanced Level -->
+                    <div class="level-content hidden" data-level-content="advanced" data-competency="inventory-systems">
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6">
+                        <div class="space-y-3">
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Training Plan Document</label>
+                            <div class="text-sm text-slate-300">
+                              <a href="#" class="text-blue-400 hover:text-blue-300 hover:underline">
+                                https://docs.example.com/inventory-systems-advanced-plan
+                              </a>
+                            </div>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">What team member should know</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Designs regional inventory strategies across multi-unit portfolio.
+
+Leverages predictive analytics to align procurement and demand.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Eligibility criteria</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Maintained Competent status for six months with positive audit scores.
+
+Completed advanced supply chain certification and leadership labs.</textarea>
+                          </div>
+                          <div class="space-y-1">
+                            <label class="text-sm font-medium text-slate-200">Verification</label>
+                            <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none">Executive review confirms reduction in waste and stock-outs.
+
+Cross-functional partners sign off on strategic inventory roadmap.</textarea>
+                          </div>
+                        </div>
+                      </section>
+                      
+                      <!-- Relevant Links Container -->
+                      <section class="prototype-card space-y-3 border border-slate-800/80 bg-slate-950/50 p-6 mt-6">
+                        <div class="space-y-1">
+                          <label class="text-sm font-medium text-slate-200">Relevant Links</label>
+                          <textarea readonly rows="6" class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 resize-none"></textarea>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Apply Confirmation Modal -->
+    <div
+      id="apply-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeApplyModal(event)"
+    >
+      <div
+        class="prototype-card max-w-md overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">Confirm Application</h2>
+        </div>
+        <div class="p-6">
+          <p class="mb-4 text-sm text-slate-300">
+            You are about to apply for
+          </p>
+          <div class="mb-6 flex items-center gap-3">
+            <span id="modal-competency-name" class="text-lg font-semibold text-white"></span>
+            <span id="modal-level-badge" class="rounded-md px-2 py-0.5 text-sm font-semibold"></span>
+          </div>
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeApplyModal()"
+              class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              id="confirm-apply-button"
+              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              Yes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requirements Modal -->
+    <div
+      id="requirements-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeRequirementsModal(event)"
+    >
+      <div
+        class="prototype-card max-w-md overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">Requirements needed</h2>
+        </div>
+        <div class="p-6">
+          <p class="mb-4 text-sm text-slate-300">
+            To apply this competency, you need to finish the following competencies:
+          </p>
+          <div class="mb-6 space-y-2" id="requirements-list">
+            <!-- Requirements will be populated here -->
+          </div>
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeRequirementsModal()"
+              class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Homework Submission Modal -->
+    <div
+      id="homework-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeHomeworkModal(event)"
+    >
+      <div
+        class="prototype-card max-w-4xl overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">Submit Homework</h2>
+        </div>
+        <div class="max-h-[70vh] overflow-y-auto p-6">
+          <div class="space-y-4">
+            <!-- Homework 1 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 1</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-1-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-1-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 2 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 2</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-2-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-2-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 3 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 3</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-3-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-3-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 4 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 4</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-4-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-4-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 5 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 5</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-5-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-5-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 6 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 6</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-6-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-6-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeHomeworkModal()"
+              class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="navigation.js"></script>
+    <script>
+      // Tab switching functionality
+      document.addEventListener("DOMContentLoaded", () => {
+        // Competency dropdown switching
+        const competencySelect = document.getElementById("competency-select");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        // Function to switch competency
+        function switchCompetency(competencyId) {
+          // Hide all competency tab contents
+          tabContents.forEach((content) => {
+            content.classList.add("hidden");
+            content.classList.remove("active");
+          });
+
+          // Show selected competency tab content
+          const selectedContent = document.querySelector(
+            `[data-competency-content="${competencyId}"]`
+          );
+            if (selectedContent) {
+              selectedContent.classList.remove("hidden");
+              selectedContent.classList.add("active");
+              
+              // Reset to Basic level when switching competencies
+              const levelButtons = selectedContent.querySelectorAll(".level-tab-button");
+              const levelContents = selectedContent.querySelectorAll(".level-content");
+              
+              levelButtons.forEach((btn) => {
+                btn.classList.remove("active", "border-blue-500", "text-blue-200");
+                btn.classList.add("border-transparent", "text-slate-300");
+              });
+              
+              levelContents.forEach((content) => {
+                content.classList.add("hidden");
+                content.classList.remove("active");
+              });
+              
+              // Show Basic level
+              const basicButton = selectedContent.querySelector('[data-level="basic"]');
+              const basicContent = selectedContent.querySelector('[data-level-content="basic"]');
+              if (basicButton && basicContent) {
+                basicButton.classList.add("active", "border-blue-500", "text-blue-200");
+                basicButton.classList.remove("border-transparent", "text-slate-300");
+                basicContent.classList.remove("hidden");
+                basicContent.classList.add("active");
+              }
+              
+              // Update level badge to Basic
+              const levelBadge = document.getElementById(`level-badge-${competencyId}`);
+              if (levelBadge) {
+                levelBadge.textContent = "Basic";
+                levelBadge.className = "rounded-md px-2 py-0.5 text-sm font-semibold bg-blue-500/20 text-blue-200";
+              }
+              
+              // Update Apply button data attributes to Basic
+              const applyButton = document.getElementById(`apply-button-${competencyId}`);
+              if (applyButton) {
+                applyButton.setAttribute("data-level", "Basic");
+                applyButton.setAttribute("data-level-type", "basic");
+              }
+              
+              // Show/hide Requirements section for Food Safety & Sanitation - Basic
+              const requirementsSection = document.getElementById("requirements-section-food-safety");
+              if (requirementsSection) {
+                if (competencyId === "food-safety") {
+                  requirementsSection.classList.remove("hidden");
+                  // Disable Apply button
+                  const foodSafetyButton = document.getElementById("apply-button-food-safety");
+                  if (foodSafetyButton) {
+                    foodSafetyButton.disabled = true;
+                  }
+                } else {
+                  requirementsSection.classList.add("hidden");
+                }
+              }
+              
+              // Show/hide Training Request container for Guest Hospitality - Basic
+              const trainingRequestContainer = document.getElementById("training-request-guest-hospitality-basic");
+              if (trainingRequestContainer) {
+                if (competencyId === "guest-hospitality") {
+                  trainingRequestContainer.classList.remove("hidden");
+                } else {
+                  trainingRequestContainer.classList.add("hidden");
+                }
+              }
+              
+              // Update Apply button state for Guest Hospitality - Basic
+              if (competencyId === "guest-hospitality") {
+                const guestHospitalityButton = document.getElementById("apply-button-guest-hospitality");
+                if (guestHospitalityButton) {
+                  guestHospitalityButton.disabled = true;
+                  guestHospitalityButton.textContent = "Applied";
+                }
+                // Show Training Request container for Basic
+                const trainingRequestContainer = document.getElementById("training-request-guest-hospitality-basic");
+                if (trainingRequestContainer) {
+                  trainingRequestContainer.classList.remove("hidden");
+                }
+              } else {
+                // Hide all Guest Hospitality containers when switching to other competencies
+                // Hide Training Request containers
+                const trainingRequestBasic = document.getElementById("training-request-guest-hospitality-basic");
+                const trainingRequestCompetent = document.getElementById("training-request-guest-hospitality-competent");
+                const trainingRequestAdvanced = document.getElementById("training-request-guest-hospitality-advanced");
+                if (trainingRequestBasic) trainingRequestBasic.classList.add("hidden");
+                if (trainingRequestCompetent) trainingRequestCompetent.classList.add("hidden");
+                if (trainingRequestAdvanced) trainingRequestAdvanced.classList.add("hidden");
+                
+                // Hide all Submit Project containers for Competent
+                const submitProjectInitial = document.getElementById("submit-project-initial-guest-hospitality-competent");
+                const submitProjectSubmitted = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+                const submitProjectRejected = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+                const submitProjectApproved = document.getElementById("submit-project-approved-guest-hospitality-competent");
+                if (submitProjectInitial) submitProjectInitial.classList.add("hidden");
+                if (submitProjectSubmitted) submitProjectSubmitted.classList.add("hidden");
+                if (submitProjectRejected) submitProjectRejected.classList.add("hidden");
+                if (submitProjectApproved) submitProjectApproved.classList.add("hidden");
+                
+                // Hide Submit Project container for Advanced
+                const submitProjectApprovedAdvanced = document.getElementById("submit-project-approved-guest-hospitality-advanced");
+                if (submitProjectApprovedAdvanced) submitProjectApprovedAdvanced.classList.add("hidden");
+                
+                // Hide Validation container for Advanced
+                const validationContainerAdvanced = document.getElementById("validation-guest-hospitality-advanced");
+                if (validationContainerAdvanced) validationContainerAdvanced.classList.add("hidden");
+              }
+            }
+        }
+
+        // Add event listener for dropdown change
+        if (competencySelect) {
+          competencySelect.addEventListener("change", (e) => {
+            const competencyId = e.target.value;
+            switchCompetency(competencyId);
+          });
+          
+          // Initialize with the selected value on page load
+          const initialCompetencyId = competencySelect.value;
+          switchCompetency(initialCompetencyId);
+        }
+
+        // Level tab switching within each competency
+        const levelTabButtons = document.querySelectorAll(".level-tab-button");
+        
+        levelTabButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const competencyId = button.getAttribute("data-competency");
+            const levelId = button.getAttribute("data-level");
+            
+            // Find the parent competency tab content
+            const competencyContent = document.querySelector(
+              `[data-competency-content="${competencyId}"]`
+            );
+            
+            if (competencyContent) {
+              // Remove active state from all level buttons in this competency
+              const allLevelButtons = competencyContent.querySelectorAll(".level-tab-button");
+              allLevelButtons.forEach((btn) => {
+                btn.classList.remove("active", "border-blue-500", "text-blue-200");
+                btn.classList.add("border-transparent", "text-slate-300");
+              });
+              
+              // Add active state to clicked level button
+              button.classList.add("active", "border-blue-500", "text-blue-200");
+              button.classList.remove("border-transparent", "text-slate-300");
+              
+              // Hide all level contents in this competency
+              const allLevelContents = competencyContent.querySelectorAll(".level-content");
+              allLevelContents.forEach((content) => {
+                content.classList.add("hidden");
+                content.classList.remove("active");
+              });
+              
+              // Show selected level content
+              const selectedLevelContent = competencyContent.querySelector(
+                `[data-level-content="${levelId}"][data-competency="${competencyId}"]`
+              );
+              if (selectedLevelContent) {
+                selectedLevelContent.classList.remove("hidden");
+                selectedLevelContent.classList.add("active");
+              }
+              
+              // Update level badge
+              const levelBadge = document.getElementById(`level-badge-${competencyId}`);
+              if (levelBadge) {
+                let levelText = "";
+                let badgeClasses = "rounded-md px-2 py-0.5 text-sm font-semibold";
+                
+                if (levelId === "basic") {
+                  levelText = "Basic";
+                  badgeClasses += " bg-blue-500/20 text-blue-200";
+                } else if (levelId === "competent") {
+                  levelText = "Competent";
+                  badgeClasses += " bg-emerald-500/20 text-emerald-200";
+                } else if (levelId === "advanced") {
+                  levelText = "Advanced";
+                  badgeClasses += " bg-purple-500/20 text-purple-200";
+                }
+                
+                levelBadge.textContent = levelText;
+                levelBadge.className = badgeClasses;
+              }
+              
+              // Update Apply button data attributes
+              const applyButton = document.getElementById(`apply-button-${competencyId}`);
+              if (applyButton) {
+                const competencyName = applyButton.getAttribute("data-competency-name");
+                let levelText = "";
+                let levelType = "";
+                
+                if (levelId === "basic") {
+                  levelText = "Basic";
+                  levelType = "basic";
+                } else if (levelId === "competent") {
+                  levelText = "Competent";
+                  levelType = "competent";
+                } else if (levelId === "advanced") {
+                  levelText = "Advanced";
+                  levelType = "advanced";
+                }
+                
+                applyButton.setAttribute("data-level", levelText);
+                applyButton.setAttribute("data-level-type", levelType);
+              }
+              
+              // Show/hide Requirements section for Food Safety & Sanitation - Basic
+              const requirementsSection = document.getElementById("requirements-section-food-safety");
+              if (requirementsSection) {
+                if (competencyId === "food-safety" && levelId === "basic") {
+                  requirementsSection.classList.remove("hidden");
+                  // Disable Apply button
+                  const foodSafetyButton = document.getElementById("apply-button-food-safety");
+                  if (foodSafetyButton) {
+                    foodSafetyButton.disabled = true;
+                  }
+                } else {
+                  requirementsSection.classList.add("hidden");
+                  // Enable Apply button if not Basic level
+                  if (competencyId === "food-safety" && levelId !== "basic") {
+                    const foodSafetyButton = document.getElementById("apply-button-food-safety");
+                    if (foodSafetyButton) {
+                      foodSafetyButton.disabled = false;
+                    }
+                  }
+                }
+              }
+              
+              // Show/hide Training Request container for Guest Hospitality - Basic
+              const trainingRequestContainer = document.getElementById("training-request-guest-hospitality-basic");
+              if (trainingRequestContainer) {
+                if (competencyId === "guest-hospitality" && levelId === "basic") {
+                  trainingRequestContainer.classList.remove("hidden");
+                } else {
+                  trainingRequestContainer.classList.add("hidden");
+                }
+              }
+              
+              // Update Apply button state for Guest Hospitality - Basic
+              if (competencyId === "guest-hospitality" && levelId === "basic") {
+                const guestHospitalityButton = document.getElementById("apply-button-guest-hospitality");
+                if (guestHospitalityButton) {
+                  guestHospitalityButton.disabled = true;
+                  guestHospitalityButton.textContent = "Applied";
+                  guestHospitalityButton.className = "apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600";
+                }
+                // Hide Request Project button
+                const requestProjectButton = document.getElementById("request-project-button-guest-hospitality-advanced");
+                if (requestProjectButton) {
+                  requestProjectButton.classList.add("hidden");
+                }
+                // Hide all Submit Project containers for Competent
+                const submitProjectInitial = document.getElementById("submit-project-initial-guest-hospitality-competent");
+                const submitProjectSubmitted = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+                const submitProjectRejected = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+                const submitProjectApproved = document.getElementById("submit-project-approved-guest-hospitality-competent");
+                if (submitProjectInitial) submitProjectInitial.classList.add("hidden");
+                if (submitProjectSubmitted) submitProjectSubmitted.classList.add("hidden");
+                if (submitProjectRejected) submitProjectRejected.classList.add("hidden");
+                if (submitProjectApproved) submitProjectApproved.classList.add("hidden");
+                // Hide Training Request container for Competent
+                const trainingRequestCompetent = document.getElementById("training-request-guest-hospitality-competent");
+                if (trainingRequestCompetent) trainingRequestCompetent.classList.add("hidden");
+                // Hide Submit Project and Validation containers for Advanced
+                const submitProjectApprovedAdvanced = document.getElementById("submit-project-approved-guest-hospitality-advanced");
+                const validationContainerAdvanced = document.getElementById("validation-guest-hospitality-advanced");
+                const validationScheduledAdvanced = document.getElementById("validation-scheduled-guest-hospitality-advanced");
+                const validationPassAdvanced = document.getElementById("validation-pass-guest-hospitality-advanced");
+                const validationFailAdvanced = document.getElementById("validation-fail-guest-hospitality-advanced");
+                const trainingRequestAdvanced = document.getElementById("training-request-guest-hospitality-advanced");
+                if (submitProjectApprovedAdvanced) submitProjectApprovedAdvanced.classList.add("hidden");
+                if (validationContainerAdvanced) validationContainerAdvanced.classList.add("hidden");
+                if (validationScheduledAdvanced) validationScheduledAdvanced.classList.add("hidden");
+                if (validationPassAdvanced) validationPassAdvanced.classList.add("hidden");
+                if (validationFailAdvanced) validationFailAdvanced.classList.add("hidden");
+                if (trainingRequestAdvanced) trainingRequestAdvanced.classList.add("hidden");
+              } else if (competencyId === "guest-hospitality" && levelId === "competent") {
+                // Disable Apply button for Guest Hospitality - Competent
+                const guestHospitalityButton = document.getElementById("apply-button-guest-hospitality");
+                if (guestHospitalityButton) {
+                  guestHospitalityButton.disabled = true;
+                  guestHospitalityButton.textContent = "Applied";
+                  guestHospitalityButton.className = "apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600";
+                }
+                // Hide Request Project button
+                const requestProjectButton = document.getElementById("request-project-button-guest-hospitality-advanced");
+                if (requestProjectButton) {
+                  requestProjectButton.classList.add("hidden");
+                }
+                // Show Training Request container
+                const trainingRequestContainer = document.getElementById("training-request-guest-hospitality-competent");
+                if (trainingRequestContainer) {
+                  trainingRequestContainer.classList.remove("hidden");
+                }
+                // Show all Submit Project containers for prototyping
+                const submitProjectInitial = document.getElementById("submit-project-initial-guest-hospitality-competent");
+                const submitProjectSubmitted = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+                const submitProjectRejected = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+                const submitProjectApproved = document.getElementById("submit-project-approved-guest-hospitality-competent");
+                if (submitProjectInitial) {
+                  submitProjectInitial.classList.remove("hidden");
+                }
+                if (submitProjectSubmitted) {
+                  submitProjectSubmitted.classList.remove("hidden");
+                }
+                if (submitProjectRejected) {
+                  submitProjectRejected.classList.remove("hidden");
+                }
+                if (submitProjectApproved) {
+                  submitProjectApproved.classList.remove("hidden");
+                }
+                // Hide Advanced level containers
+                const trainingRequestAdvanced = document.getElementById("training-request-guest-hospitality-advanced");
+                const submitProjectApprovedAdvanced = document.getElementById("submit-project-approved-guest-hospitality-advanced");
+                const validationContainerAdvanced = document.getElementById("validation-guest-hospitality-advanced");
+                const validationScheduledAdvanced = document.getElementById("validation-scheduled-guest-hospitality-advanced");
+                const validationPassAdvanced = document.getElementById("validation-pass-guest-hospitality-advanced");
+                const validationFailAdvanced = document.getElementById("validation-fail-guest-hospitality-advanced");
+                if (trainingRequestAdvanced) trainingRequestAdvanced.classList.add("hidden");
+                if (submitProjectApprovedAdvanced) submitProjectApprovedAdvanced.classList.add("hidden");
+                if (validationContainerAdvanced) validationContainerAdvanced.classList.add("hidden");
+                if (validationScheduledAdvanced) validationScheduledAdvanced.classList.add("hidden");
+                if (validationPassAdvanced) validationPassAdvanced.classList.add("hidden");
+                if (validationFailAdvanced) validationFailAdvanced.classList.add("hidden");
+                // Hide Request Project button (already declared above in this block)
+                if (requestProjectButton) {
+                  requestProjectButton.classList.add("hidden");
+                }
+              } else if (competencyId === "guest-hospitality" && levelId === "advanced") {
+                // Change Apply button to Training Complete (green, disabled) for Guest Hospitality - Advanced
+                const guestHospitalityButton = document.getElementById("apply-button-guest-hospitality");
+                if (guestHospitalityButton) {
+                  guestHospitalityButton.disabled = true;
+                  guestHospitalityButton.textContent = "Training Complete";
+                  guestHospitalityButton.className = "apply-button inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition opacity-50 cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600";
+                }
+                // Show Request Project button for Advanced
+                const requestProjectButton = document.getElementById("request-project-button-guest-hospitality-advanced");
+                if (requestProjectButton) {
+                  requestProjectButton.classList.remove("hidden");
+                }
+                // Show Training Request container for Advanced
+                const trainingRequestContainerAdvanced = document.getElementById("training-request-guest-hospitality-advanced");
+                if (trainingRequestContainerAdvanced) {
+                  trainingRequestContainerAdvanced.classList.remove("hidden");
+                }
+                // Show only Approved Submit Project container for Advanced
+                const submitProjectApprovedAdvanced = document.getElementById("submit-project-approved-guest-hospitality-advanced");
+                if (submitProjectApprovedAdvanced) {
+                  submitProjectApprovedAdvanced.classList.remove("hidden");
+                }
+                // Show all Validation containers for Advanced (prototyping)
+                const validationContainerAdvanced = document.getElementById("validation-guest-hospitality-advanced");
+                const validationScheduledAdvanced = document.getElementById("validation-scheduled-guest-hospitality-advanced");
+                const validationPassAdvanced = document.getElementById("validation-pass-guest-hospitality-advanced");
+                const validationFailAdvanced = document.getElementById("validation-fail-guest-hospitality-advanced");
+                if (validationContainerAdvanced) {
+                  validationContainerAdvanced.classList.remove("hidden");
+                }
+                if (validationScheduledAdvanced) {
+                  validationScheduledAdvanced.classList.remove("hidden");
+                }
+                if (validationPassAdvanced) {
+                  validationPassAdvanced.classList.remove("hidden");
+                }
+                if (validationFailAdvanced) {
+                  validationFailAdvanced.classList.remove("hidden");
+                }
+                // Hide Competent level containers
+                const trainingRequestCompetent = document.getElementById("training-request-guest-hospitality-competent");
+                const submitProjectInitial = document.getElementById("submit-project-initial-guest-hospitality-competent");
+                const submitProjectSubmitted = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+                const submitProjectRejected = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+                const submitProjectApproved = document.getElementById("submit-project-approved-guest-hospitality-competent");
+                if (trainingRequestCompetent) trainingRequestCompetent.classList.add("hidden");
+                if (submitProjectInitial) submitProjectInitial.classList.add("hidden");
+                if (submitProjectSubmitted) submitProjectSubmitted.classList.add("hidden");
+                if (submitProjectRejected) submitProjectRejected.classList.add("hidden");
+                if (submitProjectApproved) submitProjectApproved.classList.add("hidden");
+              } else {
+                const guestHospitalityButton = document.getElementById("apply-button-guest-hospitality");
+                if (guestHospitalityButton) {
+                  guestHospitalityButton.disabled = false;
+                  guestHospitalityButton.textContent = "Apply";
+                  guestHospitalityButton.className = "apply-button inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600";
+                }
+                // Hide Request Project button
+                const requestProjectButton = document.getElementById("request-project-button-guest-hospitality-advanced");
+                if (requestProjectButton) {
+                  requestProjectButton.classList.add("hidden");
+                }
+                // Hide Training Request container for Competent
+                const trainingRequestContainer = document.getElementById("training-request-guest-hospitality-competent");
+                if (trainingRequestContainer) {
+                  trainingRequestContainer.classList.add("hidden");
+                }
+                // Hide Training Request container for Advanced
+                const trainingRequestContainerAdvanced = document.getElementById("training-request-guest-hospitality-advanced");
+                if (trainingRequestContainerAdvanced) {
+                  trainingRequestContainerAdvanced.classList.add("hidden");
+                }
+                // Hide all Submit Project containers for Competent
+                const submitProjectInitial = document.getElementById("submit-project-initial-guest-hospitality-competent");
+                const submitProjectSubmitted = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+                const submitProjectRejected = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+                const submitProjectApproved = document.getElementById("submit-project-approved-guest-hospitality-competent");
+                if (submitProjectInitial) {
+                  submitProjectInitial.classList.add("hidden");
+                }
+                if (submitProjectSubmitted) {
+                  submitProjectSubmitted.classList.add("hidden");
+                }
+                if (submitProjectRejected) {
+                  submitProjectRejected.classList.add("hidden");
+                }
+                if (submitProjectApproved) {
+                  submitProjectApproved.classList.add("hidden");
+                }
+                // Hide Submit Project container for Advanced
+                const submitProjectApprovedAdvanced = document.getElementById("submit-project-approved-guest-hospitality-advanced");
+                if (submitProjectApprovedAdvanced) {
+                  submitProjectApprovedAdvanced.classList.add("hidden");
+                }
+                // Hide all Validation containers for Advanced
+                const validationContainerAdvanced = document.getElementById("validation-guest-hospitality-advanced");
+                const validationScheduledAdvanced = document.getElementById("validation-scheduled-guest-hospitality-advanced");
+                const validationPassAdvanced = document.getElementById("validation-pass-guest-hospitality-advanced");
+                const validationFailAdvanced = document.getElementById("validation-fail-guest-hospitality-advanced");
+                if (validationContainerAdvanced) {
+                  validationContainerAdvanced.classList.add("hidden");
+                }
+                if (validationScheduledAdvanced) {
+                  validationScheduledAdvanced.classList.add("hidden");
+                }
+                if (validationPassAdvanced) {
+                  validationPassAdvanced.classList.add("hidden");
+                }
+                if (validationFailAdvanced) {
+                  validationFailAdvanced.classList.add("hidden");
+                }
+              }
+            }
+          });
+        });
+
+        // Apply button click handlers
+        const applyButtons = document.querySelectorAll(".apply-button");
+        
+        applyButtons.forEach((button) => {
+          button.addEventListener("click", (e) => {
+            e.preventDefault();
+            // Don't do anything if button is disabled
+            if (button.disabled) {
+              return;
+            }
+            const competencyName = button.getAttribute("data-competency-name");
+            const level = button.getAttribute("data-level");
+            const levelType = button.getAttribute("data-level-type");
+            
+            openApplyModal(competencyName, level, levelType);
+          });
+        });
+
+        // Submit Homework button click handler
+        const submitHomeworkButton = document.getElementById("submit-homework-button");
+        if (submitHomeworkButton) {
+          submitHomeworkButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            openHomeworkModal();
+          });
+        }
+
+        // Add click handlers to all homework submit buttons
+        for (let i = 1; i <= 6; i++) {
+          const submitBtn = document.getElementById(`homework-${i}-submit`);
+          if (submitBtn) {
+            submitBtn.addEventListener("click", () => {
+              submitHomework(i);
+            });
+          }
+        }
+
+        // Set Homework 2 as already submitted (for demonstration)
+        const homework2Input = document.getElementById("homework-2-input");
+        const homework2Submit = document.getElementById("homework-2-submit");
+        if (homework2Input && homework2Submit) {
+          homework2Input.value = "Sample submitted homework";
+          homework2Input.classList.add("border-emerald-500");
+          homework2Submit.textContent = "Re-submit";
+          homework2Submit.classList.remove("bg-blue-600", "hover:bg-blue-500");
+          homework2Submit.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+        }
+      });
+
+      function openRequirementsModal() {
+        const modal = document.getElementById("requirements-modal");
+        const requirementsList = document.getElementById("requirements-list");
+        
+        // Define the required competencies with completion status
+        const requiredCompetencies = [
+          { name: "Guest Hospitality Standards - Basic", completed: false },
+          { name: "Beverage Quality - Basic", completed: true },
+          { name: "Customer Recovery - Basic", completed: false }
+        ];
+        
+        // Populate the requirements list
+        requirementsList.innerHTML = requiredCompetencies.map(comp => {
+          const checkmark = comp.completed 
+            ? `<svg xmlns="http://www.w3.org/2000/svg" class="inline h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <path d="M20 6L9 17l-5-5"></path>
+               </svg>`
+            : '';
+          return `<div class="flex items-center gap-2 text-sm text-slate-200">${comp.name}${checkmark}</div>`;
+        }).join("");
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeRequirementsModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        
+        const modal = document.getElementById("requirements-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function openApplyModal(competencyName, level, levelType) {
+        const modal = document.getElementById("apply-modal");
+        const modalCompetencyName = document.getElementById("modal-competency-name");
+        const modalLevelBadge = document.getElementById("modal-level-badge");
+        
+        // Set competency name
+        modalCompetencyName.textContent = competencyName;
+        
+        // Set level badge with appropriate color
+        modalLevelBadge.textContent = level;
+        modalLevelBadge.className = "rounded-md px-2 py-0.5 text-sm font-semibold";
+        
+        if (levelType === "basic") {
+          modalLevelBadge.classList.add("bg-blue-500/20", "text-blue-200");
+        } else if (levelType === "competent") {
+          modalLevelBadge.classList.add("bg-emerald-500/20", "text-emerald-200");
+        } else if (levelType === "advanced") {
+          modalLevelBadge.classList.add("bg-purple-500/20", "text-purple-200");
+        }
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        
+        // Handle Yes button click
+        const confirmButton = document.getElementById("confirm-apply-button");
+        confirmButton.onclick = () => {
+          // Here you would typically submit the application
+          console.log(`Applying for ${competencyName} - ${level}`);
+          closeApplyModal();
+          // You could show a success message here
+        };
+      }
+
+      function closeApplyModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        
+        const modal = document.getElementById("apply-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const applyModal = document.getElementById("apply-modal");
+          const requirementsModal = document.getElementById("requirements-modal");
+          const homeworkModal = document.getElementById("homework-modal");
+          if (!applyModal.classList.contains("hidden")) {
+            closeApplyModal();
+          } else if (!requirementsModal.classList.contains("hidden")) {
+            closeRequirementsModal();
+          } else if (homeworkModal && !homeworkModal.classList.contains("hidden")) {
+            closeHomeworkModal();
+          }
+        }
+      });
+
+      // Homework Modal Functions
+      function openHomeworkModal() {
+        const modal = document.getElementById("homework-modal");
+        if (modal) {
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+          document.body.style.overflow = "hidden";
+        }
+      }
+
+      function closeHomeworkModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        
+        const modal = document.getElementById("homework-modal");
+        if (modal) {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          document.body.style.overflow = "";
+        }
+      }
+
+      function submitHomework(homeworkNumber) {
+        const input = document.getElementById(`homework-${homeworkNumber}-input`);
+        const submitBtn = document.getElementById(`homework-${homeworkNumber}-submit`);
+        
+        if (input && submitBtn) {
+          const value = input.value.trim();
+          
+          if (value === "") {
+            alert("Please enter homework submission before submitting.");
+            return;
+          }
+          
+          // Keep input enabled but mark as submitted
+          input.classList.add("border-emerald-500");
+          // Change button to Re-submit and keep it enabled
+          submitBtn.textContent = "Re-submit";
+          submitBtn.classList.remove("bg-blue-600", "hover:bg-blue-500");
+          submitBtn.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+        }
+      }
+
+      // Initialize Quill editors for Guest Hospitality - Competent
+      let quillEditorInitial = null;
+      let quillEditorSubmitted = null;
+      let quillEditorRejected = null;
+      let quillEditorApproved = null;
+      // Initialize Quill editor for Guest Hospitality - Advanced
+      let quillEditorApprovedAdvanced = null;
+
+      function initializeQuillEditors() {
+        // Initialize editor for initial state
+        const editorContainer = document.getElementById("project-details-editor-guest-hospitality-competent");
+        if (editorContainer && typeof Quill !== "undefined") {
+          quillEditorInitial = new Quill(editorContainer, {
+            theme: "snow",
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link", "image"],
+                ["clean"],
+              ],
+            },
+            placeholder: "Enter project details...",
+          });
+        }
+
+        // Initialize editor for submitted state (read-only)
+        const editorSubmittedContainer = document.getElementById("project-details-editor-submitted-guest-hospitality-competent");
+        if (editorSubmittedContainer && typeof Quill !== "undefined") {
+          quillEditorSubmitted = new Quill(editorSubmittedContainer, {
+            theme: "snow",
+            readOnly: true,
+          });
+          // Set sample content for prototyping
+          quillEditorSubmitted.root.innerHTML = "<p>This is a sample project submission showing the submitted state for prototyping purposes.</p><p>Project details include:</p><ul><li>Completed guest recovery scenarios</li><li>Documented peer coaching sessions</li><li>Feedback collection from team members</li></ul>";
+        }
+
+        // Initialize editor for rejected state (editable for resubmission)
+        const editorRejectedContainer = document.getElementById("project-details-editor-rejected-guest-hospitality-competent");
+        if (editorRejectedContainer && typeof Quill !== "undefined") {
+          quillEditorRejected = new Quill(editorRejectedContainer, {
+            theme: "snow",
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ["bold", "italic", "underline", "strike"],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["link", "image"],
+                ["clean"],
+              ],
+            },
+            readOnly: false,
+          });
+          // Set sample content for prototyping
+          quillEditorRejected.root.innerHTML = "<p>This is a sample project submission showing the rejected state for prototyping purposes.</p><p>Project details include:</p><ul><li>Incomplete documentation</li><li>Missing peer feedback</li><li>Needs improvement in recovery scenarios</li></ul>";
+        }
+
+        // Initialize editor for approved state (read-only)
+        const editorApprovedContainer = document.getElementById("project-details-editor-approved-guest-hospitality-competent");
+        if (editorApprovedContainer && typeof Quill !== "undefined") {
+          quillEditorApproved = new Quill(editorApprovedContainer, {
+            theme: "snow",
+            readOnly: true,
+          });
+          // Set sample content for prototyping
+          quillEditorApproved.root.innerHTML = "<p>This is a sample project submission showing the approved state for prototyping purposes.</p><p>Project details include:</p><ul><li>Completed guest recovery scenarios</li><li>Documented peer coaching sessions</li><li>Feedback collection from team members</li><li>All requirements met successfully</li></ul>";
+        }
+
+        // Initialize editor for approved state (Advanced level) - read-only
+        const editorApprovedAdvancedContainer = document.getElementById("project-details-editor-approved-guest-hospitality-advanced");
+        if (editorApprovedAdvancedContainer && typeof Quill !== "undefined") {
+          quillEditorApprovedAdvanced = new Quill(editorApprovedAdvancedContainer, {
+            theme: "snow",
+            readOnly: true,
+          });
+          // Set sample content for prototyping
+          quillEditorApprovedAdvanced.root.innerHTML = "<p>This is a sample project submission showing the approved state for Advanced level prototyping purposes.</p><p>Project details include:</p><ul><li>Successfully led strategic guest recovery initiatives</li><li>Mentored future trainers and documented outcomes</li><li>Analyzed service data and proposed improvements</li><li>All Advanced level requirements met successfully</li></ul>";
+        }
+
+        // Handle Submit button click
+        const submitButton = document.getElementById("submit-project-button-guest-hospitality-competent");
+        if (submitButton) {
+          submitButton.addEventListener("click", () => {
+            if (quillEditorInitial) {
+              const content = quillEditorInitial.root.innerHTML;
+              
+              // Hide initial state, show submitted state
+              const initialContainer = document.getElementById("submit-project-initial-guest-hospitality-competent");
+              const submittedContainer = document.getElementById("submit-project-submitted-guest-hospitality-competent");
+              
+              if (initialContainer && submittedContainer) {
+                initialContainer.classList.add("hidden");
+                submittedContainer.classList.remove("hidden");
+                
+                // Set content in submitted editor
+                if (quillEditorSubmitted) {
+                  quillEditorSubmitted.root.innerHTML = content;
+                }
+                
+                // Set submitted date (date only)
+                const submittedDateElement = document.getElementById("submitted-date-guest-hospitality-competent");
+                if (submittedDateElement) {
+                  const now = new Date();
+                  const day = now.getDate();
+                  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                  const month = monthNames[now.getMonth()];
+                  const year = now.getFullYear();
+                  submittedDateElement.textContent = `${day} ${month} ${year}`;
+                }
+              }
+            }
+          });
+        }
+
+        // Handle Resubmit button click
+        const resubmitButton = document.getElementById("resubmit-project-button-guest-hospitality-competent");
+        if (resubmitButton) {
+          resubmitButton.addEventListener("click", () => {
+            // Hide rejected state, show initial state
+            const rejectedContainer = document.getElementById("submit-project-rejected-guest-hospitality-competent");
+            const initialContainer = document.getElementById("submit-project-initial-guest-hospitality-competent");
+            
+            if (rejectedContainer && initialContainer) {
+              rejectedContainer.classList.add("hidden");
+              initialContainer.classList.remove("hidden");
+              
+              // Clear the editor content
+              if (quillEditorInitial) {
+                quillEditorInitial.root.innerHTML = "";
+              }
+            }
+          });
+        }
+      }
+
+      // Initialize Quill editors when DOM is ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeQuillEditors);
+      } else {
+        initializeQuillEditors();
+      }
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Training Batch</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+                400: "#94a3b8",
+                200: "#e2e8f0",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div class="prototype-card flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Edit Training Batch</h1>
+                <p class="text-sm text-slate-400">
+                  Edit training batch details, sessions, attendance, and homework.
+                </p>
+              </div>
+            </div>
+
+            <form class="space-y-6" data-training-batch-form>
+              <!-- Batch details form -->
+              <div class="prototype-card space-y-6 p-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <!-- Left column -->
+                  <div class="space-y-6">
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="batch-name">
+                        Batch Name
+                      </label>
+                      <input
+                        id="batch-name"
+                        type="text"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="e.g. Batch-2025-001"
+                        value="Batch-2025-001"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="competency">
+                        Competency
+                      </label>
+                      <select
+                        id="competency"
+                        name="competency"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      >
+                        <option value="">Select a competency</option>
+                        <option value="guest-hospitality" selected>Guest Hospitality Standards</option>
+                        <option value="food-safety">Food Safety & Sanitation</option>
+                        <option value="customer-recovery">Customer Recovery Playbook</option>
+                        <option value="service-excellence">Service Excellence</option>
+                      </select>
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="level">
+                        Level
+                      </label>
+                      <select
+                        id="level"
+                        name="level"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      >
+                        <option value="">Select a level</option>
+                        <option value="basic" selected>Basic</option>
+                        <option value="competent">Competent</option>
+                        <option value="advanced">Advanced</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Right column -->
+                  <div class="space-y-6">
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="session-count">
+                        Session Count
+                      </label>
+                      <input
+                        id="session-count"
+                        type="number"
+                        name="session-count"
+                        value="6"
+                        min="1"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Enter session count"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="duration-hrs">
+                        Duration hrs
+                      </label>
+                      <input
+                        id="duration-hrs"
+                        type="number"
+                        name="duration-hrs"
+                        min="0"
+                        step="0.5"
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Enter duration in hours"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="estimated-start-date">
+                        Estimated Start
+                      </label>
+                      <input
+                        id="estimated-start-date"
+                        type="text"
+                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Select date"
+                        readonly
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="batch-start-date">
+                        Batch Start Date
+                      </label>
+                      <input
+                        id="batch-start-date"
+                        type="text"
+                        class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Select date"
+                        value="15 Jan 2025"
+                        readonly
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Learners section -->
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Learners</h2>
+                  <p class="text-sm text-slate-400">
+                    Select learners to assign to this training batch.
+                  </p>
+                </div>
+
+                <div class="space-y-4">
+                  <!-- Capacity, Current Participant, and Spot Left in one row -->
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex-1 min-w-[120px] space-y-2">
+                      <label class="text-sm font-medium text-slate-200" for="capacity">
+                        Capacity
+                      </label>
+                    <input
+                      type="number"
+                      id="capacity"
+                      name="capacity"
+                      value="5"
+                      min="1"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    />
+                    </div>
+                    <div class="flex-1 min-w-[120px] space-y-2">
+                      <label class="text-sm font-medium text-slate-200">
+                        Current Participant
+                      </label>
+                      <p class="text-sm text-slate-100" id="current-participant-value">5</p>
+                    </div>
+                    <div class="flex-1 min-w-[120px] space-y-2">
+                      <label class="text-sm font-medium text-slate-200">
+                        Spot Left
+                      </label>
+                      <p class="text-sm text-slate-100" id="spot-left-value">0</p>
+                    </div>
+                  </div>
+
+                  <!-- Search and selection dropdown -->
+                  <div class="relative" id="learners-multiselect-container">
+                    <div class="relative">
+                      <input
+                        type="text"
+                        id="learners-search"
+                        placeholder="Search learners..."
+                        class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 pr-10 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                      </svg>
+                    </div>
+                    
+                    <!-- Selected learners display -->
+                    <div id="selected-learners" class="mt-3 flex flex-wrap gap-2 min-h-[2.5rem]">
+                      <!-- Selected learners will appear here as chips -->
+                    </div>
+
+                    <!-- Dropdown options -->
+                    <div
+                      id="learners-dropdown"
+                      class="absolute z-50 mt-1 hidden w-full max-h-60 overflow-auto rounded-md border border-slate-700 bg-slate-900 shadow-lg"
+                      style="top: 100%;"
+                    >
+                      <div id="learners-options" class="py-1">
+                        <!-- Options will be populated here -->
+                      </div>
+                    </div>
+
+                    <!-- Hidden input to store selected values -->
+                    <input type="hidden" id="learners-input" name="learners" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sessions Date Section -->
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Sessions Date</h2>
+                  <p class="text-sm text-slate-400">
+                    Set the dates for each training session.
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-1-date">
+                      Session 1
+                    </label>
+                    <input
+                      id="session-1-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-2-date">
+                      Session 2
+                    </label>
+                    <input
+                      id="session-2-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-3-date">
+                      Session 3
+                    </label>
+                    <input
+                      id="session-3-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-4-date">
+                      Session 4
+                    </label>
+                    <input
+                      id="session-4-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-5-date">
+                      Session 5
+                    </label>
+                    <input
+                      id="session-5-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-slate-200" for="session-6-date">
+                      Session 6
+                    </label>
+                    <input
+                      id="session-6-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Attendance Section -->
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Attendance</h2>
+                  <p class="text-sm text-slate-400">
+                    Mark attendance for each learner per session.
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-800/80">
+                  <table class="w-full border-collapse text-sm">
+                    <thead class="bg-slate-950/70 text-slate-300">
+                      <tr>
+                        <th class="px-4 py-3 text-left font-medium">Learners</th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 1</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 2</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 3</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 4</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 5</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Session 6</span>
+                            <input type="checkbox" class="check-all-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/80">
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">John Smith</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Sarah Johnson</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Michael Chen</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Emily Davis</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">David Wilson</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Lisa Anderson</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">James Brown</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Maria Garcia</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Robert Taylor</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Jennifer Martinez</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">William Lee</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Amanda White</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" checked />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="attendance-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Homework Section -->
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Homework</h2>
+                  <p class="text-sm text-slate-400">
+                    Mark homework completion for each learner per session.
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-800/80">
+                  <table class="w-full border-collapse text-sm">
+                    <thead class="bg-slate-950/70 text-slate-300">
+                      <tr>
+                        <th class="px-4 py-3 text-left font-medium">Learners</th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 1</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 2</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 3</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 4</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 5</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                          </div>
+                        </th>
+                        <th class="px-4 py-3 text-center font-medium">
+                          <div class="flex flex-col items-center gap-1">
+                            <span>Homework 6</span>
+                            <input type="checkbox" class="check-all-homework-column h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/80">
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">John Smith</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" checked />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Sarah Johnson</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Michael Chen</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Emily Davis</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">David Wilson</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Lisa Anderson</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">James Brown</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Maria Garcia</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Robert Taylor</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Jennifer Martinez</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">William Lee</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Amanda White</td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="1" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="2" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="3" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="4" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="5" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" class="homework-checkbox h-4 w-4 rounded border-slate-700 bg-slate-900" data-column="6" />
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300">Link</a>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-end gap-3">
+                <a
+                  href="training_batch.html"
+                  class="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200"
+                >
+                  Cancel
+                </a>
+                <button
+                  type="submit"
+                  class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="prototype-card max-w-md w-full mx-4">
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h3 class="text-lg font-semibold text-white">Alert</h3>
+          <button
+            type="button"
+            onclick="closeCustomAlert()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close alert"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <p id="alert-message" class="text-sm text-slate-300"></p>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 px-6 py-4">
+          <button
+            type="button"
+            onclick="closeCustomAlert()"
+            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <style>
+      /* Multi-select dropdown styles */
+      .learner-option {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        transition: background-color 150ms;
+      }
+      .learner-option:hover {
+        background-color: #1e293b;
+      }
+      .learner-option.selected {
+        background-color: #1e3a8a;
+      }
+      .learner-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        background-color: #1e3a8a;
+        border: 1px solid #3b82f6;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        color: #e2e8f0;
+      }
+      .learner-chip button {
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0;
+        transition: color 150ms;
+      }
+      .learner-chip button:hover {
+        color: #e2e8f0;
+      }
+      /* Custom Flatpickr dark theme styling */
+      .flatpickr-calendar {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+      }
+      
+      .flatpickr-months {
+        background: #1e293b !important;
+      }
+      
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: #1e293b !important;
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-current-month input.cur-year {
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-day {
+        color: #e2e8f0 !important;
+        border: none !important;
+      }
+      
+      .flatpickr-day.today {
+        background: #334155 !important;
+        border-color: #3b82f6 !important;
+      }
+      
+      .flatpickr-day.selected, .flatpickr-day.selected:hover {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+      }
+      
+      .flatpickr-day:hover {
+        background: #334155 !important;
+        border-color: #334155 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #3b82f6 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        fill: #94a3b8 !important;
+      }
+      
+      .flatpickr-weekday {
+        color: #94a3b8 !important;
+      }
+      
+      .flatpickr-disabled, .flatpickr-disabled:hover {
+        color: #475569 !important;
+      }
+    </style>
+    <script>
+      // Learners data
+      const allLearners = [
+        { id: 1, name: "John Smith", email: "john.smith@example.com" },
+        { id: 2, name: "Sarah Johnson", email: "sarah.j@example.com" },
+        { id: 3, name: "Michael Chen", email: "michael.chen@example.com" },
+        { id: 4, name: "Emily Davis", email: "emily.davis@example.com" },
+        { id: 5, name: "David Wilson", email: "david.w@example.com" },
+        { id: 6, name: "Lisa Anderson", email: "lisa.a@example.com" },
+        { id: 7, name: "James Brown", email: "james.brown@example.com" },
+        { id: 8, name: "Maria Garcia", email: "maria.g@example.com" },
+        { id: 9, name: "Robert Taylor", email: "robert.t@example.com" },
+        { id: 10, name: "Jennifer Martinez", email: "jennifer.m@example.com" },
+        { id: 11, name: "William Lee", email: "william.lee@example.com" },
+        { id: 12, name: "Amanda White", email: "amanda.w@example.com" },
+      ];
+
+      // Pre-selected learners for edit mode
+      let selectedLearners = allLearners.slice(0, 5); // 5 learners selected by default in edit mode (matching capacity)
+      let filteredLearners = allLearners;
+
+      // Custom alert functions
+      function showCustomAlert(message) {
+        const alertModal = document.getElementById("custom-alert");
+        const alertMessage = document.getElementById("alert-message");
+        if (alertModal && alertMessage) {
+          alertMessage.textContent = message;
+          alertModal.classList.remove("hidden");
+          alertModal.classList.add("flex");
+          document.body.style.overflow = "hidden";
+        }
+      }
+
+      function closeCustomAlert() {
+        const alertModal = document.getElementById("custom-alert");
+        if (alertModal) {
+          alertModal.classList.add("hidden");
+          alertModal.classList.remove("flex");
+          document.body.style.overflow = "";
+        }
+      }
+
+      // Close alert on Escape key
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+          const alertModal = document.getElementById("custom-alert");
+          if (alertModal && !alertModal.classList.contains("hidden")) {
+            closeCustomAlert();
+          }
+        }
+      });
+
+      function initLearnersMultiSelect() {
+        const searchInput = document.getElementById("learners-search");
+        const dropdown = document.getElementById("learners-dropdown");
+        const optionsContainer = document.getElementById("learners-options");
+        const selectedContainer = document.getElementById("selected-learners");
+        const hiddenInput = document.getElementById("learners-input");
+
+        function renderOptions() {
+          const capacityInput = document.getElementById("capacity");
+          const capacity = capacityInput ? parseInt(capacityInput.value) || 5 : 5;
+          const isCapacityReached = selectedLearners.length >= capacity;
+          
+          optionsContainer.innerHTML = filteredLearners
+            .map(
+              (learner) => {
+                const isSelected = selectedLearners.some((s) => s.id === learner.id);
+                const isDisabled = !isSelected && isCapacityReached;
+                
+                return `
+            <div
+              class="learner-option ${isSelected ? "selected" : ""} ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}"
+              data-learner-id="${learner.id}"
+              ${isDisabled ? 'title="Capacity limit reached"' : ''}
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-slate-100">${learner.name}</p>
+                  <p class="text-xs text-slate-400">${learner.email}</p>
+                </div>
+                ${isSelected ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ""}
+              </div>
+            </div>
+          `;
+              }
+            )
+            .join("");
+
+          // Add click handlers
+          optionsContainer.querySelectorAll(".learner-option").forEach((option) => {
+            option.addEventListener("click", function (e) {
+              e.stopPropagation();
+              const learnerId = parseInt(this.getAttribute("data-learner-id"));
+              const learner = allLearners.find((l) => l.id === learnerId);
+
+              if (selectedLearners.some((s) => s.id === learnerId)) {
+                // Removing a learner - always allowed
+                selectedLearners = selectedLearners.filter((s) => s.id !== learnerId);
+              } else {
+                // Adding a learner - check capacity
+                const capacityInput = document.getElementById("capacity");
+                const capacity = capacityInput ? parseInt(capacityInput.value) || 5 : 5;
+                
+                if (selectedLearners.length >= capacity) {
+                  // Capacity reached, show alert or prevent selection
+                  showCustomAlert(`Cannot select more than ${capacity} learners. Capacity limit reached.`);
+                  return;
+                }
+                
+                selectedLearners.push(learner);
+              }
+
+              updateSelectedDisplay();
+              updateHiddenInput();
+              renderOptions();
+            });
+          });
+        }
+
+        function updateSelectedDisplay() {
+          selectedContainer.innerHTML = selectedLearners
+            .map(
+              (learner) => `
+            <div class="learner-chip">
+              <span>${learner.name}</span>
+              <button
+                type="button"
+                onclick="removeLearner(${learner.id})"
+                aria-label="Remove ${learner.name}"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          `
+            )
+            .join("");
+          updateCapacityInfo();
+        }
+
+        function updateHiddenInput() {
+          hiddenInput.value = selectedLearners.map((l) => l.id).join(",");
+        }
+
+        function updateCapacityInfo() {
+          const capacityInput = document.getElementById("capacity");
+          const capacity = capacityInput ? parseInt(capacityInput.value) || 5 : 5;
+          const currentParticipant = selectedLearners.length;
+          const spotLeft = Math.max(0, capacity - currentParticipant);
+          
+          const currentParticipantEl = document.getElementById("current-participant-value");
+          const spotLeftEl = document.getElementById("spot-left-value");
+          
+          if (currentParticipantEl) {
+            currentParticipantEl.textContent = currentParticipant;
+          }
+          if (spotLeftEl) {
+            spotLeftEl.textContent = spotLeft;
+          }
+        }
+
+        // Update capacity info when capacity input changes
+        const capacityInput = document.getElementById("capacity");
+        if (capacityInput) {
+          capacityInput.addEventListener("input", function() {
+            const newCapacity = parseInt(this.value) || 0;
+            const currentParticipants = selectedLearners.length;
+            
+            if (newCapacity < currentParticipants && newCapacity > 0) {
+              // Prevent reducing capacity below current participants
+              showCustomAlert(`Cannot set capacity below ${currentParticipants}. Please remove learners first.`);
+              this.value = currentParticipants;
+              updateCapacityInfo();
+              renderOptions();
+              return;
+            }
+            
+            updateCapacityInfo();
+            renderOptions(); // Re-render to update disabled state
+          });
+          capacityInput.addEventListener("change", function() {
+            const newCapacity = parseInt(this.value) || 0;
+            const currentParticipants = selectedLearners.length;
+            
+            if (newCapacity < currentParticipants && newCapacity > 0) {
+              // Prevent reducing capacity below current participants
+              showCustomAlert(`Cannot set capacity below ${currentParticipants}. Please remove learners first.`);
+              this.value = currentParticipants;
+              updateCapacityInfo();
+              renderOptions();
+              return;
+            }
+            
+            updateCapacityInfo();
+            renderOptions(); // Re-render to update disabled state
+          });
+        }
+
+        window.removeLearner = function (learnerId) {
+          selectedLearners = selectedLearners.filter((s) => s.id !== learnerId);
+          updateSelectedDisplay();
+          updateHiddenInput();
+          renderOptions();
+        };
+
+        // Search functionality
+        searchInput.addEventListener("input", function (e) {
+          const searchTerm = e.target.value.toLowerCase().trim();
+          if (searchTerm === "") {
+            filteredLearners = allLearners;
+          } else {
+            filteredLearners = allLearners.filter(
+              (learner) =>
+                learner.name.toLowerCase().includes(searchTerm) ||
+                learner.email.toLowerCase().includes(searchTerm)
+            );
+          }
+          dropdown.classList.remove("hidden");
+          renderOptions();
+        });
+
+        // Show/hide dropdown
+        searchInput.addEventListener("focus", function () {
+          dropdown.classList.remove("hidden");
+          renderOptions();
+        });
+
+        // Keep dropdown open when clicking inside it
+        dropdown.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (e) {
+          const container = document.getElementById("learners-multiselect-container");
+          if (container && !container.contains(e.target)) {
+            dropdown.classList.add("hidden");
+          }
+        });
+
+        // Initialize display
+        updateSelectedDisplay();
+        updateHiddenInput();
+        updateCapacityInfo();
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        initLearnersMultiSelect();
+        
+        // Common Flatpickr configuration
+        const flatpickrConfig = {
+          dateFormat: "d M Y",
+          theme: "dark",
+          disableMobile: false,
+          animate: true,
+          allowInput: false,
+          clickOpens: true,
+          onReady: function(selectedDates, dateStr, instance) {
+            // Prevent text selection on input
+            instance.input.addEventListener('mousedown', function(e) {
+              if (document.activeElement === this) {
+            e.preventDefault();
+              }
+            });
+          }
+        };
+        
+        // Initialize Flatpickr for estimated start date, batch start date and session dates
+        const dateInputIds = [
+          'estimated-start-date',
+          'batch-start-date',
+          'session-1-date', 'session-2-date', 'session-3-date',
+          'session-4-date', 'session-5-date', 'session-6-date'
+        ];
+        
+        dateInputIds.forEach(function(id) {
+          const input = document.getElementById(id);
+          if (input) {
+            flatpickr(input, flatpickrConfig);
+          }
+        });
+        
+        // Attendance "Check All" functionality
+        const checkAllCheckboxes = document.querySelectorAll('.check-all-column');
+        const attendanceCheckboxes = document.querySelectorAll('.attendance-checkbox');
+
+        // Function to update the header checkbox state based on column checkboxes
+        function updateCheckAllState(columnNumber) {
+          const columnCheckboxes = document.querySelectorAll('.attendance-checkbox[data-column="' + columnNumber + '"]');
+          const checkAllCheckbox = document.querySelector('.check-all-column[data-column="' + columnNumber + '"]');
+          
+          if (columnCheckboxes.length === 0) return;
+          
+          const allChecked = Array.from(columnCheckboxes).every(function(cb) {
+            return cb.checked;
+          });
+          
+          checkAllCheckbox.checked = allChecked;
+        }
+
+        // Handle "Check All" checkbox clicks
+        checkAllCheckboxes.forEach(function(checkAllCheckbox) {
+          checkAllCheckbox.addEventListener('change', function() {
+            const columnNumber = this.getAttribute('data-column');
+            const columnCheckboxes = document.querySelectorAll('.attendance-checkbox[data-column="' + columnNumber + '"]');
+            
+            const isChecked = this.checked;
+            columnCheckboxes.forEach(function(checkbox) {
+              checkbox.checked = isChecked;
+            });
+          });
+        });
+
+        // Handle individual checkbox clicks to update header checkbox state
+        attendanceCheckboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
+            const columnNumber = this.getAttribute('data-column');
+            updateCheckAllState(columnNumber);
+          });
+        });
+
+        // Initialize header checkbox states on page load
+        for (let i = 1; i <= 6; i++) {
+          updateCheckAllState(i);
+        }
+
+        // Homework "Check All" functionality
+        const checkAllHomeworkCheckboxes = document.querySelectorAll('.check-all-homework-column');
+        const homeworkCheckboxes = document.querySelectorAll('.homework-checkbox');
+
+        // Function to update the header checkbox state based on column checkboxes
+        function updateHomeworkCheckAllState(columnNumber) {
+          const columnCheckboxes = document.querySelectorAll('.homework-checkbox[data-column="' + columnNumber + '"]');
+          const checkAllCheckbox = document.querySelector('.check-all-homework-column[data-column="' + columnNumber + '"]');
+          
+          if (columnCheckboxes.length === 0) return;
+          
+          const allChecked = Array.from(columnCheckboxes).every(function(cb) {
+            return cb.checked;
+          });
+          
+          checkAllCheckbox.checked = allChecked;
+        }
+
+        // Handle "Check All" checkbox clicks
+        checkAllHomeworkCheckboxes.forEach(function(checkAllCheckbox) {
+          checkAllCheckbox.addEventListener('change', function() {
+            const columnNumber = this.getAttribute('data-column');
+            const columnCheckboxes = document.querySelectorAll('.homework-checkbox[data-column="' + columnNumber + '"]');
+            
+            const isChecked = this.checked;
+            columnCheckboxes.forEach(function(checkbox) {
+              checkbox.checked = isChecked;
+            });
+          });
+        });
+
+        // Handle individual checkbox clicks to update header checkbox state
+        homeworkCheckboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
+            const columnNumber = this.getAttribute('data-column');
+            updateHomeworkCheckAllState(columnNumber);
+          });
+        });
+
+        // Initialize header checkbox states on page load
+        for (let i = 1; i <= 6; i++) {
+          updateHomeworkCheckAllState(i);
+        }
+      });
+    </script>
+  </body>
+</html>
+

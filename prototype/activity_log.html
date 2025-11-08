@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Activity Log</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+                400: "#94a3b8",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-2 py-4 sm:px-4 sm:py-6 md:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-4 sm:gap-6">
+            <div>
+              <h1 class="text-2xl font-semibold text-white">Activity Log</h1>
+              <p class="text-sm text-slate-400">
+                Review all recorded add, edit, and delete actions across modules.
+              </p>
+            </div>
+
+            <!-- Search Form -->
+            <div class="prototype-card p-2 sm:p-4">
+              <form class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:flex-wrap">
+                <div class="flex-1 w-full min-w-0 sm:min-w-[200px]">
+                  <label for="search-user" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    User
+                  </label>
+                  <input
+                    type="text"
+                    id="search-user"
+                    name="user"
+                    placeholder="Search by user..."
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="flex-1 w-full min-w-0 sm:min-w-[200px]">
+                  <label for="search-module" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Module
+                  </label>
+                  <select
+                    id="search-module"
+                    name="module"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Modules</option>
+                    <option value="users">Users</option>
+                    <option value="roles">Roles</option>
+                    <option value="activity_log">Activity Log</option>
+                    <option value="training_batches">Training Batches</option>
+                    <option value="competencies">Competencies</option>
+                  </select>
+                </div>
+                <div class="flex-1 w-full min-w-0 sm:min-w-[200px]">
+                  <label for="search-action" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Action
+                  </label>
+                  <select
+                    id="search-action"
+                    name="action"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Actions</option>
+                    <option value="add">Add</option>
+                    <option value="edit">Edit</option>
+                    <option value="delete">Delete</option>
+                  </select>
+                </div>
+                <div class="flex flex-row w-full sm:w-auto items-end gap-2">
+                  <button
+                    type="submit"
+                    class="flex-1 sm:flex-none rounded-md bg-blue-600 px-3 py-2 sm:px-4 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    Search
+                  </button>
+                  <button
+                    type="reset"
+                    class="flex-1 sm:flex-none rounded-md border border-slate-700 bg-slate-800/50 px-3 py-2 sm:px-4 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Activity Log Table -->
+            <div class="prototype-card overflow-hidden">
+              <div class="overflow-x-auto rounded-lg border border-slate-800 -mx-2 sm:mx-0">
+                <table class="min-w-full divide-y divide-slate-800 text-sm">
+                  <thead class="bg-slate-900/60 text-left text-slate-400">
+                    <tr>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">No</th>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">User</th>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">Module</th>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">Action</th>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">Timestamp</th>
+                      <th class="px-2 py-2 sm:px-4 font-medium whitespace-nowrap">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800">
+                    <tr class="hover:bg-slate-900/50">
+                      <td class="px-2 py-2 sm:px-4 align-top">1</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="block font-medium text-slate-50">John Smith</span>
+                        <span class="block text-xs text-slate-400">john.smith@example.com</span>
+                      </td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Users</td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Add</td>
+                      <td class="px-2 py-2 sm:px-4 align-top whitespace-nowrap text-slate-300 text-xs sm:text-sm">1/15/2025, 2:30:45 PM</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <pre class="max-h-40 overflow-y-auto whitespace-pre-wrap break-words rounded-md bg-slate-900/60 p-2 sm:p-3 text-xs text-slate-300">{
+  "name": "Sarah Johnson",
+  "email": "sarah.j@example.com"
+}</pre>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-slate-900/50">
+                      <td class="px-2 py-2 sm:px-4 align-top">2</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="block font-medium text-slate-50">Michael Chen</span>
+                        <span class="block text-xs text-slate-400">michael.chen@example.com</span>
+                      </td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Roles</td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Edit</td>
+                      <td class="px-2 py-2 sm:px-4 align-top whitespace-nowrap text-slate-300 text-xs sm:text-sm">1/15/2025, 1:20:30 PM</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <pre class="max-h-40 overflow-y-auto whitespace-pre-wrap break-words rounded-md bg-slate-900/60 p-2 sm:p-3 text-xs text-slate-300">{
+  "roleName": "Trainer",
+  "permissions": {
+    "training_batches": {
+      "canList": true,
+      "canAdd": true
+    }
+  }
+}</pre>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-slate-900/50">
+                      <td class="px-2 py-2 sm:px-4 align-top">3</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="block font-medium text-slate-50">Sarah Johnson</span>
+                        <span class="block text-xs text-slate-400">sarah.j@example.com</span>
+                      </td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Training Batches</td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Add</td>
+                      <td class="px-2 py-2 sm:px-4 align-top whitespace-nowrap text-slate-300 text-xs sm:text-sm">1/15/2025, 12:15:20 PM</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="text-slate-500">—</span>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-slate-900/50">
+                      <td class="px-2 py-2 sm:px-4 align-top">4</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="block font-medium text-slate-50">John Smith</span>
+                        <span class="block text-xs text-slate-400">john.smith@example.com</span>
+                      </td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Competencies</td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Delete</td>
+                      <td class="px-2 py-2 sm:px-4 align-top whitespace-nowrap text-slate-300 text-xs sm:text-sm">1/14/2025, 4:45:10 PM</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <pre class="max-h-40 overflow-y-auto whitespace-pre-wrap break-words rounded-md bg-slate-900/60 p-2 sm:p-3 text-xs text-slate-300">{
+  "id": "comp-123",
+  "name": "Old Competency"
+}</pre>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-slate-900/50">
+                      <td class="px-2 py-2 sm:px-4 align-top">5</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="text-slate-400">System</span>
+                      </td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Activity Log</td>
+                      <td class="px-2 py-2 sm:px-4 align-top capitalize text-slate-100 whitespace-nowrap">Add</td>
+                      <td class="px-2 py-2 sm:px-4 align-top whitespace-nowrap text-slate-300 text-xs sm:text-sm">1/14/2025, 3:30:00 PM</td>
+                      <td class="px-2 py-2 sm:px-4 align-top">
+                        <span class="text-slate-500">—</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Pagination -->
+            <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between border-t border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">Rows:</span>
+                <select class="rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-8 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <span>Showing 1 to 50 of 2500 entries</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  4
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  5
+                </button>
+                <span class="text-sm text-slate-400">...</span>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  50
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="table-sort.js"></script>
+  </body>
+</html>
+

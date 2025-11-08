@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Competency Module Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+                400: "#94a3b8",
+                300: "#cbd5f5",
+                200: "#e2e8f0",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+              },
+            },
+            borderRadius: {
+              xl: "14px",
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div class="prototype-card flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Create Competency</h1>
+                <p class="text-sm text-slate-400">
+                  Outline what success looks like for a role, add guidance, and assign the right trainers.
+                </p>
+              </div>
+              <div class="inline-flex items-center gap-1 rounded-full bg-slate-900/70 px-1 py-1">
+                <span class="inline-block max-w-[140px] rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200">
+                  Draft
+                </span>
+                <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                  Published
+                </span>
+              </div>
+            </div>
+
+            <form class="space-y-6" data-competency-form>
+              <div class="prototype-card space-y-6 p-6">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-200" for="competency-name">
+                    Competency name
+                  </label>
+                  <input
+                    id="competency-name"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="e.g. Guest Hospitality Standards"
+                  />
+                </div>
+
+                <div class="grid gap-5">
+                  <section class="prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6">
+                    <h3 class="text-lg font-semibold text-slate-100">Basic</h3>
+                    <div class="space-y-3">
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="basic-plan">
+                          Training Plan Document
+                        </label>
+                        <input
+                          id="basic-plan"
+                          type="text"
+                          class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Paste link or reference to the training plan document"
+                        />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="basic-knowledge">
+                          What team member should know
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="basic-knowledge"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="basic-eligibility">
+                          Eligibility criteria
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="basic-eligibility"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="basic-verification">
+                          Verification
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="basic-verification"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6">
+                    <h3 class="text-lg font-semibold text-slate-100">Competent</h3>
+                    <div class="space-y-3">
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="competent-plan">
+                          Training Plan Document
+                        </label>
+                        <input
+                          id="competent-plan"
+                          type="text"
+                          class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Paste link or reference to the training plan document"
+                        />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="competent-knowledge">
+                          What team member should know
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="competent-knowledge"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="competent-eligibility">
+                          Eligibility criteria
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="competent-eligibility"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="competent-verification">
+                          Verification
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="competent-verification"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="prototype-card space-y-4 border border-slate-800/80 bg-slate-950/50 p-6">
+                    <h3 class="text-lg font-semibold text-slate-100">Advanced</h3>
+                    <div class="space-y-3">
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="advanced-plan">
+                          Training Plan Document
+                        </label>
+                        <input
+                          id="advanced-plan"
+                          type="text"
+                          class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Paste link or reference to the training plan document"
+                        />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="advanced-knowledge">
+                          What team member should know
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="advanced-knowledge"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="advanced-eligibility">
+                          Eligibility criteria
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="advanced-eligibility"></div>
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-sm font-medium text-slate-200" for="advanced-verification">
+                          Verification
+                        </label>
+                        <div class="quill-wrapper">
+                          <div id="advanced-verification"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Trainer</h2>
+                  <p class="text-sm text-slate-400">
+                    Assign at least one trainer responsible for coaching and verification.
+                  </p>
+                </div>
+
+                <div class="trainer-grid">
+                  <label class="trainer-card">
+                    <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" checked />
+                    <p class="text-sm font-medium text-slate-100">Alex Morgan</p>
+                  </label>
+                  <label class="trainer-card">
+                    <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" checked />
+                    <p class="text-sm font-medium text-slate-100">Priya Desai</p>
+                  </label>
+                  <label class="trainer-card">
+                    <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                    <p class="text-sm font-medium text-slate-100">Jordan Lee</p>
+                  </label>
+                  <label class="trainer-card">
+                    <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                    <p class="text-sm font-medium text-slate-100">Sofia Alvarez</p>
+                  </label>
+                  <label class="trainer-card">
+                    <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                    <p class="text-sm font-medium text-slate-100">Chris Howard</p>
+                  </label>
+                </div>
+              </div>
+
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Relevant Links</h2>
+                </div>
+                <div class="space-y-2">
+                  <div class="quill-wrapper">
+                    <div id="relevant-links"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="prototype-card space-y-5 p-6">
+                <div class="space-y-1">
+                  <h2 class="text-lg font-semibold text-slate-100">Requirements</h2>
+                  <p class="text-sm text-slate-400">
+                    Select required competencies and levels for this competency.
+                  </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full border-collapse text-sm">
+                    <thead>
+                      <tr class="border-b border-slate-800/80">
+                        <th class="px-4 py-3 text-left font-medium text-slate-300">Competency</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Basic</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Competent</th>
+                        <th class="px-4 py-3 text-center font-medium text-slate-300">Advanced</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/80">
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Guest Hospitality Standards</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Food Safety &amp; Sanitation</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Customer Recovery Playbook</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Beverage Quality Assurance</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Digital Ordering Experience</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-slate-900/60">
+                        <td class="px-4 py-3 text-slate-100">Inventory Control Systems</td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <input type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <a
+                  href="competency.html"
+                  class="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200"
+                >
+                  Cancel
+                </a>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-md border border-blue-500/40 bg-blue-600/10 px-4 py-2 text-sm font-semibold text-blue-200 transition hover:border-blue-400 hover:bg-blue-500/20"
+                  >
+                    Save draft
+                  </button>
+                  <button
+                    type="submit"
+                    class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    Publish
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <path
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m5 12 5 5L19 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div
+      class="pointer-events-none fixed bottom-6 right-6 flex translate-y-6 items-center gap-3 rounded-lg border border-blue-400/30 bg-blue-600/20 px-4 py-3 text-sm text-blue-100 opacity-0 transition-all duration-300"
+      data-toast
+      role="status"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none">
+        <path
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m5 12 5 5L19 7"
+        />
+      </svg>
+      Competency published.
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

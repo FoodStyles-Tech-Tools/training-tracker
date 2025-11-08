@@ -40,12 +40,6 @@ CREATE TABLE users (
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
 
-CREATE TABLE users_roles (
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  role_id uuid NOT NULL REFERENCES roles_list(id) ON DELETE CASCADE,
-  PRIMARY KEY (user_id, role_id)
-);
-
 CREATE TABLE auth_accounts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

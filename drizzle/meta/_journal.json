@@ -15,6 +15,34 @@
       "when": 1761809182475,
       "tag": "0001_add-activity-log-module",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762610035294,
+      "tag": "0002_cloudy_flatman",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762610150374,
+      "tag": "0003_sudden_johnny_blaze",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1762610254469,
+      "tag": "0004_material_molecule_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762611749394,
+      "tag": "0005_oval_green_goblin",
+      "breakpoints": true
     }
   ]
 }

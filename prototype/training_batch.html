@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Training Batches</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Training Batches</h1>
+                <p class="text-sm text-slate-400">
+                  Manage training batches, trainers, and learners.
+                </p>
+              </div>
+              <a
+                href="training_batch_form.html"
+                class="self-start inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                + Create Batch
+              </a>
+            </div>
+
+            <!-- Search Form -->
+            <div class="prototype-card p-4">
+              <form class="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-competency" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Competency
+                  </label>
+                  <input
+                    type="text"
+                    id="search-competency"
+                    name="competency"
+                    placeholder="Search by competency..."
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-level" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Level
+                  </label>
+                  <select
+                    id="search-level"
+                    name="level"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Levels</option>
+                    <option value="basic">Basic</option>
+                    <option value="competent">Competent</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-batch" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Batch Name
+                  </label>
+                  <input
+                    type="text"
+                    id="search-batch"
+                    name="batch"
+                    placeholder="Search by batch name..."
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-trainer" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Trainer
+                  </label>
+                  <input
+                    type="text"
+                    id="search-trainer"
+                    name="trainer"
+                    placeholder="Search by trainer..."
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="flex w-full sm:w-auto items-end gap-2">
+                  <button
+                    type="submit"
+                    class="flex-1 sm:flex-none rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    Search
+                  </button>
+                  <button
+                    type="reset"
+                    class="flex-1 sm:flex-none rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="prototype-card overflow-hidden">
+              <table class="w-full border-collapse text-sm">
+                <thead class="bg-slate-950/70 text-slate-300">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium">No</th>
+                    <th class="px-4 py-3 text-left font-medium">Competency</th>
+                    <th class="px-4 py-3 text-left font-medium">Level</th>
+                    <th class="px-4 py-3 text-left font-medium">Batch Name</th>
+                    <th class="px-4 py-3 text-left font-medium">Trainer</th>
+                    <th class="px-4 py-3 text-left font-medium">Learners</th>
+                    <th class="px-4 py-3 text-left font-medium">Estimate start date</th>
+                    <th class="px-4 py-3 text-left font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">1</td>
+                    <td class="px-4 py-3 text-slate-100">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-001</td>
+                    <td class="px-4 py-3 text-slate-300">Alex Morgan</td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-001"
+                          data-batch-name="Batch-2025-001"
+                          data-learners-count="12"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          12
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 8</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">2025-02-15</td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <a
+                          href="training_batch_edit.html"
+                          class="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                        >
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">2</td>
+                    <td class="px-4 py-3 text-slate-100">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-002</td>
+                    <td class="px-4 py-3 text-slate-300">Priya Desai</td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-002"
+                          data-batch-name="Batch-2025-002"
+                          data-learners-count="8"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          8
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 12</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">2025-02-20</td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <a
+                          href="training_batch_edit.html"
+                          class="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                        >
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">3</td>
+                    <td class="px-4 py-3 text-slate-100">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200">
+                        Advanced
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-003</td>
+                    <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-003"
+                          data-batch-name="Batch-2025-003"
+                          data-learners-count="5"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          5
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 15</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">2025-03-01</td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <a
+                          href="training_batch_edit.html"
+                          class="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                        >
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">4</td>
+                    <td class="px-4 py-3 text-slate-100">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-004</td>
+                    <td class="px-4 py-3 text-slate-300">Jordan Lee</td>
+                    <td class="px-4 py-3">
+                      <div class="flex flex-col items-start gap-1">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/50 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:border-blue-500/50 hover:bg-slate-700/50 hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+                          data-batch-id="batch-004"
+                          data-batch-name="Batch-2025-004"
+                          data-learners-count="15"
+                          data-max-capacity="20"
+                          onclick="openLearnersModal(this)"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          15
+                        </button>
+                        <span class="text-xs text-slate-500">Spot left 5</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">2025-03-10</td>
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-2">
+                        <a
+                          href="training_batch_edit.html"
+                          class="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                        >
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between border-t border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">Rows:</span>
+                <select class="rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-8 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <span>Showing 1 to 50 of 2500 entries</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  4
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  5
+                </button>
+                <span class="text-sm text-slate-400">...</span>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  50
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Learners Modal -->
+    <div
+      id="learners-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeLearnersModal(event)"
+    >
+      <div
+        class="prototype-card max-h-[80vh] w-full max-w-2xl overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-white" id="modal-batch-name">Batch Learners</h2>
+            <p class="text-sm text-slate-400" id="modal-batch-info">Viewing learners in this batch</p>
+          </div>
+          <button
+            type="button"
+            onclick="closeLearnersModal()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="max-h-[60vh] overflow-y-auto p-6">
+          <div class="space-y-3" id="learners-list">
+            <!-- Learners will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="table-sort.js"></script>
+    <script>
+      // Sample learner data for each batch
+      const learnersData = {
+        "batch-001": [
+          { id: 1, name: "John Smith", email: "john.smith@example.com", status: "Active" },
+          { id: 2, name: "Sarah Johnson", email: "sarah.j@example.com", status: "Active" },
+          { id: 3, name: "Michael Chen", email: "michael.chen@example.com", status: "Active" },
+          { id: 4, name: "Emily Davis", email: "emily.davis@example.com", status: "Active" },
+          { id: 5, name: "David Wilson", email: "david.w@example.com", status: "Active" },
+          { id: 6, name: "Lisa Anderson", email: "lisa.a@example.com", status: "Active" },
+          { id: 7, name: "James Brown", email: "james.brown@example.com", status: "Active" },
+          { id: 8, name: "Maria Garcia", email: "maria.g@example.com", status: "Active" },
+          { id: 9, name: "Robert Taylor", email: "robert.t@example.com", status: "Active" },
+          { id: 10, name: "Jennifer Martinez", email: "jennifer.m@example.com", status: "Active" },
+          { id: 11, name: "William Lee", email: "william.lee@example.com", status: "Active" },
+          { id: 12, name: "Amanda White", email: "amanda.w@example.com", status: "Active" },
+        ],
+        "batch-002": [
+          { id: 1, name: "Christopher Moore", email: "chris.moore@example.com", status: "Active" },
+          { id: 2, name: "Jessica Thompson", email: "jessica.t@example.com", status: "Active" },
+          { id: 3, name: "Daniel Harris", email: "daniel.h@example.com", status: "Active" },
+          { id: 4, name: "Ashley Clark", email: "ashley.clark@example.com", status: "Active" },
+          { id: 5, name: "Matthew Lewis", email: "matthew.l@example.com", status: "Active" },
+          { id: 6, name: "Nicole Walker", email: "nicole.w@example.com", status: "Active" },
+          { id: 7, name: "Andrew Hall", email: "andrew.hall@example.com", status: "Active" },
+          { id: 8, name: "Stephanie Young", email: "stephanie.y@example.com", status: "Active" },
+        ],
+        "batch-003": [
+          { id: 1, name: "Joshua Allen", email: "joshua.a@example.com", status: "Active" },
+          { id: 2, name: "Michelle King", email: "michelle.k@example.com", status: "Active" },
+          { id: 3, name: "Ryan Wright", email: "ryan.wright@example.com", status: "Active" },
+          { id: 4, name: "Kimberly Lopez", email: "kimberly.l@example.com", status: "Active" },
+          { id: 5, name: "Brandon Hill", email: "brandon.hill@example.com", status: "Active" },
+        ],
+        "batch-004": [
+          { id: 1, name: "Kevin Scott", email: "kevin.scott@example.com", status: "Active" },
+          { id: 2, name: "Lauren Green", email: "lauren.g@example.com", status: "Active" },
+          { id: 3, name: "Justin Adams", email: "justin.a@example.com", status: "Active" },
+          { id: 4, name: "Rachel Baker", email: "rachel.baker@example.com", status: "Active" },
+          { id: 5, name: "Tyler Nelson", email: "tyler.n@example.com", status: "Active" },
+          { id: 6, name: "Megan Carter", email: "megan.carter@example.com", status: "Active" },
+          { id: 7, name: "Jordan Mitchell", email: "jordan.m@example.com", status: "Active" },
+          { id: 8, name: "Brittany Perez", email: "brittany.p@example.com", status: "Active" },
+          { id: 9, name: "Nathan Roberts", email: "nathan.r@example.com", status: "Active" },
+          { id: 10, name: "Samantha Turner", email: "samantha.t@example.com", status: "Active" },
+          { id: 11, name: "Cameron Phillips", email: "cameron.p@example.com", status: "Active" },
+          { id: 12, name: "Olivia Campbell", email: "olivia.c@example.com", status: "Active" },
+          { id: 13, name: "Ethan Parker", email: "ethan.parker@example.com", status: "Active" },
+          { id: 14, name: "Hannah Evans", email: "hannah.e@example.com", status: "Active" },
+          { id: 15, name: "Logan Edwards", email: "logan.edwards@example.com", status: "Active" },
+        ],
+      };
+
+      function openLearnersModal(button) {
+        const batchId = button.getAttribute("data-batch-id");
+        const batchName = button.getAttribute("data-batch-name");
+        const learnersCount = button.getAttribute("data-learners-count");
+        const maxCapacity = button.getAttribute("data-max-capacity") || "20";
+
+        const modal = document.getElementById("learners-modal");
+        const modalBatchName = document.getElementById("modal-batch-name");
+        const modalBatchInfo = document.getElementById("modal-batch-info");
+        const learnersList = document.getElementById("learners-list");
+
+        // Update modal header
+        modalBatchName.textContent = `${batchName} - Learners`;
+        modalBatchInfo.textContent = `${learnersCount} learner${learnersCount !== "1" ? "s" : ""} in this batch`;
+
+        // Get learners for this batch
+        const learners = learnersData[batchId] || [];
+
+        // Populate learners list
+        learnersList.innerHTML = learners
+          .map(
+            (learner) => `
+          <div class="flex items-center justify-between rounded-md border border-slate-800/80 bg-slate-900/50 p-4 hover:bg-slate-800/50 transition">
+            <div class="flex-1">
+              <p class="font-medium text-slate-100">${learner.name}</p>
+              <p class="text-sm text-slate-400">${learner.email}</p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                onclick="removeFromBatch('${learner.id}', '${batchId}')"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Remove from Batch
+              </button>
+              <button
+                type="button"
+                onclick="dropOffLearner('${learner.id}', '${batchId}')"
+                class="rounded-md border border-red-700 bg-red-800/50 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                Drop-off
+              </button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function removeFromBatch(learnerId, batchId) {
+        // Handle remove from batch action
+        console.log(`Removing learner ${learnerId} from batch ${batchId}`);
+        // Add your remove logic here
+        alert(`Remove learner ${learnerId} from batch ${batchId}`);
+      }
+
+      function dropOffLearner(learnerId, batchId) {
+        // Handle drop-off action
+        console.log(`Dropping off learner ${learnerId} from batch ${batchId}`);
+        // Add your drop-off logic here
+        alert(`Drop-off learner ${learnerId} from batch ${batchId}`);
+      }
+
+      function closeLearnersModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+
+        const modal = document.getElementById("learners-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      // Calculate and update spots left for all batches
+      function updateSpotsLeft() {
+        document.querySelectorAll('[data-learners-count][data-max-capacity]').forEach(button => {
+          const learnersCount = parseInt(button.getAttribute("data-learners-count")) || 0;
+          const maxCapacity = parseInt(button.getAttribute("data-max-capacity")) || 20;
+          const spotsLeft = maxCapacity - learnersCount;
+          const spotsLeftElement = button.parentElement.querySelector('.text-xs.text-slate-500');
+          if (spotsLeftElement) {
+            spotsLeftElement.textContent = `Spot left ${spotsLeft}`;
+          }
+        });
+      }
+
+      // Update spots left on page load
+      updateSpotsLeft();
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("learners-modal");
+          if (!modal.classList.contains("hidden")) {
+            closeLearnersModal();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
+

@@ -82,10 +82,6 @@ export async function createUserAction(input: UserFormInput) {
     accountId: user.id,
     password: hashedPassword,
   });
-  await db.insert(schema.usersRoles).values({
-    userId: user.id,
-    roleId: parsed.roleId,
-  });
 
   // Log user creation
   await logActivity({
@@ -119,14 +115,6 @@ export async function updateUserAction(id: string, input: UserFormInput) {
       updatedAt: new Date(),
     })
     .where(eq(schema.users.id, id));
-  await db
-    .delete(schema.usersRoles)
-    .where(eq(schema.usersRoles.userId, id));
-  await db.insert(schema.usersRoles).values({
-    userId: id,
-    roleId: parsed.roleId,
-  });
-
   if (parsed.password) {
     const hashedPassword = await hashPassword(parsed.password);
     const existingAccount = await db.query.accounts.findFirst({

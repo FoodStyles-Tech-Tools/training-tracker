@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Waitlist</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div>
+              <h1 class="text-2xl font-semibold text-white">Waitlist</h1>
+              <p class="text-sm text-slate-400">
+                View all pending requests across competencies organized by request type.
+              </p>
+            </div>
+
+            <!-- Competency Dropdown -->
+            <div class="prototype-card">
+              <div class="space-y-2 p-6">
+                <label for="competency-select" class="block text-sm font-medium text-slate-300">Select Competency</label>
+                <select
+                  id="competency-select"
+                  onchange="handleCompetencyChange()"
+                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">-- Select a competency --</option>
+                  <option value="guest-hospitality">Guest Hospitality Standards</option>
+                  <option value="food-safety">Food Safety & Sanitation</option>
+                  <option value="customer-recovery">Customer Recovery Playbook</option>
+                </select>
+              </div>
+            </div>
+                
+            <!-- Tabs and Tables Container -->
+            <div id="tables-container" class="prototype-card overflow-hidden p-0 hidden">
+              <!-- Tab Navigation -->
+              <div class="flex gap-2 border-b border-slate-800/80 bg-slate-950/50 px-6 pt-4">
+                <button
+                  type="button"
+                  id="tab-training-request"
+                  onclick="switchTab('training-request')"
+                  class="px-4 py-2 text-sm font-medium transition border-b-2 border-blue-500 text-blue-400"
+                >
+                  Training Request (<span id="count-training-request">0</span>)
+                </button>
+                <button
+                  type="button"
+                  id="tab-validation-project"
+                  onclick="switchTab('validation-project')"
+                  class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
+                >
+                  Validation Project Approval (<span id="count-validation-project">0</span>)
+                </button>
+                <button
+                  type="button"
+                  id="tab-validation-schedule"
+                  onclick="switchTab('validation-schedule')"
+                  class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
+                >
+                  Validation Schedule Request (<span id="count-validation-schedule">0</span>)
+                </button>
+                <button
+                  type="button"
+                  id="tab-project-assignment"
+                  onclick="switchTab('project-assignment')"
+                  class="px-4 py-2 text-sm font-medium transition border-b-2 border-transparent text-slate-400 hover:text-slate-200"
+                >
+                  Project Assignment Request (<span id="count-project-assignment">0</span>)
+                </button>
+              </div>
+
+              <!-- Tables Content -->
+              <div class="p-6">
+                <!-- Training Request Tab Content -->
+                <div id="content-training-request" class="tab-content-section">
+                  <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="w-full border-collapse text-sm">
+                      <thead class="bg-slate-950/70 text-slate-300">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">No</th>
+                          <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Level</th>
+                          <th class="px-4 py-3 text-left font-medium">Learner</th>
+                          <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/80" id="training-request-tbody">
+                        <!-- Data will be populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Validation Project Approval Tab Content -->
+                <div id="content-validation-project" class="tab-content-section hidden">
+                  <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="w-full border-collapse text-sm">
+                      <thead class="bg-slate-950/70 text-slate-300">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">No</th>
+                          <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Level</th>
+                          <th class="px-4 py-3 text-left font-medium">Learner</th>
+                          <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/80" id="validation-project-tbody">
+                        <!-- Data will be populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Validation Schedule Request Tab Content -->
+                <div id="content-validation-schedule" class="tab-content-section hidden">
+                  <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="w-full border-collapse text-sm">
+                      <thead class="bg-slate-950/70 text-slate-300">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">No</th>
+                          <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Level</th>
+                          <th class="px-4 py-3 text-left font-medium">Learner</th>
+                          <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/80" id="validation-schedule-tbody">
+                        <!-- Data will be populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Project Assignment Request Tab Content -->
+                <div id="content-project-assignment" class="tab-content-section hidden">
+                  <div class="overflow-x-auto rounded-lg border border-slate-800">
+                    <table class="w-full border-collapse text-sm">
+                      <thead class="bg-slate-950/70 text-slate-300">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-medium">No</th>
+                          <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Level</th>
+                          <th class="px-4 py-3 text-left font-medium">Learner</th>
+                          <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800/80" id="project-assignment-tbody">
+                        <!-- Data will be populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script>
+      // Sample data for each competency
+      const waitlistData = {
+        'guest-hospitality': {
+          'training-request': [
+            { no: 1, requestDate: '10 Nov 2025', level: 'Basic', learner: 'John Smith', status: 'Not Started' },
+            { no: 2, requestDate: '11 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'In Queue' },
+            { no: 3, requestDate: '12 Nov 2025', level: 'Basic', learner: 'Emily Davis', status: 'In Progress' },
+            { no: 4, requestDate: '13 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Training Complete' },
+            { no: 5, requestDate: '14 Nov 2025', level: 'Competent', learner: 'David Wilson', status: 'Looking for trainer' },
+          ],
+          'validation-project': [
+            { no: 1, requestDate: '10 Nov 2025', level: 'Basic', learner: 'John Smith', status: 'Pending Project Submission' },
+            { no: 2, requestDate: '12 Nov 2025', level: 'Competent', learner: 'Emily Davis', status: 'Pending Validation Project Approval' },
+            { no: 3, requestDate: '14 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Approved' },
+            { no: 4, requestDate: '15 Nov 2025', level: 'Basic', learner: 'Jessica Martinez', status: 'Rejected' },
+            { no: 5, requestDate: '16 Nov 2025', level: 'Competent', learner: 'Robert Taylor', status: 'Resubmit for Re-validation' },
+            { no: 6, requestDate: '17 Nov 2025', level: 'Basic', learner: 'Lisa Anderson', status: 'Pending Validation Project Approval' },
+          ],
+          'validation-schedule': [
+            { no: 1, requestDate: '10 Nov 2025', level: 'Basic', learner: 'John Smith', status: 'Pending Validation' },
+            { no: 2, requestDate: '13 Nov 2025', level: 'Competent', learner: 'Emily Davis', status: 'Pending Re-validation' },
+            { no: 3, requestDate: '15 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Validation Only' },
+            { no: 4, requestDate: '16 Nov 2025', level: 'Basic', learner: 'David Wilson', status: 'Validation Scheduled' },
+            { no: 5, requestDate: '18 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'Fail' },
+            { no: 6, requestDate: '19 Nov 2025', level: 'Basic', learner: 'Robert Taylor', status: 'Pass' },
+            { no: 7, requestDate: '20 Nov 2025', level: 'Competent', learner: 'Lisa Anderson', status: 'Pending Validation' },
+          ],
+          'project-assignment': [
+            { no: 1, requestDate: '10 Nov 2025', level: 'Basic', learner: 'John Smith', status: 'New' },
+            { no: 2, requestDate: '12 Nov 2025', level: 'Competent', learner: 'Emily Davis', status: 'Pending Project Assignment' },
+            { no: 3, requestDate: '14 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Project Assigned' },
+            { no: 4, requestDate: '16 Nov 2025', level: 'Basic', learner: 'Jessica Martinez', status: 'Pending Project Assignment' },
+          ],
+        },
+        'food-safety': {
+          'training-request': [
+            { no: 1, requestDate: '11 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'In Queue' },
+            { no: 2, requestDate: '13 Nov 2025', level: 'Basic', learner: 'David Wilson', status: 'Pending Validation' },
+            { no: 3, requestDate: '16 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Pass' },
+          ],
+          'validation-project': [
+            { no: 1, requestDate: '11 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'Pending Re-validation' },
+            { no: 2, requestDate: '14 Nov 2025', level: 'Basic', learner: 'David Wilson', status: 'New' },
+            { no: 3, requestDate: '17 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Project Assigned' },
+          ],
+          'validation-schedule': [
+            { no: 1, requestDate: '11 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'Pending Re-validation' },
+            { no: 2, requestDate: '13 Nov 2025', level: 'Basic', learner: 'David Wilson', status: 'Pending Validation' },
+            { no: 3, requestDate: '16 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Pass' },
+          ],
+          'project-assignment': [
+            { no: 1, requestDate: '11 Nov 2025', level: 'Competent', learner: 'Sarah Johnson', status: 'Pending Project Assignment' },
+            { no: 2, requestDate: '14 Nov 2025', level: 'Basic', learner: 'David Wilson', status: 'New' },
+            { no: 3, requestDate: '17 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Project Assigned' },
+            { no: 4, requestDate: '19 Nov 2025', level: 'Competent', learner: 'Jessica Martinez', status: 'Pending Project Assignment' },
+            { no: 5, requestDate: '21 Nov 2025', level: 'Basic', learner: 'Robert Taylor', status: 'Project Assigned' },
+          ],
+        },
+        'customer-recovery': {
+          'training-request': [
+            { no: 1, requestDate: '12 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'In Progress' },
+            { no: 2, requestDate: '14 Nov 2025', level: 'Competent', learner: 'Christopher Green', status: 'In Queue' },
+            { no: 3, requestDate: '16 Nov 2025', level: 'Basic', learner: 'Patricia Harris', status: 'Not Started' },
+            { no: 4, requestDate: '18 Nov 2025', level: 'Advanced', learner: 'Daniel Clark', status: 'Training Complete' },
+            { no: 5, requestDate: '20 Nov 2025', level: 'Competent', learner: 'Jennifer Lewis', status: 'Looking for trainer' },
+            { no: 6, requestDate: '22 Nov 2025', level: 'Basic', learner: 'Kevin Walker', status: 'In Progress' },
+          ],
+          'validation-project': [
+            { no: 1, requestDate: '12 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Approved' },
+            { no: 2, requestDate: '15 Nov 2025', level: 'Competent', learner: 'Christopher Green', status: 'Pending Validation Project Approval' },
+            { no: 3, requestDate: '17 Nov 2025', level: 'Basic', learner: 'Patricia Harris', status: 'Pending Project Submission' },
+            { no: 4, requestDate: '19 Nov 2025', level: 'Advanced', learner: 'Daniel Clark', status: 'Rejected' },
+          ],
+          'validation-schedule': [
+            { no: 1, requestDate: '12 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Validation Only' },
+            { no: 2, requestDate: '15 Nov 2025', level: 'Competent', learner: 'Christopher Green', status: 'Pass' },
+            { no: 3, requestDate: '18 Nov 2025', level: 'Basic', learner: 'Patricia Harris', status: 'Pending Validation' },
+            { no: 4, requestDate: '21 Nov 2025', level: 'Advanced', learner: 'Daniel Clark', status: 'Validation Scheduled' },
+            { no: 5, requestDate: '23 Nov 2025', level: 'Competent', learner: 'Jennifer Lewis', status: 'Fail' },
+          ],
+          'project-assignment': [
+            { no: 1, requestDate: '12 Nov 2025', level: 'Advanced', learner: 'Michael Brown', status: 'Project Assigned' },
+            { no: 2, requestDate: '15 Nov 2025', level: 'Competent', learner: 'Christopher Green', status: 'Pending Project Assignment' },
+            { no: 3, requestDate: '18 Nov 2025', level: 'Basic', learner: 'Patricia Harris', status: 'New' },
+            { no: 4, requestDate: '20 Nov 2025', level: 'Advanced', learner: 'Daniel Clark', status: 'Project Assigned' },
+            { no: 5, requestDate: '22 Nov 2025', level: 'Competent', learner: 'Jennifer Lewis', status: 'Pending Project Assignment' },
+            { no: 6, requestDate: '24 Nov 2025', level: 'Basic', learner: 'Kevin Walker', status: 'Project Assigned' },
+            { no: 7, requestDate: '25 Nov 2025', level: 'Advanced', learner: 'Nicole Young', status: 'New' },
+          ],
+        },
+      };
+
+      function getLevelBadgeClass(level) {
+        const levelClasses = {
+          'Basic': 'bg-blue-500/20 text-blue-200',
+          'Competent': 'bg-emerald-500/20 text-emerald-200',
+          'Advanced': 'bg-purple-500/20 text-purple-200',
+        };
+        return levelClasses[level] || 'bg-slate-500/20 text-slate-200';
+      }
+
+      function getStatusBadgeClass(status) {
+        if (status.includes('Pending') || status.includes('Looking for') || status.includes('In Queue') || status.includes('In Progress') || status === 'New') {
+          return 'bg-amber-500/20 text-amber-200';
+        } else if (status.includes('Complete') || status.includes('Approved') || status.includes('Assigned') || status.includes('Scheduled') || status === 'Pass') {
+          return 'bg-emerald-500/20 text-emerald-200';
+        } else if (status.includes('Rejected') || status === 'Fail') {
+          return 'bg-red-500/20 text-red-200';
+        } else if (status.includes('Not Started') || status.includes('Validation Only')) {
+          return 'bg-blue-500/20 text-blue-200';
+        }
+        return 'bg-slate-500/20 text-slate-200';
+      }
+
+      function renderTable(tbodyId, data) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No data available</td></tr>';
+          return;
+        }
+
+        data.forEach((row) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-900/60';
+          
+          tr.innerHTML = `
+            <td class="px-4 py-3 text-slate-400">${row.no}</td>
+            <td class="px-4 py-3 text-slate-300">${row.requestDate}</td>
+            <td class="px-4 py-3">
+              <span class="inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getLevelBadgeClass(row.level)}">
+                ${row.level}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-slate-100">${row.learner}</td>
+            <td class="px-4 py-3">
+              <span class="inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getStatusBadgeClass(row.status)}">
+                ${row.status}
+              </span>
+            </td>
+          `;
+          
+          tbody.appendChild(tr);
+        });
+      }
+
+      function updateTabCounts(competency) {
+        const data = waitlistData[competency];
+        if (!data) return;
+
+        const tabMappings = {
+          'training-request': 'training-request',
+          'validation-project': 'validation-project',
+          'validation-schedule': 'validation-schedule',
+          'project-assignment': 'project-assignment',
+        };
+
+        Object.keys(tabMappings).forEach((tabKey) => {
+          const count = data[tabMappings[tabKey]]?.length || 0;
+          const countEl = document.getElementById('count-' + tabKey);
+          if (countEl) {
+            countEl.textContent = count;
+          }
+        });
+      }
+
+      function handleCompetencyChange() {
+        const select = document.getElementById('competency-select');
+        const tablesContainer = document.getElementById('tables-container');
+        const selectedCompetency = select.value;
+        
+        if (selectedCompetency && waitlistData[selectedCompetency]) {
+          tablesContainer.classList.remove('hidden');
+          
+          // Update all tables
+          const data = waitlistData[selectedCompetency];
+          renderTable('training-request-tbody', data['training-request'] || []);
+          renderTable('validation-project-tbody', data['validation-project'] || []);
+          renderTable('validation-schedule-tbody', data['validation-schedule'] || []);
+          renderTable('project-assignment-tbody', data['project-assignment'] || []);
+          
+          // Update tab counts
+          updateTabCounts(selectedCompetency);
+          
+          // Switch to first tab
+          switchTab('training-request');
+        } else {
+          tablesContainer.classList.add('hidden');
+        }
+      }
+
+      function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content-section').forEach(content => {
+          content.classList.add('hidden');
+        });
+        
+        // Remove active state from all tabs
+        document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+          tab.classList.remove('border-blue-500', 'text-blue-400');
+          tab.classList.add('border-transparent', 'text-slate-400');
+        });
+        
+        // Show selected tab content
+        const content = document.getElementById('content-' + tabName);
+        if (content) {
+          content.classList.remove('hidden');
+        }
+        
+        // Activate selected tab
+        const tab = document.getElementById('tab-' + tabName);
+        if (tab) {
+          tab.classList.remove('border-transparent', 'text-slate-400');
+          tab.classList.add('border-blue-500', 'text-blue-400');
+        }
+      }
+    </script>
+    <style>
+      /* Tab Navigation Styling */
+      [id^="tab-"] {
+        position: relative;
+        transition: all 0.2s ease;
+      }
+      
+      [id^="tab-"]:hover {
+        color: #cbd5e1;
+      }
+      
+      [id^="tab-"].border-blue-500 {
+        color: #60a5fa;
+        border-bottom-color: #3b82f6;
+      }
+      
+      /* Tab Content Animation */
+      .tab-content-section {
+        animation: fadeIn 0.2s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </body>
+</html>
+

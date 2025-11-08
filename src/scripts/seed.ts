@@ -120,11 +120,6 @@ async function ensureUser({
         });
     }
 
-    await db
-      .insert(schema.usersRoles)
-      .values({ userId: existing.id, roleId })
-      .onConflictDoNothing();
-
     return existing.id;
   }
 
@@ -146,11 +141,6 @@ async function ensureUser({
     providerId: "credential",
     accountId: user.id,
     password: hashedPassword,
-  });
-
-  await db.insert(schema.usersRoles).values({
-    userId: user.id,
-    roleId,
   });
 
   return user.id;

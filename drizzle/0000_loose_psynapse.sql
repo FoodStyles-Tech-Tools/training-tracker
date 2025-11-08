@@ -66,18 +66,10 @@ CREATE TABLE "users" (
 	"updated_date" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "users_roles" (
-	"user_id" uuid NOT NULL,
-	"role_id" uuid NOT NULL,
-	CONSTRAINT "users_roles_user_id_role_id_pk" PRIMARY KEY("user_id","role_id")
-);
---> statement-breakpoint
 ALTER TABLE "auth_accounts" ADD CONSTRAINT "auth_accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "auth_sessions" ADD CONSTRAINT "auth_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "roles_permission" ADD CONSTRAINT "roles_permission_role_id_roles_list_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles_list"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_role_id_roles_list_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles_list"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users_roles" ADD CONSTRAINT "users_roles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users_roles" ADD CONSTRAINT "users_roles_role_id_roles_list_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles_list"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "auth_verification_token_idx" ON "auth_verification_tokens" USING btree ("identifier","token");--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_permission_role_module_idx" ON "roles_permission" USING btree ("role_id","module");--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_list_role_name_idx" ON "roles_list" USING btree ("role_name");--> statement-breakpoint

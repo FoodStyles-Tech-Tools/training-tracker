@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Training Requests</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-semibold text-white">Training Requests</h1>
+                <p class="text-sm text-slate-400">
+                  Manage training requests, track status, and assign to batches.
+                </p>
+              </div>
+              <a
+                href="#"
+                class="self-start inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                + Create Request
+              </a>
+            </div>
+
+            <!-- Search Form -->
+            <div class="prototype-card p-4">
+              <form class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:flex-row sm:flex-nowrap sm:gap-3">
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-name" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      id="search-name"
+                      name="name"
+                      placeholder="Search by name..."
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-competency" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Competency
+                    </label>
+                    <select
+                      id="search-competency"
+                      name="competency"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Competencies</option>
+                      <option value="Guest Hospitality Standards">Guest Hospitality Standards</option>
+                      <option value="Food Safety & Sanitation">Food Safety & Sanitation</option>
+                      <option value="Customer Recovery Playbook">Customer Recovery Playbook</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[120px]">
+                    <label for="search-level" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Level
+                    </label>
+                    <select
+                      id="search-level"
+                      name="level"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Levels</option>
+                      <option value="basic">Basic</option>
+                      <option value="competent">Competent</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-status" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Status
+                    </label>
+                    <select
+                      id="search-status"
+                      name="status"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Status</option>
+                      <option value="not-started">Not Started</option>
+                      <option value="in-queue">In Queue</option>
+                      <option value="no-batch-match">No batch match</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="training-complete">Training Complete</option>
+                      <option value="on-hold">On Hold</option>
+                      <option value="drop-off">Drop Off</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[140px]">
+                    <label for="search-trainer" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Trainer
+                    </label>
+                    <select
+                      id="search-trainer"
+                      name="trainer"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Trainers</option>
+                      <option value="Alex Morgan">Alex Morgan</option>
+                      <option value="Priya Desai">Priya Desai</option>
+                      <option value="Jordan Lee">Jordan Lee</option>
+                      <option value="Sofia Alvarez">Sofia Alvarez</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[150px]">
+                    <label for="search-batch" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Batch
+                    </label>
+                    <select
+                      id="search-batch"
+                      name="batch"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Batches</option>
+                      <option value="Batch-2025-001">Batch-2025-001</option>
+                      <option value="Batch-2025-002">Batch-2025-002</option>
+                      <option value="Batch-2025-003">Batch-2025-003</option>
+                      <option value="Batch-2025-004">Batch-2025-004</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-wrap items-center">
+                  <button
+                    type="button"
+                    class="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+                  >
+                    Due in 24h (1)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                  >
+                    Due in 3d (2)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  >
+                    Overdue (3)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  >
+                    Blocked (2)
+                  </button>
+                  <div class="flex-1"></div>
+                  <button
+                    type="submit"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    Search
+                  </button>
+                  <button
+                    type="reset"
+                    class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="prototype-card overflow-hidden">
+              <table class="w-full border-collapse text-sm">
+                <thead class="bg-slate-950/70 text-slate-300">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium">TR ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Requested date</th>
+                    <th class="px-4 py-3 text-left font-medium">Name</th>
+                    <th class="px-4 py-3 text-left font-medium">Competency</th>
+                    <th class="px-4 py-3 text-left font-medium">Level</th>
+                    <th class="px-4 py-3 text-left font-medium">Status</th>
+                    <th class="px-4 py-3 text-left font-medium">Batch</th>
+                    <th class="px-4 py-3 text-left font-medium">Trainer</th>
+                    <th class="px-4 py-3 text-left font-medium">Response Due Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Last Update</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR1</td>
+                    <td class="px-4 py-3 text-slate-300">10 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', 'Not Started', '-', '-', '10 Nov 2025')"
+                      >
+                        John Smith
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
+                        Not Started
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-20T10:00:00">20 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">15 Nov 2025 10:30:00</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR2</td>
+                    <td class="px-4 py-3 text-slate-300">11 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', 'In Queue', '-', '-', '11 Nov 2025')"
+                      >
+                        Sarah Johnson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        In Queue
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-19T14:00:00">19 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">16 Nov 2025 14:15:22</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR3</td>
+                    <td class="px-4 py-3 text-slate-300">12 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR3', 'Michael Chen', 'Customer Recovery Playbook', 'Advanced', 'No batch match', '-', '-', '12 Nov 2025')"
+                      >
+                        Michael Chen
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200">
+                        Advanced
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200">
+                        No batch match
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-300">-</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-18T09:00:00">18 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">17 Nov 2025 09:45:33</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR4</td>
+                    <td class="px-4 py-3 text-slate-300">13 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR4', 'Emily Davis', 'Guest Hospitality Standards', 'Basic', 'In Progress', 'Batch-2025-001', 'Alex Morgan', '13 Nov 2025')"
+                      >
+                        Emily Davis
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-indigo-500/20 px-2 py-0.5 text-sm font-semibold text-indigo-200">
+                        In Progress
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-001</td>
+                    <td class="px-4 py-3 text-slate-300">Alex Morgan</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-17T11:00:00">17 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">18 Nov 2025 11:20:15</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR5</td>
+                    <td class="px-4 py-3 text-slate-300">14 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR5', 'David Wilson', 'Food Safety & Sanitation', 'Competent', 'Training Complete', 'Batch-2025-002', 'Priya Desai', '14 Nov 2025')"
+                      >
+                        David Wilson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Training Complete
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-002</td>
+                    <td class="px-4 py-3 text-slate-300">Priya Desai</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-16T16:00:00">16 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">19 Nov 2025 16:45:00</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR6</td>
+                    <td class="px-4 py-3 text-slate-300">15 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR6', 'Lisa Anderson', 'Guest Hospitality Standards', 'Competent', 'On Hold', 'Batch-2025-004', 'Jordan Lee', '15 Nov 2025')"
+                      >
+                        Lisa Anderson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-orange-500/20 px-2 py-0.5 text-sm font-semibold text-orange-200">
+                        On Hold
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-004</td>
+                    <td class="px-4 py-3 text-slate-300">Jordan Lee</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-15T08:00:00">15 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">20 Nov 2025 08:30:45</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">TR7</td>
+                    <td class="px-4 py-3 text-slate-300">16 Nov 2025</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openTrainingRequestModal('TR7', 'James Brown', 'Customer Recovery Playbook', 'Advanced', 'Drop Off', 'Batch-2025-003', 'Sofia Alvarez', '16 Nov 2025')"
+                      >
+                        James Brown
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200">
+                        Advanced
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200">
+                        Drop Off
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-100">Batch-2025-003</td>
+                    <td class="px-4 py-3 text-slate-300">Sofia Alvarez</td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-14T13:00:00">14 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-400">21 Nov 2025 13:15:10</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between border-t border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">Rows:</span>
+                <select class="rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-8 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <span>Showing 1 to 50 of 2500 entries</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  4
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  5
+                </button>
+                <span class="text-sm text-slate-400">...</span>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  50
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Training Request Modal -->
+    <div
+      id="training-request-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeTrainingRequestModal(event)"
+    >
+      <div
+        class="prototype-card max-h-[90vh] w-full max-w-5xl overflow-y-auto"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Training Request Details</h2>
+            <p class="text-sm text-slate-400">Update training request information</p>
+          </div>
+          <button
+            type="button"
+            onclick="closeTrainingRequestModal()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <form class="space-y-6" onsubmit="event.preventDefault()">
+            <!-- Training Request Section -->
+            <div class="space-y-4">
+              <!-- Row 1: TR ID | Name -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="tr-id" class="block text-sm font-medium text-slate-300">TR ID</label>
+                  <input
+                    id="tr-id"
+                    type="text"
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-name" class="block text-sm font-medium text-slate-300">Name</label>
+                  <input
+                    id="tr-name"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 2: Competency | Level -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="tr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                  <input
+                    id="tr-competency"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-level" class="block text-sm font-medium text-slate-300">Level</label>
+                  <input
+                    id="tr-level"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 3: Trainer | Batch -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="tr-trainer" class="block text-sm font-medium text-slate-300">Trainer</label>
+                  <input
+                    id="tr-trainer"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-batch" class="block text-sm font-medium text-slate-300">Batch</label>
+                  <input
+                    id="tr-batch"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <!-- Row 4: Status | Requested date -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="tr-status" class="block text-sm font-medium text-slate-300">Status</label>
+                  <select
+                    id="tr-status"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleTRStatusChange()"
+                  >
+                    <option value="Not Started">Not Started</option>
+                    <option value="Looking for Trainer">Looking for Trainer</option>
+                    <option value="In Queue">In Queue</option>
+                    <option value="No batch match">No batch match</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Training Complete">Training Complete</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Drop Off">Drop Off</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-requested-date" class="block text-sm font-medium text-slate-300">Requested date</label>
+                  <input
+                    id="tr-requested-date"
+                    type="text"
+                    class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <!-- Looking for Trainer Fields (conditional) -->
+              <div id="looking-for-trainer-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="tr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                    <input
+                      id="tr-response-due"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="tr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                    <input
+                      id="tr-assigned-to"
+                      type="text"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter assigned person..."
+                    />
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-response-date" class="block text-sm font-medium text-slate-300">Response date</label>
+                  <input
+                    id="tr-response-date"
+                    type="text"
+                    class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <!-- On Hold Fields (conditional) -->
+              <div id="on-hold-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="tr-on-hold-by" class="block text-sm font-medium text-slate-300">On hold by</label>
+                  <select
+                    id="tr-on-hold-by"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="trainer">Trainer</option>
+                    <option value="learner">Learner</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label for="tr-on-hold-reason" class="block text-sm font-medium text-slate-300">On hold reason</label>
+                  <textarea
+                    id="tr-on-hold-reason"
+                    rows="3"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Enter reason for holding..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Drop Off Fields (conditional) -->
+              <div id="drop-off-fields" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="tr-drop-off-reason" class="block text-sm font-medium text-slate-300">Drop-off reason</label>
+                  <textarea
+                    id="tr-drop-off-reason"
+                    rows="3"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Enter reason for drop-off..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Blocked Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="tr-blocked"
+                    class="h-4 w-4 rounded border-slate-700 bg-slate-900/80 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    onchange="handleBlockedChange()"
+                  />
+                  <label for="tr-blocked" class="text-sm font-medium text-slate-300">Blocked</label>
+                </div>
+                <div id="blocked-fields" class="hidden space-y-4 pl-7">
+                  <div class="space-y-2">
+                    <label for="tr-block-reason" class="block text-sm font-medium text-slate-300">Block reason</label>
+                    <textarea
+                      id="tr-block-reason"
+                      rows="3"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      placeholder="Enter reason for blocking..."
+                    ></textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <label for="tr-expected-unblock-date" class="block text-sm font-medium text-slate-300">Expected unblocked date</label>
+                    <input
+                      id="tr-expected-unblock-date"
+                      type="text"
+                      class="w-auto inline-block min-w-[200px] cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="space-y-2 border-t border-slate-800/80 pt-4">
+                <label for="tr-notes" class="block text-sm font-medium text-slate-300">Notes</label>
+                <textarea
+                  id="tr-notes"
+                  rows="4"
+                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Enter any additional notes..."
+                ></textarea>
+              </div>
+
+              <!-- Definite Answer Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="tr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                  <select
+                    id="tr-definite-answer"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleTRDefiniteAnswerChange()"
+                  >
+                    <option value="">Select...</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div id="tr-definite-answer-fields" class="hidden space-y-4">
+                  <div class="space-y-2">
+                    <label for="tr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
+                    <input
+                      id="tr-follow-date"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="tr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
+                    <input
+                      id="tr-followup-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+              <button
+                type="button"
+                onclick="closeTrainingRequestModal()"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="table-sort.js"></script>
+    <script>
+      function openTrainingRequestModal(trId, name, competency, level, status, batch, trainer, requestedDate) {
+        const modal = document.getElementById("training-request-modal");
+        if (!modal) {
+          console.error("Training request modal not found!");
+          return;
+        }
+        
+        // Populate Training Request fields
+        const trIdEl = document.getElementById("tr-id");
+        const nameEl = document.getElementById("tr-name");
+        const trCompetencyEl = document.getElementById("tr-competency");
+        const trLevelEl = document.getElementById("tr-level");
+        const trStatusEl = document.getElementById("tr-status");
+        const trBatchEl = document.getElementById("tr-batch");
+        const trTrainerEl = document.getElementById("tr-trainer");
+        const trRequestedDateEl = document.getElementById("tr-requested-date");
+        
+        if (trIdEl) trIdEl.value = trId || "";
+        if (nameEl) nameEl.value = name || "";
+        if (trCompetencyEl) trCompetencyEl.value = competency || "";
+        if (trLevelEl) trLevelEl.value = level || "";
+        if (trStatusEl) trStatusEl.value = status || "";
+        if (trBatchEl) trBatchEl.value = batch === "-" ? "" : batch || "";
+        if (trTrainerEl) trTrainerEl.value = trainer === "-" ? "" : trainer || "";
+        if (trRequestedDateEl) {
+          trRequestedDateEl.value = requestedDate || "";
+          
+          // Auto-calculate Response Due date (+1 day from requested date) if requested date exists
+          if (requestedDate) {
+            try {
+              // Parse the requested date (format: "10 Nov 2025")
+              const dateParts = requestedDate.split(' ');
+              if (dateParts.length === 3) {
+                const day = parseInt(dateParts[0]);
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = monthNames.indexOf(dateParts[1]);
+                const year = parseInt(dateParts[2]);
+                
+                if (month !== -1) {
+                  const requestedDateObj = new Date(year, month, day);
+                  const responseDueDate = new Date(requestedDateObj);
+                  responseDueDate.setDate(responseDueDate.getDate() + 1);
+                  
+                  const responseDueInput = document.getElementById('tr-response-due');
+                  if (responseDueInput) {
+                    const responseDay = responseDueDate.getDate();
+                    const responseMonth = responseDueDate.toLocaleString('en-US', { month: 'short' });
+                    const responseYear = responseDueDate.getFullYear();
+                    responseDueInput.value = `${responseDay} ${responseMonth} ${responseYear}`;
+                  }
+                }
+              }
+            } catch (e) {
+              console.error('Error calculating response due date:', e);
+            }
+          }
+        }
+        
+        // Clear conditional fields
+        const trOnHoldByEl = document.getElementById("tr-on-hold-by");
+        const trOnHoldReasonEl = document.getElementById("tr-on-hold-reason");
+        const trDropOffReasonEl = document.getElementById("tr-drop-off-reason");
+        const trAssignedToEl = document.getElementById("tr-assigned-to");
+        const trBlockedEl = document.getElementById("tr-blocked");
+        const trBlockReasonEl = document.getElementById("tr-block-reason");
+        const trNotesEl = document.getElementById("tr-notes");
+        const trDefiniteAnswerEl = document.getElementById("tr-definite-answer");
+        const trFollowDateEl = document.getElementById("tr-follow-date");
+        const trFollowupDateEl = document.getElementById("tr-followup-date");
+        
+        if (trOnHoldByEl) trOnHoldByEl.value = "";
+        if (trOnHoldReasonEl) trOnHoldReasonEl.value = "";
+        if (trDropOffReasonEl) trDropOffReasonEl.value = "";
+        if (trAssignedToEl) trAssignedToEl.value = "";
+        if (trBlockedEl) trBlockedEl.checked = false;
+        if (trBlockReasonEl) trBlockReasonEl.value = "";
+        if (trNotesEl) trNotesEl.value = "";
+        if (trDefiniteAnswerEl) trDefiniteAnswerEl.value = "";
+        if (trFollowDateEl) trFollowDateEl.value = "";
+        if (trFollowupDateEl) trFollowupDateEl.value = "";
+        
+        // Hide conditional fields
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
+        if (definiteAnswerFields) definiteAnswerFields.classList.add("hidden");
+        
+        // Handle conditional fields visibility
+        if (typeof handleTRStatusChange === 'function') handleTRStatusChange();
+        if (typeof handleBlockedChange === 'function') handleBlockedChange();
+        if (typeof handleTRDefiniteAnswerChange === 'function') handleTRDefiniteAnswerChange();
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        
+        // Initialize Flatpickr and set dates after modal is shown
+        setTimeout(function() {
+          if (typeof initializeTRFlatpickr === 'function') {
+            initializeTRFlatpickr();
+            
+            // Set requested date with today's date if not provided
+            if (trRequestedDateEl && !trRequestedDateEl.value) {
+              const today = new Date();
+              const day = today.getDate();
+              const month = today.toLocaleString('en-US', { month: 'short' });
+              const year = today.getFullYear();
+              const formattedDate = `${day} ${month} ${year}`;
+              trRequestedDateEl.value = formattedDate;
+              
+              // Auto-calculate Response Due date (+1 day from today)
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              const responseDueInput = document.getElementById('tr-response-due');
+              if (responseDueInput) {
+                const responseDay = tomorrow.getDate();
+                const responseMonth = tomorrow.toLocaleString('en-US', { month: 'short' });
+                const responseYear = tomorrow.getFullYear();
+                responseDueInput.value = `${responseDay} ${responseMonth} ${responseYear}`;
+              }
+            }
+          }
+        }, 100);
+      }
+
+      function closeTrainingRequestModal(event) {
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        const modal = document.getElementById("training-request-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function handleTRStatusChange() {
+        const status = document.getElementById("tr-status").value;
+        const onHoldFields = document.getElementById("on-hold-fields");
+        const dropOffFields = document.getElementById("drop-off-fields");
+        const lookingForTrainerFields = document.getElementById("looking-for-trainer-fields");
+        
+        if (status === "Looking for Trainer") {
+          lookingForTrainerFields.classList.remove("hidden");
+        } else {
+          lookingForTrainerFields.classList.add("hidden");
+        }
+        
+        if (status === "On Hold") {
+          onHoldFields.classList.remove("hidden");
+        } else {
+          onHoldFields.classList.add("hidden");
+        }
+        
+        if (status === "Drop Off") {
+          dropOffFields.classList.remove("hidden");
+        } else {
+          dropOffFields.classList.add("hidden");
+        }
+      }
+
+      function handleBlockedChange() {
+        const blocked = document.getElementById("tr-blocked").checked;
+        const blockedFields = document.getElementById("blocked-fields");
+        
+        if (blocked) {
+          blockedFields.classList.remove("hidden");
+        } else {
+          blockedFields.classList.add("hidden");
+        }
+      }
+
+      function handleTRDefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("tr-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("tr-definite-answer-fields");
+        
+        if (definiteAnswer === "no") {
+          definiteAnswerFields.classList.remove("hidden");
+          
+          // Calculate follow date (+3 days from today)
+          const today = new Date();
+          const followDate = new Date(today);
+          followDate.setDate(followDate.getDate() + 3);
+          
+          const followDateInput = document.getElementById("tr-follow-date");
+          if (followDateInput) {
+            const day = followDate.getDate();
+            const month = followDate.toLocaleString('en-US', { month: 'short' });
+            const year = followDate.getFullYear();
+            followDateInput.value = `${day} ${month} ${year}`;
+          }
+          
+          setTimeout(function() {
+            initializeTRFlatpickr();
+          }, 50);
+        } else {
+          definiteAnswerFields.classList.add("hidden");
+        }
+      }
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("training-request-modal");
+          if (!modal.classList.contains("hidden")) {
+            closeTrainingRequestModal();
+          }
+        }
+      });
+
+      // Flatpickr instances storage
+      let flatpickrInstances = {};
+
+      // Initialize Flatpickr for training request modal date inputs
+      function initializeTRFlatpickr() {
+        const dateInputs = [
+          { 
+            id: 'tr-requested-date', 
+            config: { 
+              dateFormat: "d M Y", 
+              enableTime: false,
+              onChange: function(selectedDates, dateStr, instance) {
+                // Auto-fill Response Due date (+1 day from requested date)
+                if (selectedDates.length > 0) {
+                  const requestedDate = selectedDates[0];
+                  const responseDueDate = new Date(requestedDate);
+                  responseDueDate.setDate(responseDueDate.getDate() + 1);
+                  
+                  const responseDueInput = document.getElementById('tr-response-due');
+                  if (responseDueInput) {
+                    const day = responseDueDate.getDate();
+                    const month = responseDueDate.toLocaleString('en-US', { month: 'short' });
+                    const year = responseDueDate.getFullYear();
+                    responseDueInput.value = `${day} ${month} ${year}`;
+                  }
+                }
+              }
+            } 
+          },
+          { id: 'tr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'tr-expected-unblock-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'tr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
+        ];
+
+        const baseConfig = {
+          theme: "dark",
+          disableMobile: false,
+          animate: true,
+          allowInput: false,
+          clickOpens: true,
+          onReady: function(selectedDates, dateStr, instance) {
+            instance.input.addEventListener('mousedown', function(e) {
+              if (document.activeElement === this) {
+                e.preventDefault();
+              }
+            });
+          }
+        };
+
+        dateInputs.forEach(function(item) {
+          const input = document.getElementById(item.id);
+          if (input) {
+            // Destroy existing instance if it exists
+            if (flatpickrInstances[item.id]) {
+              try {
+                flatpickrInstances[item.id].destroy();
+              } catch (e) {
+                // Instance might already be destroyed
+              }
+              delete flatpickrInstances[item.id];
+            }
+            // Create new instance
+            const config = Object.assign({}, baseConfig, item.config);
+            try {
+              flatpickrInstances[item.id] = flatpickr(input, config);
+            } catch (e) {
+              console.error('Error initializing Flatpickr for ' + item.id + ':', e);
+            }
+          }
+        });
+      }
+
+      // Sort table by Response Due Date (descending) and color rows
+      function sortAndColorTableByResponseDue() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        // Set sample dates relative to now for demonstration
+        // Some overdue, some within 24 hours, some future
+        const sampleDates = [
+          now.getTime() - (2 * 24 * 60 * 60 * 1000), // 2 days ago (overdue)
+          now.getTime() - (1 * 24 * 60 * 60 * 1000), // 1 day ago (overdue)
+          now.getTime() - (12 * 60 * 60 * 1000),    // 12 hours ago (overdue)
+          now.getTime() + (6 * 60 * 60 * 1000),      // 6 hours from now (near due)
+          now.getTime() + (18 * 60 * 60 * 1000),     // 18 hours from now (near due)
+          now.getTime() + (3 * 24 * 60 * 60 * 1000), // 3 days from now (future)
+          now.getTime() + (5 * 24 * 60 * 60 * 1000), // 5 days from now (future)
+        ];
+
+        // Update response due dates in table cells
+        rows.forEach((row, index) => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          if (responseDueCell && index < sampleDates.length) {
+            const dueDate = new Date(sampleDates[index]);
+            const dateStr = dueDate.toISOString();
+            responseDueCell.setAttribute('data-response-due', dateStr);
+            
+            // Format date for display
+            const day = dueDate.getDate();
+            const month = dueDate.toLocaleString('en-US', { month: 'short' });
+            const year = dueDate.getFullYear();
+            responseDueCell.textContent = `${day} ${month} ${year}`;
+          }
+        });
+
+        // Color rows based on TR ID
+        rows.forEach(row => {
+          // Get TR ID from first cell
+          const firstCell = row.querySelector('td:first-child');
+          if (!firstCell) return;
+          
+          const trId = firstCell.textContent.trim();
+          
+          // Remove existing color classes
+          row.classList.remove('bg-yellow-500/30', 'bg-red-500/30');
+          
+          // Apply colors based on TR ID
+          if (trId === 'TR1' || trId === 'TR2') {
+            // TR1 and TR2: yellow
+            row.classList.add('bg-yellow-500/30');
+          } else if (trId === 'TR3' || trId === 'TR4' || trId === 'TR5') {
+            // TR3, TR4, TR5: light red
+            row.classList.add('bg-red-500/30');
+          }
+          // TR6 and TR7: no color (already removed above)
+        });
+
+        // Sort all rows by response due date (descending) for display
+        rows.sort((a, b) => {
+          const aCell = a.querySelector('[data-response-due]');
+          const bCell = b.querySelector('[data-response-due]');
+          
+          if (!aCell || !aCell.getAttribute('data-response-due')) return 1;
+          if (!bCell || !bCell.getAttribute('data-response-due')) return -1;
+          
+          const aDate = new Date(aCell.getAttribute('data-response-due'));
+          const bDate = new Date(bCell.getAttribute('data-response-due'));
+          
+          return bDate - aDate; // Descending order
+        });
+
+        // Re-append all rows in sorted order
+        rows.forEach(row => tbody.appendChild(row));
+      }
+
+      // Run on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        sortAndColorTableByResponseDue();
+      });
+
+      // Also run after a short delay to ensure table is fully loaded
+      setTimeout(sortAndColorTableByResponseDue, 100);
+
+    </script>
+    <style>
+      /* Custom Flatpickr dark theme styling */
+      .flatpickr-calendar {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+      }
+      
+      .flatpickr-months {
+        background: #1e293b !important;
+      }
+      
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: #1e293b !important;
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-current-month input.cur-year {
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-day {
+        color: #e2e8f0 !important;
+        border: none !important;
+      }
+      
+      .flatpickr-day.today {
+        background: #334155 !important;
+        border-color: #3b82f6 !important;
+      }
+      
+      .flatpickr-day.selected, .flatpickr-day.selected:hover {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+      }
+      
+      .flatpickr-day:hover {
+        background: #334155 !important;
+        border-color: #334155 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #3b82f6 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        fill: #94a3b8 !important;
+      }
+      
+      .flatpickr-weekday {
+        color: #94a3b8 !important;
+      }
+      
+      .flatpickr-disabled, .flatpickr-disabled:hover {
+        color: #475569 !important;
+      }
+    </style>
+  </body>
+</html>
+

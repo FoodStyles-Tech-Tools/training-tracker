@@ -1,0 +1,219 @@
+/* Global look and feel aligned with the admin panel */
+:root {
+  color-scheme: dark;
+  --background: #020617;
+  --background-alt: rgba(2, 6, 23, 0.8);
+  --surface: rgba(15, 23, 42, 0.8);
+  --border: #1e293b;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.15);
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #0f172a 0%, var(--background) 60%);
+  color: var(--text);
+  font-family: "Geist", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  letter-spacing: 0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+select {
+  display: flex;
+  height: 2.5rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #f1f5f9;
+  font-family: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem 1rem;
+}
+
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #3b82f6;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+select option,
+select optgroup {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+select option:checked,
+select option:hover,
+select option:focus {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+/* High level layout helpers */
+.prototype-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--background-alt);
+  border-top: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.prototype-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(18px);
+}
+
+.prototype-main {
+  flex: 1;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.prototype-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.45);
+}
+
+.quill-wrapper {
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  background: rgba(9, 17, 33, 0.7);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  overflow: hidden;
+}
+
+.quill-wrapper:focus-within {
+  border-color: rgba(37, 99, 235, 0.8);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.2);
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text);
+  padding: 0.35rem 0.5rem;
+  border-radius: 11px 11px 0 0;
+}
+
+.ql-toolbar.ql-snow .ql-picker {
+  color: var(--text-muted);
+}
+
+.ql-toolbar.ql-snow .ql-picker-options {
+  background: rgba(2, 6, 23, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  color: var(--text);
+}
+
+.ql-toolbar.ql-snow button,
+.ql-toolbar.ql-snow .ql-picker-item {
+  color: var(--text-muted);
+}
+
+.ql-toolbar.ql-snow button:hover,
+.ql-toolbar.ql-snow .ql-picker-item:hover,
+.ql-toolbar.ql-snow button:focus,
+.ql-toolbar.ql-snow .ql-picker-item:focus {
+  color: var(--text);
+}
+
+.ql-toolbar.ql-snow button.ql-active,
+.ql-toolbar.ql-snow .ql-picker-item.ql-selected {
+  color: var(--accent);
+}
+
+.ql-container.ql-snow {
+  font-family: inherit;
+  min-height: 160px;
+  border: none;
+  background: rgba(10, 16, 30, 0.78);
+  border-radius: 0 0 11px 11px;
+}
+
+.ql-container.ql-snow .ql-editor {
+  color: var(--text);
+  min-height: 160px;
+  padding: 0.85rem;
+  line-height: 1.65;
+}
+
+.ql-container.ql-snow .ql-editor::placeholder {
+  color: var(--text-muted);
+}
+
+.ql-tooltip {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  color: var(--text);
+  border-radius: 10px;
+}
+
+.ql-tooltip input[type="text"] {
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.trainer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.trainer-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(2, 6, 23, 0.55);
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.trainer-card:hover {
+  border-color: rgba(37, 99, 235, 0.6);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .trainer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}

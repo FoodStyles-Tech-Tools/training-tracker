@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Validation Schedule Request</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                950: "#020617",
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+                600: "#475569",
+                500: "#64748b",
+              },
+              blue: {
+                500: "#3b82f6",
+                600: "#2563eb",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  </head>
+  <body class="antialiased">
+    <div class="prototype-shell">
+      <div data-sidebar></div>
+      <div class="prototype-content">
+        <div data-header></div>
+        <main class="prototype-main px-4 py-6 sm:px-6">
+          <div class="mx-auto flex max-w-full flex-col gap-6">
+            <div>
+              <h1 class="text-2xl font-semibold text-white">Validation Schedule Request</h1>
+              <p class="text-sm text-slate-400">
+                Manage validation schedule requests under validation project approval.
+              </p>
+            </div>
+
+            <!-- Search Form -->
+            <div class="prototype-card p-4">
+              <form class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:flex-row sm:flex-nowrap sm:gap-3">
+                  <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                    <label for="search-name" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      id="search-name"
+                      name="name"
+                      placeholder="Search by name..."
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                    <label for="search-competency" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Competency
+                    </label>
+                    <select
+                      id="search-competency"
+                      name="competency"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Competencies</option>
+                      <option value="Guest Hospitality Standards">Guest Hospitality Standards</option>
+                      <option value="Food Safety & Sanitation">Food Safety & Sanitation</option>
+                      <option value="Customer Recovery Playbook">Customer Recovery Playbook</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                    <label for="search-level" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Level
+                    </label>
+                    <select
+                      id="search-level"
+                      name="level"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Levels</option>
+                      <option value="basic">Basic</option>
+                      <option value="competent">Competent</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                  <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                    <label for="search-status" class="mb-1.5 block text-xs font-medium text-slate-300">
+                      Status
+                    </label>
+                    <select
+                      id="search-status"
+                      name="status"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">All Status</option>
+                      <option value="0">Pending Validation</option>
+                      <option value="1">Pending Re-validation</option>
+                      <option value="2">Validation Only</option>
+                      <option value="3">Validation Scheduled</option>
+                      <option value="4">Fail</option>
+                      <option value="5">Pass</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-wrap items-center">
+                  <button
+                    type="button"
+                    class="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+                    onclick="filterByDueIn24h()"
+                  >
+                    Due in 24h (1)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                    onclick="filterByDueIn3d()"
+                  >
+                    Due in 3d (2)
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    onclick="filterByOverdue()"
+                  >
+                    Overdue (3)
+                  </button>
+                  <div class="flex-1"></div>
+                  <button
+                    type="submit"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  >
+                    Search
+                  </button>
+                  <button
+                    type="reset"
+                    class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="prototype-card overflow-hidden">
+              <table class="w-full border-collapse text-sm">
+                <thead class="bg-slate-950/70 text-slate-300">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium">ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Name</th>
+                    <th class="px-4 py-3 text-left font-medium">Requested Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Competencies</th>
+                    <th class="px-4 py-3 text-left font-medium">Level</th>
+                    <th class="px-4 py-3 text-left font-medium">Status</th>
+                    <th class="px-4 py-3 text-left font-medium">Response Due Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Last Update</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                  <tr class="hover:bg-slate-900/60 bg-amber-500/30">
+                    <td class="px-4 py-3 text-slate-400">VSR1</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR1', 'John Smith', 'Guest Hospitality Standards', 'Basic', '0', '10 Nov 2025', 'Sarah Williams')"
+                      >
+                        John Smith
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">10 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
+                        Pending Validation
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-11T10:00:00">11 Nov 2025 10:00</td>
+                    <td class="px-4 py-3 text-slate-400">15 Nov 2025 10:30:00</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60 bg-amber-500/30">
+                    <td class="px-4 py-3 text-slate-400">VSR2</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR2', 'Sarah Johnson', 'Food Safety & Sanitation', 'Competent', '1', '11 Nov 2025', 'Michael Chen')"
+                      >
+                        Sarah Johnson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">11 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-amber-500/20 px-2 py-0.5 text-sm font-semibold text-amber-200">
+                        Pending Re-validation
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-12T14:00:00">12 Nov 2025 14:00</td>
+                    <td class="px-4 py-3 text-slate-400">16 Nov 2025 14:15:22</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR3</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR3', 'Michael Brown', 'Customer Recovery Playbook', 'Advanced', '2', '12 Nov 2025', 'Emily Rodriguez')"
+                      >
+                        Michael Brown
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">12 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200">
+                        Advanced
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Validation Only
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">17 Nov 2025 09:45:33</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR4</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR4', 'Emily Davis', 'Guest Hospitality Standards', 'Competent', '3', '13 Nov 2025', 'David Kim')"
+                      >
+                        Emily Davis
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">13 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Validation Scheduled
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">18 Nov 2025 11:20:15</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR5</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR5', 'David Wilson', 'Food Safety & Sanitation', 'Basic', '4', '14 Nov 2025', 'Jessica Thompson')"
+                      >
+                        David Wilson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">14 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200">
+                        Fail
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">19 Nov 2025 16:45:00</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR6</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR6', 'Jessica Martinez', 'Customer Recovery Playbook', 'Basic', '5', '15 Nov 2025', 'Robert Singh')"
+                      >
+                        Jessica Martinez
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">15 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Pass
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">20 Nov 2025 08:30:45</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR7</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR7', 'Robert Taylor', 'Guest Hospitality Standards', 'Advanced', '0', '16 Nov 2025', 'Lisa Park')"
+                      >
+                        Robert Taylor
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">16 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-purple-500/20 px-2 py-0.5 text-sm font-semibold text-purple-200">
+                        Advanced
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-slate-500/20 px-2 py-0.5 text-sm font-semibold text-slate-200">
+                        Pending Validation
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400" data-response-due="2025-11-17T13:00:00">17 Nov 2025 13:00</td>
+                    <td class="px-4 py-3 text-slate-400">21 Nov 2025 13:15:10</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR8</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR8', 'Lisa Anderson', 'Food Safety & Sanitation', 'Competent', '3', '17 Nov 2025', 'James O\'Brien')"
+                      >
+                        Lisa Anderson
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">17 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Food Safety &amp; Sanitation</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Validation Scheduled
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">22 Nov 2025 10:22:33</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR9</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR9', 'James White', 'Customer Recovery Playbook', 'Competent', '4', '18 Nov 2025', 'Amanda Foster')"
+                      >
+                        James White
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">18 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Customer Recovery Playbook</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Competent
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-red-500/20 px-2 py-0.5 text-sm font-semibold text-red-200">
+                        Fail
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">23 Nov 2025 14:55:17</td>
+                  </tr>
+                  <tr class="hover:bg-slate-900/60">
+                    <td class="px-4 py-3 text-slate-400">VSR10</td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        class="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        onclick="openVSRModal('VSR10', 'Amanda Lee', 'Guest Hospitality Standards', 'Basic', '5', '19 Nov 2025', 'Thomas Nguyen')"
+                      >
+                        Amanda Lee
+                      </button>
+                    </td>
+                    <td class="px-4 py-3 text-slate-300">19 Nov 2025</td>
+                    <td class="px-4 py-3 text-slate-300">Guest Hospitality Standards</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                        Basic
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block max-w-[140px] rounded-md bg-emerald-500/20 px-2 py-0.5 text-sm font-semibold text-emerald-200">
+                        Pass
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-400">-</td>
+                    <td class="px-4 py-3 text-slate-400">24 Nov 2025 09:12:48</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between border-t border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-slate-400">Rows:</span>
+                <select class="rounded-md border border-slate-700 bg-slate-900/50 px-3 pr-8 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <span>Showing 1 to 50 of 2500 entries</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  3
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  4
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  5
+                </button>
+                <span class="text-sm text-slate-400">...</span>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  50
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Validation Schedule Request Modal -->
+    <div
+      id="vsr-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeVSRModal(event)"
+    >
+      <div
+        class="prototype-card max-h-[90vh] w-full max-w-5xl overflow-y-auto"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Validation Schedule Request</h2>
+            <p class="text-sm text-slate-400">Manage validation schedule request details</p>
+          </div>
+          <button
+            type="button"
+            onclick="closeVSRModal()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <form class="space-y-6" onsubmit="event.preventDefault()">
+            <!-- Basic Information -->
+            <div class="space-y-4">
+              <!-- Row 1: VSR ID | Requested Date -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="vsr-id" class="block text-sm font-medium text-slate-300">VSR ID</label>
+                  <input
+                    id="vsr-id"
+                    type="text"
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="vsr-requested-date" class="block text-sm font-medium text-slate-300">Requested Date</label>
+                  <input
+                    id="vsr-requested-date"
+                    type="text"
+                    class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+            
+              <!-- Row 2: Competency | Level -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="vsr-competency" class="block text-sm font-medium text-slate-300">Competency</label>
+                  <input
+                    id="vsr-competency"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="vsr-level" class="block text-sm font-medium text-slate-300">Level</label>
+                  <input
+                    id="vsr-level"
+                    type="text"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            
+              <!-- Row 3: Status | Assigned to -->
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="vsr-status" class="block text-sm font-medium text-slate-300">Status</label>
+                  <select
+                    id="vsr-status"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleVSRStatusChange()"
+                  >
+                    <option value="0">Pending Validation</option>
+                    <option value="1">Pending Re-validation</option>
+                    <option value="2">Validation Only</option>
+                    <option value="3">Validation Scheduled</option>
+                    <option value="4">Fail</option>
+                    <option value="5">Pass</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label for="vsr-assigned-to" class="block text-sm font-medium text-slate-300">Assigned to</label>
+                  <input
+                    id="vsr-assigned-to"
+                    type="text"
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  />
+                </div>
+              </div>
+            
+              <!-- Row 4: Response Due | Response Date (conditional based on status) -->
+              <div id="vsr-response-fields" class="hidden grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                  <label for="vsr-response-due" class="block text-sm font-medium text-slate-300">Response Due</label>
+                  <input
+                    id="vsr-response-due"
+                    type="text"
+                    readonly
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="vsr-response-date" class="block text-sm font-medium text-slate-300">Response Date</label>
+                  <input
+                    id="vsr-response-date"
+                    type="text"
+                    class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date"
+                    readonly
+                  />
+                </div>
+              </div>
+
+              <!-- Schedule Section (shown for Pending Validation, Pending Re-validation, or Validation Scheduled) -->
+              <div id="vsr-schedule-section" class="hidden space-y-4 border-t border-slate-800/80 pt-4">
+                <h4 class="text-sm font-semibold text-white">Schedule</h4>
+                
+                <!-- Row 1: Validator Ops | Validator Trainer -->
+                <div class="grid gap-4 md:grid-cols-2">
+                  <div class="space-y-2">
+                    <label for="vsr-validator-ops" class="block text-sm font-medium text-slate-300">Validator Ops</label>
+                    <select
+                      id="vsr-validator-ops"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select Validator Ops...</option>
+                      <option value="john-doe">John Doe</option>
+                      <option value="jane-smith">Jane Smith</option>
+                      <option value="mike-wilson">Mike Wilson</option>
+                      <option value="sarah-johnson">Sarah Johnson</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label for="vsr-validator-trainer" class="block text-sm font-medium text-slate-300">Validator Trainer</label>
+                    <select
+                      id="vsr-validator-trainer"
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="">Select Validator Trainer...</option>
+                      <option value="david-brown">David Brown</option>
+                      <option value="emily-davis">Emily Davis</option>
+                      <option value="robert-taylor">Robert Taylor</option>
+                      <option value="lisa-anderson">Lisa Anderson</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <!-- Row 2: Scheduled Date Time -->
+                <div class="space-y-2">
+                  <label for="vsr-scheduled-datetime" class="block text-sm font-medium text-slate-300">Scheduled Date Time</label>
+                  <input
+                    id="vsr-scheduled-datetime"
+                    type="text"
+                    class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    placeholder="Select date and time"
+                    readonly
+                  />
+                </div>
+                              
+                <!-- Google Calendar (shown for Pending Validation or Pending Re-validation) -->
+                <div id="vsr-calendar-section" class="hidden space-y-2">
+                  <label class="block text-sm font-medium text-slate-300">Calendar</label>
+                  <iframe
+                    src="https://calendar.google.com/calendar/embed?src=claudy.novianto%40foodstyles.com&ctz=Asia%2FJakarta"
+                    style="border: 0"
+                    width="100%"
+                    height="600"
+                    frameborder="0"
+                    scrolling="no"
+                    class="rounded-md"
+                  ></iframe>
+                </div>
+              </div>
+
+              <!-- Definite Answer Fields -->
+              <div class="space-y-4 border-t border-slate-800/80 pt-4">
+                <div class="space-y-2">
+                  <label for="vsr-definite-answer" class="block text-sm font-medium text-slate-300">Definite Answer?</label>
+                  <select
+                    id="vsr-definite-answer"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    onchange="handleVSRDefiniteAnswerChange()"
+                  >
+                    <option value="">Select...</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div id="vsr-definite-answer-fields" class="hidden space-y-4">
+                  <div class="space-y-2">
+                    <label for="vsr-follow-date" class="block text-sm font-medium text-slate-300">If no, Follow date (+3 days)</label>
+                    <input
+                      id="vsr-follow-date"
+                      type="text"
+                      readonly
+                      class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label for="vsr-followup-date" class="block text-sm font-medium text-slate-300">Follow up Date</label>
+                    <input
+                      id="vsr-followup-date"
+                      type="text"
+                      class="w-full cursor-pointer rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Select date"
+                      readonly
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+              <button
+                type="button"
+                onclick="closeVSRModal()"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onclick="setVSRStatus('4')"
+                class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                Fail
+              </button>
+              <button
+                type="button"
+                onclick="setVSRStatus('5')"
+                class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              >
+                Pass
+              </button>
+              <button
+                type="submit"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="table-sort.js"></script>
+    <script>
+      // Open VSR Modal
+      window.openVSRModal = function(vsrId, name, competency, level, vsrStatus, vsrDate, batchTrainer) {
+        const modal = document.getElementById("vsr-modal");
+        
+        // Populate VSR fields
+        document.getElementById("vsr-id").value = vsrId || "";
+        document.getElementById("vsr-competency").value = competency || "";
+        document.getElementById("vsr-level").value = level || "";
+        document.getElementById("vsr-status").value = vsrStatus || "0";
+        document.getElementById("vsr-requested-date").value = vsrDate || "";
+        document.getElementById("vsr-assigned-to").value = batchTrainer || "";
+        
+        // Clear conditional fields
+        document.getElementById("vsr-definite-answer").value = "";
+        
+        // Handle conditional fields visibility
+        handleVSRStatusChange();
+        
+        // Show modal
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        
+        // Initialize Flatpickr after modal is shown
+        setTimeout(function() {
+          initializeVSRFlatpickr();
+        }, 100);
+      }
+
+      function closeVSRModal(event) {
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        const modal = document.getElementById("vsr-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
+      function handleVSRStatusChange() {
+        const status = document.getElementById("vsr-status").value;
+        const responseFields = document.getElementById("vsr-response-fields");
+        const scheduleSection = document.getElementById("vsr-schedule-section");
+        const calendarSection = document.getElementById("vsr-calendar-section");
+        
+        if (status == 0 || status == 1) {
+          responseFields.classList.remove("hidden");
+        } else {
+          responseFields.classList.add("hidden");
+        }
+        
+        if (status == 0 || status == 1 || status == 3) {
+          scheduleSection.classList.remove("hidden");
+        } else {
+          scheduleSection.classList.add("hidden");
+        }
+        
+        // Show calendar only for Pending Validation (0) or Pending Re-validation (1)
+        if (status == 0 || status == 1) {
+          if (calendarSection) {
+            calendarSection.classList.remove("hidden");
+          }
+        } else {
+          if (calendarSection) {
+            calendarSection.classList.add("hidden");
+          }
+        }
+      }
+
+      function handleVSRDefiniteAnswerChange() {
+        const definiteAnswer = document.getElementById("vsr-definite-answer").value;
+        const definiteAnswerFields = document.getElementById("vsr-definite-answer-fields");
+        
+        if (definiteAnswer === "no") {
+          definiteAnswerFields.classList.remove("hidden");
+          setTimeout(function() {
+            initializeVSRFlatpickr();
+          }, 50);
+        } else {
+          definiteAnswerFields.classList.add("hidden");
+        }
+      }
+
+      function setVSRStatus(status) {
+        const statusSelect = document.getElementById("vsr-status");
+        statusSelect.value = status;
+        handleVSRStatusChange();
+      }
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          const modal = document.getElementById("vsr-modal");
+          if (!modal.classList.contains("hidden")) {
+            closeVSRModal();
+          }
+        }
+      });
+
+      // Flatpickr instances storage
+      let flatpickrInstances = {};
+
+      // Color code rows based on response due date and status
+      function colorCodeRowsByResponseDue() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        rows.forEach(row => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          
+          // Check for status badge to determine if it's pending
+          const statusCell = row.querySelector('td:nth-child(6)');
+          let isPending = false;
+          if (statusCell) {
+            const statusText = statusCell.textContent.trim();
+            isPending = statusText.includes('Pending Validation') || statusText.includes('Pending Re-validation');
+          }
+          
+          // Remove existing color classes (but preserve status-based colors if pending)
+          if (!isPending) {
+            row.classList.remove('bg-orange-500/30', 'bg-amber-500/30', 'bg-red-500/30');
+          } else {
+            // For pending rows, only remove due-date colors, keep status color
+            row.classList.remove('bg-orange-500/30', 'bg-red-500/30');
+            // Ensure amber status color is applied
+            if (!row.classList.contains('bg-amber-500/30')) {
+              row.classList.add('bg-amber-500/30');
+            }
+          }
+          
+          if (!responseDueCell) {
+            return;
+          }
+
+          const responseDueStr = responseDueCell.getAttribute('data-response-due');
+          if (!responseDueStr) {
+            return;
+          }
+
+          const responseDueDate = new Date(responseDueStr);
+          const diffTime = responseDueDate - now;
+          const diffHours = diffTime / (1000 * 60 * 60);
+          const diffDays = diffHours / 24;
+
+          // Color code based on due date (overrides status color for urgency)
+          if (diffTime < 0) {
+            // Overdue: red (highest priority)
+            row.classList.remove('bg-amber-500/30');
+            row.classList.add('bg-red-500/30');
+          } else if (diffHours >= 0 && diffHours <= 24) {
+            // Due in 24h: orange (high priority, overrides amber)
+            if (!isPending) {
+              row.classList.add('bg-orange-500/30');
+            }
+          } else if (diffHours > 24 && diffDays <= 3 && !isPending) {
+            // Due in 3d: amber (only if not already pending)
+            row.classList.add('bg-amber-500/30');
+          }
+        });
+      }
+
+      // Run color coding on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        colorCodeRowsByResponseDue();
+      });
+
+      // Also run after a short delay to ensure table is fully loaded
+      setTimeout(colorCodeRowsByResponseDue, 100);
+
+      // Filter functions
+      function filterByDueIn24h() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        rows.forEach(row => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          if (!responseDueCell) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueStr = responseDueCell.getAttribute('data-response-due');
+          if (!responseDueStr) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueDate = new Date(responseDueStr);
+          const diffTime = responseDueDate - now;
+          const diffHours = diffTime / (1000 * 60 * 60);
+
+          // Show only rows due within 24 hours (and not overdue)
+          if (diffHours >= 0 && diffHours <= 24) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      function filterByDueIn3d() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        rows.forEach(row => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          if (!responseDueCell) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueStr = responseDueCell.getAttribute('data-response-due');
+          if (!responseDueStr) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueDate = new Date(responseDueStr);
+          const diffTime = responseDueDate - now;
+          const diffHours = diffTime / (1000 * 60 * 60);
+          const diffDays = diffHours / 24;
+
+          // Show only rows due within 3 days (and not overdue, and not within 24h)
+          if (diffHours > 24 && diffDays <= 3) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      function filterByOverdue() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const now = new Date();
+
+        rows.forEach(row => {
+          const responseDueCell = row.querySelector('[data-response-due]');
+          if (!responseDueCell) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueStr = responseDueCell.getAttribute('data-response-due');
+          if (!responseDueStr) {
+            row.style.display = 'none';
+            return;
+          }
+
+          const responseDueDate = new Date(responseDueStr);
+          const diffTime = responseDueDate - now;
+
+          // Show only overdue rows
+          if (diffTime < 0) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      // Initialize Flatpickr for VSR modal date inputs
+      function initializeVSRFlatpickr() {
+        const dateInputs = [
+          { id: 'vsr-requested-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'vsr-response-date', config: { dateFormat: "d M Y", enableTime: false } },
+          { id: 'vsr-scheduled-datetime', config: { dateFormat: "d M Y h:i K", enableTime: true, time_24hr: false } },
+          { id: 'vsr-followup-date', config: { dateFormat: "d M Y", enableTime: false } }
+        ];
+
+        const baseConfig = {
+          theme: "dark",
+          disableMobile: false,
+          animate: true,
+          allowInput: false,
+          clickOpens: true,
+          onReady: function(selectedDates, dateStr, instance) {
+            instance.input.addEventListener('mousedown', function(e) {
+              if (document.activeElement === this) {
+                e.preventDefault();
+              }
+            });
+          }
+        };
+
+        dateInputs.forEach(function(item) {
+          const input = document.getElementById(item.id);
+          if (input) {
+            // Destroy existing instance if it exists
+            if (flatpickrInstances[item.id]) {
+              try {
+                flatpickrInstances[item.id].destroy();
+              } catch (e) {
+                // Instance might already be destroyed
+              }
+              delete flatpickrInstances[item.id];
+            }
+            // Create new instance
+            const config = Object.assign({}, baseConfig, item.config);
+            try {
+              flatpickrInstances[item.id] = flatpickr(input, config);
+            } catch (e) {
+              console.error('Error initializing Flatpickr for ' + item.id + ':', e);
+            }
+          }
+        });
+      }
+    </script>
+    <style>
+      /* Custom Flatpickr dark theme styling */
+      .flatpickr-calendar {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+      }
+      
+      .flatpickr-months {
+        background: #1e293b !important;
+      }
+      
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: #1e293b !important;
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-current-month input.cur-year {
+        color: #e2e8f0 !important;
+      }
+      
+      .flatpickr-day {
+        color: #e2e8f0 !important;
+        border: none !important;
+      }
+      
+      .flatpickr-day.today {
+        background: #334155 !important;
+        border-color: #3b82f6 !important;
+      }
+      
+      .flatpickr-day.selected, .flatpickr-day.selected:hover {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+      }
+      
+      .flatpickr-day:hover {
+        background: #334155 !important;
+        border-color: #334155 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #3b82f6 !important;
+      }
+      
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        fill: #94a3b8 !important;
+      }
+      
+      .flatpickr-weekday {
+        color: #94a3b8 !important;
+      }
+      
+      .flatpickr-disabled, .flatpickr-disabled:hover {
+        color: #475569 !important;
+      }
+    </style>
+
+  </body>
+</html>
+
