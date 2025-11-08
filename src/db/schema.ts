@@ -86,7 +86,9 @@ export const users = pgTable(
 );
 
 export const accounts = pgTable("auth_accounts", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: text("id")
+    .default(sql<string>`gen_random_uuid()::text`)
+    .primaryKey(),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -135,9 +137,14 @@ export const sessions = pgTable("auth_sessions", {
 export const verifications = pgTable(
   "auth_verification_tokens",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id")
+      .default(sql<string>`gen_random_uuid()::text`)
+      .primaryKey(),
     identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
+    token: text("token")
+      .default(sql<string>`gen_random_uuid()::text`)
+      .notNull(),
+    value: text("value").notNull(),
     expiresAt: timestamp("expires_at", {
       mode: "date",
       withTimezone: true,

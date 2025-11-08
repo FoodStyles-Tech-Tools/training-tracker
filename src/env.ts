@@ -7,6 +7,8 @@ const serverSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   ADMIN_SEED_EMAIL: z.string().email().optional(),
   ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
 });
 
 const parsed = serverSchema.safeParse({
@@ -15,6 +17,8 @@ const parsed = serverSchema.safeParse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   ADMIN_SEED_EMAIL: process.env.ADMIN_SEED_EMAIL,
   ADMIN_SEED_PASSWORD: process.env.ADMIN_SEED_PASSWORD,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 });
 
 if (!parsed.success) {

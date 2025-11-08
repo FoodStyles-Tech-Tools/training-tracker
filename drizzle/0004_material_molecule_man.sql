@@ -1,0 +1,1 @@
+ALTER TABLE "auth_verification_tokens" ALTER COLUMN "token" SET DEFAULT gen_random_uuid()::text;
