@@ -101,6 +101,34 @@
                     <option value="learner">Learner</option>
                   </select>
                 </div>
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-status" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Status
+                  </label>
+                  <select
+                    id="search-status"
+                    name="status"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                  <label for="search-department" class="mb-1.5 block text-xs font-medium text-slate-300">
+                    Department
+                  </label>
+                  <select
+                    id="search-department"
+                    name="department"
+                    class="w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="">All Departments</option>
+                    <option value="curator">Curator</option>
+                    <option value="scraping">Scraping</option>
+                  </select>
+                </div>
                 <div class="flex w-full sm:w-auto items-end gap-2">
                   <button
                     type="submit"
@@ -128,6 +156,8 @@
                       <th class="px-4 py-2 font-medium">Name</th>
                       <th class="px-4 py-2 font-medium">Email</th>
                       <th class="px-4 py-2 font-medium">Role</th>
+                      <th class="px-4 py-2 font-medium">Status</th>
+                      <th class="px-4 py-2 font-medium">Department</th>
                       <th class="px-4 py-2 font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -137,6 +167,8 @@
                       <td class="px-4 py-2 text-slate-100">John Smith</td>
                       <td class="px-4 py-2 text-slate-300">john.smith@example.com</td>
                       <td class="px-4 py-2 text-slate-300">Administrator</td>
+                      <td class="px-4 py-2 text-slate-300">Active</td>
+                      <td class="px-4 py-2 text-slate-300">Curator</td>
                       <td class="px-4 py-2">
                         <div class="flex gap-2">
                           <button
@@ -160,6 +192,8 @@
                       <td class="px-4 py-2 text-slate-100">Sarah Johnson</td>
                       <td class="px-4 py-2 text-slate-300">sarah.j@example.com</td>
                       <td class="px-4 py-2 text-slate-300">Trainer</td>
+                      <td class="px-4 py-2 text-slate-300">Active</td>
+                      <td class="px-4 py-2 text-slate-300">-</td>
                       <td class="px-4 py-2">
                         <div class="flex gap-2">
                           <button
@@ -183,6 +217,8 @@
                       <td class="px-4 py-2 text-slate-100">Michael Chen</td>
                       <td class="px-4 py-2 text-slate-300">michael.chen@example.com</td>
                       <td class="px-4 py-2 text-slate-300">Manager</td>
+                      <td class="px-4 py-2 text-slate-300">Inactive</td>
+                      <td class="px-4 py-2 text-slate-300">Scraping</td>
                       <td class="px-4 py-2">
                         <div class="flex gap-2">
                           <button
@@ -346,6 +382,40 @@
               </select>
             </div>
 
+            <div class="space-y-2 md:col-span-1">
+              <label for="user-department" class="block text-sm font-medium text-slate-300">Department</label>
+              <select
+                id="user-department"
+                class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Select a department</option>
+                <option value="curator">Curator</option>
+                <option value="scraping">Scraping</option>
+              </select>
+            </div>
+
+            <div class="space-y-2 md:col-span-1">
+              <label for="user-status" class="block text-sm font-medium text-slate-300">Status</label>
+              <select
+                id="user-status"
+                class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">Select status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="space-y-2 md:col-span-2">
+              <label for="user-calendar-tag" class="block text-sm font-medium text-slate-300">Google Calendar Tag</label>
+              <textarea
+                id="user-calendar-tag"
+                rows="3"
+                placeholder="Add relevant Google Calendar tags..."
+                class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              ></textarea>
+            </div>
+
             <div class="space-y-2 md:col-span-2">
               <label for="user-password" class="block text-sm font-medium text-slate-300">
                 <span id="password-label">Temporary Password</span>
@@ -386,6 +456,8 @@
         const title = document.getElementById("modal-title");
         const passwordLabel = document.getElementById("password-label");
         const passwordInput = document.getElementById("user-password");
+        const statusInput = document.getElementById("user-status");
+        const calendarTagInput = document.getElementById("user-calendar-tag");
         const passwordPlaceholder = passwordInput.placeholder;
 
         if (mode === 'edit') {
@@ -395,6 +467,9 @@
           document.getElementById("user-name").value = "John Smith";
           document.getElementById("user-email").value = "john.smith@example.com";
           document.getElementById("user-role").value = "admin";
+          document.getElementById("user-department").value = "curator";
+          statusInput.value = "active";
+          calendarTagInput.value = "onboarding-team";
         } else {
           title.textContent = "Create User";
           passwordLabel.textContent = "Temporary Password";
@@ -402,6 +477,9 @@
           document.getElementById("user-name").value = "";
           document.getElementById("user-email").value = "";
           document.getElementById("user-role").value = "";
+          document.getElementById("user-department").value = "";
+          statusInput.value = "";
+          calendarTagInput.value = "";
         }
 
         modal.classList.remove("hidden");

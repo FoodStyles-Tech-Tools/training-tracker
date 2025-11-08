@@ -10,6 +10,16 @@ Enum module_name {
   activity_log
 }
 
+Enum user_status {
+  active
+  inactive
+}
+
+Enum user_department {
+  curator
+  scraping
+}
+
 Table roles_list {
   id uuid [pk, default: `gen_random_uuid()`]
   role_name text [not null]
@@ -44,7 +54,9 @@ Table users {
   email_verified boolean [not null, default: false]
   image text
   discord_id text
-  is_active boolean [not null, default: true] // TODO: Not yet implemented in actual schema
+  status user_status [not null, default: 'active']
+  department user_department
+  google_calendar_tag text
   role_id uuid
   created_date timestamptz [not null, default: `now()`]
   updated_date timestamptz [not null, default: `now()`]
@@ -52,6 +64,8 @@ Table users {
   Indexes {
     (email) [unique]
     (role_id)
+    (status)
+    (department)
   }
 }
 

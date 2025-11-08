@@ -395,6 +395,15 @@
                         <span class="font-medium text-slate-300">Training Status:</span>
                         <span class="text-slate-200">In queue</span>
                       </div>
+                      <div>
+                        <button
+                          type="button"
+                          id="submit-homework-button"
+                          class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        >
+                          Submit Homework
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1546,6 +1555,156 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
       </div>
     </div>
 
+    <!-- Homework Submission Modal -->
+    <div
+      id="homework-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeHomeworkModal(event)"
+    >
+      <div
+        class="prototype-card max-w-4xl overflow-hidden"
+        onclick="event.stopPropagation()"
+      >
+        <div class="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">Submit Homework</h2>
+        </div>
+        <div class="max-h-[70vh] overflow-y-auto p-6">
+          <div class="space-y-4">
+            <!-- Homework 1 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 1</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-1-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-1-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 2 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 2</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-2-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-2-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 3 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 3</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-3-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-3-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 4 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 4</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-4-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-4-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 5 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 5</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-5-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-5-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <!-- Homework 6 -->
+            <div class="homework-item">
+              <label class="mb-2 block text-sm font-medium text-slate-200">Homework 6</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="homework-6-input"
+                  class="flex-1 min-w-[400px] rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter homework submission..."
+                />
+                <button
+                  type="button"
+                  id="homework-6-submit"
+                  class="homework-submit-btn rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeHomeworkModal()"
+              class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <script src="navigation.js"></script>
     <script>
@@ -2029,6 +2188,36 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
             openApplyModal(competencyName, level, levelType);
           });
         });
+
+        // Submit Homework button click handler
+        const submitHomeworkButton = document.getElementById("submit-homework-button");
+        if (submitHomeworkButton) {
+          submitHomeworkButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            openHomeworkModal();
+          });
+        }
+
+        // Add click handlers to all homework submit buttons
+        for (let i = 1; i <= 6; i++) {
+          const submitBtn = document.getElementById(`homework-${i}-submit`);
+          if (submitBtn) {
+            submitBtn.addEventListener("click", () => {
+              submitHomework(i);
+            });
+          }
+        }
+
+        // Set Homework 2 as already submitted (for demonstration)
+        const homework2Input = document.getElementById("homework-2-input");
+        const homework2Submit = document.getElementById("homework-2-submit");
+        if (homework2Input && homework2Submit) {
+          homework2Input.value = "Sample submitted homework";
+          homework2Input.classList.add("border-emerald-500");
+          homework2Submit.textContent = "Re-submit";
+          homework2Submit.classList.remove("bg-blue-600", "hover:bg-blue-500");
+          homework2Submit.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+        }
       });
 
       function openRequirementsModal() {
@@ -2122,13 +2311,61 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
         if (e.key === "Escape") {
           const applyModal = document.getElementById("apply-modal");
           const requirementsModal = document.getElementById("requirements-modal");
+          const homeworkModal = document.getElementById("homework-modal");
           if (!applyModal.classList.contains("hidden")) {
             closeApplyModal();
           } else if (!requirementsModal.classList.contains("hidden")) {
             closeRequirementsModal();
+          } else if (homeworkModal && !homeworkModal.classList.contains("hidden")) {
+            closeHomeworkModal();
           }
         }
       });
+
+      // Homework Modal Functions
+      function openHomeworkModal() {
+        const modal = document.getElementById("homework-modal");
+        if (modal) {
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+          document.body.style.overflow = "hidden";
+        }
+      }
+
+      function closeHomeworkModal(event) {
+        // Only close if clicking the backdrop or explicitly called
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        
+        const modal = document.getElementById("homework-modal");
+        if (modal) {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          document.body.style.overflow = "";
+        }
+      }
+
+      function submitHomework(homeworkNumber) {
+        const input = document.getElementById(`homework-${homeworkNumber}-input`);
+        const submitBtn = document.getElementById(`homework-${homeworkNumber}-submit`);
+        
+        if (input && submitBtn) {
+          const value = input.value.trim();
+          
+          if (value === "") {
+            alert("Please enter homework submission before submitting.");
+            return;
+          }
+          
+          // Keep input enabled but mark as submitted
+          input.classList.add("border-emerald-500");
+          // Change button to Re-submit and keep it enabled
+          submitBtn.textContent = "Re-submit";
+          submitBtn.classList.remove("bg-blue-600", "hover:bg-blue-500");
+          submitBtn.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+        }
+      }
 
       // Initialize Quill editors for Guest Hospitality - Competent
       let quillEditorInitial = null;
