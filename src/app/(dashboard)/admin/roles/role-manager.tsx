@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import type { ModuleName, Role, RolePermission } from "@/db/schema";
 import { TableControls, SortOption } from "@/components/admin/table-controls";
+import { Pagination } from "@/components/admin/pagination";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,6 +75,8 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
   const [pendingDeleteRole, setPendingDeleteRole] = useState<RoleWithPermissions | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<string>(ROLE_SORT_OPTIONS[0]?.value ?? "created-desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const defaultPermissions = useMemo(
     () =>
@@ -220,7 +223,7 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
 
   const isFormDisabled = (editingRoleId ? !ability.canEdit : !ability.canAdd) || isPending;
 
-  const visibleRoles = useMemo(() => {
+  const { filteredAndSortedRoles, totalFilteredRoles } = useMemo(() => {
     const normalized = searchQuery.trim().toLowerCase();
     const filtered = normalized
       ? roles.filter((role) => {
@@ -233,7 +236,7 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
     const toTime = (value: Date | string | null | undefined) =>
       value ? new Date(value).getTime() : 0;
 
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       switch (sortOption) {
         case "name-asc":
           return a.roleName.localeCompare(b.roleName, undefined, { sensitivity: "base" });
@@ -250,16 +253,36 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
           return toTime(b.createdAt) - toTime(a.createdAt);
       }
     });
+
+    return { filteredAndSortedRoles: sorted, totalFilteredRoles: sorted.length };
   }, [roles, searchQuery, sortOption]);
+
+  // Paginate the filtered and sorted roles
+  const visibleRoles = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredAndSortedRoles.slice(startIndex, endIndex);
+  }, [filteredAndSortedRoles, currentPage, pageSize]);
+
+  // Reset to page 1 when search or sort changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortOption(value);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
       <TableControls
         searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Search roles by name or module…"
         sortValue={sortOption}
-        onSortChange={setSortOption}
+        onSortChange={handleSortChange}
         sortOptions={ROLE_SORT_OPTIONS}
         actions={
           <Button type="button" onClick={handleAddRole} disabled={!ability.canAdd || isPending}>
@@ -328,6 +351,18 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
         </CardContent>
       </Card>
 
+      {/* Pagination */}
+      <Pagination
+        totalItems={totalFilteredRoles}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(newPageSize) => {
+          setPageSize(newPageSize);
+          setCurrentPage(1);
+        }}
+      />
+
       <Modal open={isModalOpen} onClose={() => handleCloseModal()} contentClassName="max-w-4xl">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -355,7 +390,7 @@ export function RoleManager({ roles, modules, ability }: RoleManagerProps) {
                   <thead className="bg-slate-900/60 text-left text-slate-400">
                     <tr>
                       <th className="px-4 py-2 font-medium">Module</th>
-                      <th className="px-4 py-2 font-medium">List</th>
+                      <th className="px-4 py-2 font-medium">View</th>
                       <th className="px-4 py-2 font-medium">Add</th>
                       <th className="px-4 py-2 font-medium">Edit</th>
                       <th className="px-4 py-2 font-medium">Delete</th>
