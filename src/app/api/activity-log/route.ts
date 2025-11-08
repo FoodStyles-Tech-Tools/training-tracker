@@ -26,10 +26,20 @@ export async function GET(req: NextRequest) {
   const page = Number(url.searchParams.get("page")) || 1;
   const pageSize = Number(url.searchParams.get("pageSize")) || 20;
   const userId = url.searchParams.get("userId") ?? undefined;
-  const moduleName = url.searchParams.get("module") ?? undefined;
-  const action = url.searchParams.get("action") ?? undefined;
+  const moduleNameParam = url.searchParams.get("module") ?? undefined;
+  const actionParam = url.searchParams.get("action") ?? undefined;
   const from = url.searchParams.get("from") ? new Date(url.searchParams.get("from")!) : undefined;
   const to = url.searchParams.get("to") ? new Date(url.searchParams.get("to")!) : undefined;
+
+  // Validate enum values
+  const moduleName: typeof schema.moduleNameEnum.enumValues[number] | undefined = 
+    moduleNameParam && (schema.moduleNameEnum.enumValues as readonly string[]).includes(moduleNameParam)
+      ? (moduleNameParam as typeof schema.moduleNameEnum.enumValues[number])
+      : undefined;
+  const action: typeof schema.actionEnum.enumValues[number] | undefined = 
+    actionParam && (schema.actionEnum.enumValues as readonly string[]).includes(actionParam)
+      ? (actionParam as typeof schema.actionEnum.enumValues[number])
+      : undefined;
 
   const filters = [];
   if (userId) {
