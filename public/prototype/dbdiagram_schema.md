@@ -51,11 +51,11 @@ Table users {
   id uuid [pk, default: `gen_random_uuid()`]
   name text [not null]
   email text [not null]
-  email_verified boolean [not null, default: false]
+  email_verified boolean [not null, default: true]
   image text
   discord_id text
   status user_status [not null, default: 'active']
-  department user_department
+  department user_department [not null]
   google_calendar_tag text
   role_id uuid
   created_date timestamptz [not null, default: `now()`]

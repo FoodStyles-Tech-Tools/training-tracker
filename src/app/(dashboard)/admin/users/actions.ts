@@ -15,6 +15,9 @@ const userSchema = z.object({
   email: z.string().email("Enter a valid email"),
   discordId: z.string().optional(),
   roleId: z.string().uuid("Choose a valid role"),
+  status: z.enum(["active", "inactive"]).optional(),
+  department: z.enum(["curator", "scraping"]),
+  googleCalendarTag: z.string().optional(),
   password: z
     .string()
     .min(6, "Password must be at least 6 characters")
@@ -67,6 +70,9 @@ export async function createUserAction(input: UserFormInput) {
       email: parsed.email,
       discordId: parsed.discordId,
       roleId: parsed.roleId,
+      status: parsed.status ?? "active",
+      department: parsed.department,
+      googleCalendarTag: parsed.googleCalendarTag,
       emailVerified: true,
     })
     .returning();
@@ -105,6 +111,12 @@ export async function updateUserAction(id: string, input: UserFormInput) {
   await ensurePermission(session.user.id, "users", "edit");
 
   const parsed = parseUserInput(input);
+  
+  // Get existing user to preserve department if not provided
+  const existingUser = await db.query.users.findFirst({
+    where: eq(schema.users.id, id),
+  });
+
   await db
     .update(schema.users)
     .set({
@@ -112,6 +124,9 @@ export async function updateUserAction(id: string, input: UserFormInput) {
       email: parsed.email,
       discordId: parsed.discordId,
       roleId: parsed.roleId,
+      status: parsed.status ?? existingUser?.status ?? "active",
+      department: parsed.department ?? existingUser?.department ?? "curator",
+      googleCalendarTag: parsed.googleCalendarTag,
       updatedAt: new Date(),
     })
     .where(eq(schema.users.id, id));
