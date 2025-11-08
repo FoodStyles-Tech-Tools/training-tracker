@@ -9,10 +9,11 @@ const { GET: baseGET, POST: basePOST } = toNextJsHandler(auth);
 async function handleRequest(
   handler: (request: NextRequest, context: { params: { "better-auth": string[] } }) => Promise<Response>,
   request: NextRequest,
-  context: { params: { "better-auth": string[] } }
+  context: { params: Promise<{ "better-auth": string[] }> }
 ) {
   try {
-    const response = await handler(request, context);
+    const resolvedParams = await context.params;
+    const response = await handler(request, { params: resolvedParams });
     
     // Check if this is a request to the error endpoint
     const url = new URL(request.url);
@@ -66,11 +67,11 @@ async function handleRequest(
   }
 }
 
-export async function GET(request: NextRequest, context: { params: { "better-auth": string[] } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ "better-auth": string[] }> }) {
   return handleRequest(baseGET, request, context);
 }
 
-export async function POST(request: NextRequest, context: { params: { "better-auth": string[] } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ "better-auth": string[] }> }) {
   return handleRequest(basePOST, request, context);
 }
 
