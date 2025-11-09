@@ -2,15 +2,17 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
+  integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log"]);
+export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive"]);
 export const userDepartmentEnum = pgEnum("user_department", ["curator", "scraping"]);
 
@@ -212,6 +214,8 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   }),
   accounts: many(accounts),
   sessions: many(sessions),
+  trainerCompetencies: many(competenciesTrainer),
+  competencyProgress: many(userCompetencyProgress),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -250,3 +254,181 @@ export const session = sessions;
 export const verification = verifications;
 
 export type ActivityLog = typeof activityLog.$inferSelect;
+
+// Competencies tables
+export const competencies = pgTable("competencies", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"), // Competency description
+  status: integer("status").notNull().default(0), // 0=draft, 1=published
+  relevantLinks: text("relevant_links"), // Rich text field for relevant links and resources
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const competencyLevels = pgTable(
+  "competency_levels",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    competencyId: uuid("competency_id")
+      .notNull()
+      .references(() => competencies.id, { onDelete: "cascade" }),
+    name: text("name").notNull(), // "Basic", "Competent", "Advanced"
+    trainingPlanDocument: text("training_plan_document").notNull(),
+    teamKnowledge: text("team_knowledge").notNull(), // Rich text
+    eligibilityCriteria: text("eligibility_criteria").notNull(), // Rich text
+    verification: text("verification").notNull(), // Rich text
+    isDeleted: boolean("is_deleted").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (levels) => ({
+    competencyNameIdx: uniqueIndex("competency_levels_competency_name_idx").on(
+      levels.competencyId,
+      levels.name,
+    ),
+  }),
+);
+
+export const competenciesTrainer = pgTable(
+  "competencies_trainer",
+  {
+    competencyId: uuid("competency_id")
+      .notNull()
+      .references(() => competencies.id, { onDelete: "cascade" }),
+    trainerUserId: uuid("trainer_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (trainers) => ({
+    pk: primaryKey({ columns: [trainers.competencyId, trainers.trainerUserId] }),
+    trainerIdx: index("competencies_trainer_trainer_idx").on(trainers.trainerUserId),
+  }),
+);
+
+export const competencyRequirements = pgTable(
+  "competency_requirements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    competencyId: uuid("competency_id")
+      .notNull()
+      .references(() => competencies.id, { onDelete: "cascade" }),
+    requiredCompetencyLevelId: uuid("required_competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (requirements) => ({
+    competencyLevelIdx: uniqueIndex("competency_requirements_competency_level_idx").on(
+      requirements.competencyId,
+      requirements.requiredCompetencyLevelId,
+    ),
+    competencyIdx: index("competency_requirements_competency_idx").on(requirements.competencyId),
+    levelIdx: index("competency_requirements_level_idx").on(requirements.requiredCompetencyLevelId),
+  }),
+);
+
+// Competencies relations
+export const competenciesRelations = relations(competencies, ({ many }) => ({
+  levels: many(competencyLevels),
+  trainers: many(competenciesTrainer),
+  requirements: many(competencyRequirements),
+}));
+
+export const competencyLevelsRelations = relations(competencyLevels, ({ one, many }) => ({
+  competency: one(competencies, {
+    fields: [competencyLevels.competencyId],
+    references: [competencies.id],
+  }),
+  requirements: many(competencyRequirements),
+  userProgress: many(userCompetencyProgress),
+}));
+
+export const competenciesTrainerRelations = relations(competenciesTrainer, ({ one }) => ({
+  competency: one(competencies, {
+    fields: [competenciesTrainer.competencyId],
+    references: [competencies.id],
+  }),
+  trainer: one(users, {
+    fields: [competenciesTrainer.trainerUserId],
+    references: [users.id],
+  }),
+}));
+
+export const competencyRequirementsRelations = relations(competencyRequirements, ({ one }) => ({
+  competency: one(competencies, {
+    fields: [competencyRequirements.competencyId],
+    references: [competencies.id],
+  }),
+  requiredLevel: one(competencyLevels, {
+    fields: [competencyRequirements.requiredCompetencyLevelId],
+    references: [competencyLevels.id],
+  }),
+}));
+
+// User competency progress table - tracks which users have achieved which competency levels
+export const userCompetencyProgress = pgTable(
+  "user_competency_progress",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("in_progress"), // "in_progress", "completed", "verified"
+    verifiedAt: timestamp("verified_at", { mode: "date", withTimezone: true }),
+    verifiedBy: uuid("verified_by").references(() => users.id, { onDelete: "set null" }),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (progress) => ({
+    userLevelIdx: uniqueIndex("user_competency_progress_user_level_idx").on(
+      progress.userId,
+      progress.competencyLevelId,
+    ),
+    userIdIdx: index("user_competency_progress_user_idx").on(progress.userId),
+    levelIdIdx: index("user_competency_progress_level_idx").on(progress.competencyLevelId),
+  }),
+);
+
+export const userCompetencyProgressRelations = relations(userCompetencyProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userCompetencyProgress.userId],
+    references: [users.id],
+  }),
+  competencyLevel: one(competencyLevels, {
+    fields: [userCompetencyProgress.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  verifier: one(users, {
+    fields: [userCompetencyProgress.verifiedBy],
+    references: [users.id],
+  }),
+}));
+
+export type Competency = typeof competencies.$inferSelect;
+export type CompetencyLevel = typeof competencyLevels.$inferSelect;
+export type CompetencyTrainer = typeof competenciesTrainer.$inferSelect;
+export type CompetencyRequirement = typeof competencyRequirements.$inferSelect;
+export type UserCompetencyProgress = typeof userCompetencyProgress.$inferSelect;

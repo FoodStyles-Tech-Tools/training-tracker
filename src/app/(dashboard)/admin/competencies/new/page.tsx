@@ -1,0 +1,47 @@
+import { db, schema } from "@/db";
+import { ensurePermission } from "@/lib/permissions";
+import { requireSession } from "@/lib/session";
+import { eq, and } from "drizzle-orm";
+
+import { CompetencyForm } from "../competency-form";
+
+export default async function NewCompetencyPage() {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "competencies", "add");
+
+  // Get users with "Trainer" role for trainer selection
+  const users = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+    })
+    .from(schema.users)
+    .innerJoin(schema.rolesList, eq(schema.users.roleId, schema.rolesList.id))
+    .where(eq(schema.rolesList.roleName, "Trainer"))
+    .orderBy(schema.users.name);
+
+  // Get all competency levels for requirements (only from published competencies)
+  const allCompetencyLevels = await db
+    .select({
+      id: schema.competencyLevels.id,
+      competencyId: schema.competencyLevels.competencyId,
+      name: schema.competencyLevels.name,
+      competencyName: schema.competencies.name,
+    })
+    .from(schema.competencyLevels)
+    .innerJoin(
+      schema.competencies,
+      eq(schema.competencies.id, schema.competencyLevels.competencyId),
+    )
+    .where(and(eq(schema.competencies.isDeleted, false), eq(schema.competencies.status, 1)))
+    .orderBy(schema.competencies.name, schema.competencyLevels.name);
+
+  return (
+    <CompetencyForm
+      users={users}
+      competencyLevels={allCompetencyLevels}
+      competency={null}
+    />
+  );
+}
+

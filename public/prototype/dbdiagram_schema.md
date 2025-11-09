@@ -138,6 +138,7 @@ Table activity_log {
 Table competencies {
   id uuid [pk, default: `gen_random_uuid()`]
   name text [not null]
+  description text // Competency description
   status int [not null, default: 0] // 0=draft, 1=published
   relevant_links text // Rich text field for relevant links and resources
   is_deleted boolean [not null, default: false]
