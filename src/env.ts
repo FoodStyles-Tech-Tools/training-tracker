@@ -9,6 +9,9 @@ const serverSchema = z.object({
   ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
+  TRAINING_REQUEST_STATUS: z
+    .string()
+    .default("Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off"),
 });
 
 const parsed = serverSchema.safeParse({
@@ -19,11 +22,18 @@ const parsed = serverSchema.safeParse({
   ADMIN_SEED_PASSWORD: process.env.ADMIN_SEED_PASSWORD,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS ?? "Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off",
 });
 
 if (!parsed.success) {
-  console.error("Invalid environment variables", parsed.error.flatten().fieldErrors);
-  throw new Error("Invalid environment variables");
+  const fieldErrors = parsed.error.flatten().fieldErrors;
+  const formErrors = parsed.error.flatten().formErrors;
+  console.error("Invalid environment variables", {
+    fieldErrors,
+    formErrors,
+    issues: parsed.error.issues,
+  });
+  throw new Error(`Invalid environment variables: ${JSON.stringify({ fieldErrors, formErrors })}`);
 }
 
 export const env = parsed.data;

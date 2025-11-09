@@ -283,7 +283,7 @@ Table training_request {
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   training_batch_id uuid
-  status int [not null, default: 0] // 0=Not Started,1=Looking for trainer, 2=In Queue,3=No batch match,4=In Progress,5=Training Complete,6=On Hold,7=Drop Off
+  status int [not null, default: 0] // 0=Not Started,1=Looking for trainer, 2=In Queue,3=No batch match,4=In Progress,5=Sessions Completed,6=On Hold,7=Drop Off
   on_hold_by int // 0=Learner, 1=Trainer
   on_hold_reason text
   drop_off_reason text
@@ -317,7 +317,7 @@ Table validation_project_approval {
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   project_details text
-  status int [not null, default: 0] // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected, 4 = Resubmit for Re-validation
+  status int [not null, default: 0] // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected
   assigned_to uuid 
   response_due date // if status Pending Validation Project Approval, fill +1 from requested date
   response_date date
@@ -354,7 +354,7 @@ Table validation_schedule_request {
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   description text
-  status int [not null, default: 0] // 0 = Pending Validation , 1 = Pending Re-validation, 2 = Validation Only, 3 = Validation Scheduled, 4 = Fail, 5 = Pass
+  status int [not null, default: 0] // 0 = Pending Validation , 1 = Pending Re-validation, 2 = Validation Scheduled, 3 = Fail, 4 = Pass
   response_due date // if status Pending, fill +1 from requested date
   response_date date
   definite_answer bool

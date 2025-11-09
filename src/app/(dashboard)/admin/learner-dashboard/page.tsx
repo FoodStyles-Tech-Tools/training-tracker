@@ -1,0 +1,71 @@
+import { eq, and } from "drizzle-orm";
+import { db, schema } from "@/db";
+import { requireSession } from "@/lib/session";
+import { LearnerDashboardClient } from "./learner-dashboard-client";
+
+export default async function LearnerDashboardPage() {
+  const session = await requireSession();
+
+  // Get all published competencies with their levels
+  const competencies = await db.query.competencies.findMany({
+    where: and(
+      eq(schema.competencies.status, 1), // Published
+      eq(schema.competencies.isDeleted, false),
+    ),
+    with: {
+      levels: {
+        where: eq(schema.competencyLevels.isDeleted, false),
+        orderBy: schema.competencyLevels.name,
+      },
+      requirements: {
+        with: {
+          requiredLevel: {
+            with: {
+              competency: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: schema.competencies.name,
+  });
+
+  // Get user's training requests
+  const trainingRequests = await db.query.trainingRequest.findMany({
+    where: eq(schema.trainingRequest.learnerUserId, session.user.id),
+  });
+
+  // Get user's project approvals (if validation_project_approval table exists)
+  // TODO: Fetch project approvals once schema is added
+  // const projectApprovals = await db.query.validationProjectApproval.findMany({
+  //   where: eq(schema.validationProjectApproval.learnerUserId, session.user.id),
+  // });
+
+  // For now, pass empty array - will be populated when schema is added
+  const projectApprovals: Array<{
+    id: string;
+    vpaId: string;
+    competencyLevelId: string;
+    status: number;
+    projectDetails: string | null;
+  }> = [];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-white">Learner Dashboard</h1>
+        <p className="text-sm text-slate-400">
+          Browse available competencies and apply for training levels.
+        </p>
+      </div>
+
+      <LearnerDashboardClient
+        competencies={competencies}
+        userId={session.user.id}
+        trainingRequests={trainingRequests}
+        projectApprovals={projectApprovals}
+      />
+    </div>
+  );
+}
+

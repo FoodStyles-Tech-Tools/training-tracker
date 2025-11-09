@@ -78,6 +78,20 @@
       "when": 1762669677042,
       "tag": "0010_sleepy_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1762674070223,
+      "tag": "0011_broken_doctor_octopus",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1762675000000,
+      "tag": "0012_add_training_request",
+      "breakpoints": true
     }
   ]
 }

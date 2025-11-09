@@ -9,6 +9,7 @@ import { requireSession } from "@/lib/session";
 const NAV_ITEMS: Array<{ label: string; href: string; module: ModuleName }> = [
   { label: "Dashboard", href: "/admin", module: "users" },
   { label: "Competencies", href: "/admin/competencies", module: "competencies" },
+  { label: "Training Requests", href: "/admin/training-requests", module: "users" },
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Roles", href: "/admin/roles", module: "roles" },
   { label: "Activity Log", href: "/admin/activity-log", module: "activity_log" },

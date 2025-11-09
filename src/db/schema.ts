@@ -427,8 +427,74 @@ export const userCompetencyProgressRelations = relations(userCompetencyProgress,
   }),
 }));
 
+export const customNumbering = pgTable("custom_numbering", {
+  module: text("module").primaryKey(),
+  runningNumber: integer("running_number").notNull(),
+});
+
+export const trainingRequest = pgTable(
+  "training_request",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    trId: text("tr_id").notNull(),
+    requestedDate: timestamp("requested_date", { mode: "date" }).notNull(),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    trainingBatchId: uuid("training_batch_id"), // Will reference training_batch table when it's added
+    status: integer("status").notNull().default(0), // 0=Not Started, 1=Looking for trainer, 2=In Queue, 3=No batch match, 4=In Progress, 5=Sessions Completed, 6=On Hold, 7=Drop Off
+    onHoldBy: integer("on_hold_by"), // 0=Learner, 1=Trainer
+    onHoldReason: text("on_hold_reason"),
+    dropOffReason: text("drop_off_reason"),
+    isBlocked: boolean("is_blocked").notNull().default(false),
+    blockedReason: text("blocked_reason"),
+    expectedUnblockedDate: timestamp("expected_unblocked_date", { mode: "date" }),
+    notes: text("notes"),
+    assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
+    responseDue: timestamp("response_due", { mode: "date" }),
+    responseDate: timestamp("response_date", { mode: "date" }),
+    definiteAnswer: boolean("definite_answer"),
+    noFollowUpDate: timestamp("no_follow_up_date", { mode: "date" }),
+    followUpDate: timestamp("follow_up_date", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (tr) => ({
+    trIdIdx: uniqueIndex("training_request_tr_id_idx").on(tr.trId),
+    learnerUserIdIdx: index("training_request_learner_user_id_idx").on(tr.learnerUserId),
+    competencyLevelIdIdx: index("training_request_competency_level_id_idx").on(
+      tr.competencyLevelId,
+    ),
+    trainingBatchIdIdx: index("training_request_training_batch_id_idx").on(tr.trainingBatchId),
+    assignedToIdx: index("training_request_assigned_to_idx").on(tr.assignedTo),
+  }),
+);
+
+export const trainingRequestRelations = relations(trainingRequest, ({ one }) => ({
+  learner: one(users, {
+    fields: [trainingRequest.learnerUserId],
+    references: [users.id],
+  }),
+  competencyLevel: one(competencyLevels, {
+    fields: [trainingRequest.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  assignedUser: one(users, {
+    fields: [trainingRequest.assignedTo],
+    references: [users.id],
+  }),
+}));
+
 export type Competency = typeof competencies.$inferSelect;
 export type CompetencyLevel = typeof competencyLevels.$inferSelect;
 export type CompetencyTrainer = typeof competenciesTrainer.$inferSelect;
 export type CompetencyRequirement = typeof competencyRequirements.$inferSelect;
 export type UserCompetencyProgress = typeof userCompetencyProgress.$inferSelect;
+export type TrainingRequest = typeof trainingRequest.$inferSelect;
