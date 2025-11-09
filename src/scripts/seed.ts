@@ -172,6 +172,13 @@ async function main() {
       canEdit: false,
       canDelete: false,
     },
+    {
+      module: "competencies",
+      canList: true,
+      canAdd: true,
+      canEdit: true,
+      canDelete: true,
+    },
   ]);
 
   await ensureRole("User", [

@@ -1,0 +1,2 @@
+DROP INDEX "competencies_trainer_pk";--> statement-breakpoint
+ALTER TABLE "competencies_trainer" ADD CONSTRAINT "competencies_trainer_competency_id_trainer_user_id_pk" PRIMARY KEY("competency_id","trainer_user_id");
