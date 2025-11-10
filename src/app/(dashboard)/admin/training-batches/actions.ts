@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
+import { logActivity } from "@/lib/utils-server";
 
 // Helper function to convert Date to DATE only (no timezone, no time)
 function toDateOnly(date: Date | null | undefined): Date | null | undefined {
@@ -137,6 +138,22 @@ export async function createTrainingBatchAction(
       }
 
       return batch;
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      module: "training_batch",
+      action: "add",
+      data: {
+        batchId: result.id,
+        batchName: result.batchName,
+        competencyLevelId: result.competencyLevelId,
+        trainerUserId: result.trainerUserId,
+        sessionCount: result.sessionCount,
+        capacity: result.capacity,
+        learnerCount: parsed.learnerIds?.length || 0,
+      },
     });
 
     revalidatePath("/admin/training-batches");
@@ -385,6 +402,18 @@ export async function updateTrainingBatchAction(
       return updatedBatch;
     });
 
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      module: "training_batch",
+      action: "edit",
+      data: {
+        batchId: result.id,
+        batchName: result.batchName,
+        updatedFields: Object.keys(parsed).filter((key) => key !== "id" && parsed[key as keyof typeof parsed] !== undefined),
+      },
+    });
+
     revalidatePath("/admin/training-batches");
     revalidatePath(`/admin/training-batches/${parsed.id}/edit`);
     return { success: true, batch: result };
@@ -404,6 +433,11 @@ export async function deleteTrainingBatchAction(batchId: string) {
   const session = await requireSession();
 
   try {
+    // Get batch info before deletion for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+
     // Get batch learners to update their training requests
     const batchLearners = await db.query.trainingBatchLearners.findMany({
       where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
@@ -428,6 +462,20 @@ export async function deleteTrainingBatchAction(batchId: string) {
       // Delete batch (cascade will handle related records)
       await tx.delete(schema.trainingBatch).where(eq(schema.trainingBatch.id, batchId));
     });
+
+    // Log activity
+    if (batch) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "delete",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          learnerCount: batchLearners.length,
+        },
+      });
+    }
 
     revalidatePath("/admin/training-batches");
     return { success: true };
@@ -503,6 +551,35 @@ export async function removeLearnerFromBatchAction(
           .where(eq(schema.trainingBatch.id, batchId));
       }
     });
+
+    // Get batch and learner info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+    const learner = await db.query.users.findFirst({
+      where: eq(schema.users.id, learnerId),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // Log activity
+    if (batch && learner) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "remove_learner",
+          learnerId: learner.id,
+          learnerName: learner.name,
+        },
+      });
+    }
 
     revalidatePath("/admin/training-batches");
     revalidatePath(`/admin/training-batches/${batchId}/edit`);
@@ -582,6 +659,36 @@ export async function dropOffLearnerAction(
       }
     });
 
+    // Get batch and learner info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+    const learner = await db.query.users.findFirst({
+      where: eq(schema.users.id, learnerId),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // Log activity
+    if (batch && learner) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "drop_off_learner",
+          learnerId: learner.id,
+          learnerName: learner.name,
+          dropOffReason: dropOffReason || null,
+        },
+      });
+    }
+
     revalidatePath("/admin/training-batches");
     revalidatePath(`/admin/training-batches/${batchId}/edit`);
     return { success: true };
@@ -638,6 +745,31 @@ export async function updateAttendanceAction(
         }
       }
     });
+
+    // Get batch and session info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+    const sessionData = await db.query.trainingBatchSessions.findFirst({
+      where: eq(schema.trainingBatchSessions.id, sessionId),
+    });
+
+    // Log activity
+    if (batch && sessionData) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "update_attendance",
+          sessionId: sessionId,
+          sessionNumber: sessionData.sessionNumber,
+          attendanceCount: attendance.length,
+        },
+      });
+    }
 
     revalidatePath(`/admin/training-batches/${batchId}/edit`);
     return { success: true };
@@ -698,6 +830,31 @@ export async function updateHomeworkAction(
         }
       }
     });
+
+    // Get batch and session info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+    const sessionData = await db.query.trainingBatchSessions.findFirst({
+      where: eq(schema.trainingBatchSessions.id, sessionId),
+    });
+
+    // Log activity
+    if (batch && sessionData) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "update_homework",
+          sessionId: sessionId,
+          sessionNumber: sessionData.sessionNumber,
+          homeworkCount: homework.length,
+        },
+      });
+    }
 
     revalidatePath(`/admin/training-batches/${batchId}/edit`);
     return { success: true };
