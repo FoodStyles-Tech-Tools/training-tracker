@@ -4,11 +4,14 @@ import { useState, useMemo, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import type { Competency, CompetencyLevel } from "@/db/schema";
-import { createTrainingRequestAction } from "./actions";
+import { createTrainingRequestAction, submitHomeworkAction } from "./actions";
+import { X } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
@@ -72,6 +75,14 @@ export function LearnerDashboardClient({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showHomeworkModal, setShowHomeworkModal] = useState(false);
+  const [homeworkData, setHomeworkData] = useState<{
+    batchId: string;
+    sessions: Array<{ id: string; sessionNumber: number; sessionDate: Date | null }>;
+    homework: Array<{ sessionId: string; homeworkUrl: string | null; completed: boolean }>;
+  } | null>(null);
+  const [homeworkUrls, setHomeworkUrls] = useState<Map<string, string>>(new Map());
+  const [submittingSessionId, setSubmittingSessionId] = useState<string | null>(null);
   const router = useRouter();
 
   const selectedCompetency = useMemo(
@@ -246,6 +257,116 @@ export function LearnerDashboardClient({
       sessionStorage.removeItem("trainingRequestSuccess");
     }
   }, []);
+
+  const handleOpenHomeworkModal = async () => {
+    if (!currentTrainingRequest || !currentTrainingRequest.id) return;
+
+    setShowHomeworkModal(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Fetch training batch data for this training request
+      const response = await fetch(`/api/training-batches?trainingRequestId=${currentTrainingRequest.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Find the batch that contains this training request
+        const batch = data.batches?.find((b: any) => 
+          b.learners?.some((l: any) => l.trainingRequestId === currentTrainingRequest.id)
+        );
+
+        if (batch) {
+          // Fetch full batch details with sessions
+          const batchResponse = await fetch(`/api/training-batches/${batch.id}`);
+          if (batchResponse.ok) {
+            const batchData = await batchResponse.json();
+            setHomeworkData({
+              batchId: batch.id,
+              sessions: batchData.batch.sessions || [],
+              homework: batchData.homework || [],
+            });
+
+            // Initialize homework URLs from existing homework data
+            const urls = new Map<string, string>();
+            batchData.homework?.forEach((h: any) => {
+              if (h.homeworkUrl) {
+                urls.set(h.sessionId, h.homeworkUrl);
+              }
+            });
+            setHomeworkUrls(urls);
+          } else {
+            setError("Failed to load homework data");
+          }
+        } else {
+          setError("No training batch found for this training request");
+        }
+      } else {
+        setError("Failed to load training batch information");
+      }
+    } catch (error) {
+      console.error("Error loading homework data:", error);
+      setError("Failed to load homework data");
+    }
+  };
+
+  const handleCloseHomeworkModal = () => {
+    setShowHomeworkModal(false);
+    setHomeworkData(null);
+    setHomeworkUrls(new Map());
+    setSubmittingSessionId(null);
+  };
+
+  const handleSubmitHomework = async (sessionId: string, sessionNumber: number) => {
+    if (!homeworkData || !currentTrainingRequest) return;
+
+    const homeworkUrl = homeworkUrls.get(sessionId)?.trim();
+    if (!homeworkUrl) {
+      setError("Please enter a homework URL");
+      return;
+    }
+
+    setSubmittingSessionId(sessionId);
+    setError(null);
+    setSuccess(null);
+
+    startTransition(async () => {
+      const result = await submitHomeworkAction(
+        homeworkData.batchId,
+        sessionId,
+        homeworkUrl,
+      );
+
+      if (result.success) {
+        setSuccess(`Homework ${sessionNumber} submitted successfully`);
+        // Update homework data
+        setHomeworkData((prev) => {
+          if (!prev) return null;
+          const updatedHomework = [...prev.homework];
+          const existingIndex = updatedHomework.findIndex((h) => h.sessionId === sessionId);
+          if (existingIndex >= 0) {
+            updatedHomework[existingIndex] = {
+              sessionId,
+              homeworkUrl,
+              completed: true,
+            };
+          } else {
+            updatedHomework.push({
+              sessionId,
+              homeworkUrl,
+              completed: true,
+            });
+          }
+          return { ...prev, homework: updatedHomework };
+        });
+        setTimeout(() => {
+          setSuccess(null);
+        }, 3000);
+      } else {
+        setError(result.error || "Failed to submit homework");
+      }
+      setSubmittingSessionId(null);
+    });
+  };
 
   if (competencies.length === 0) {
     return (
@@ -471,6 +592,7 @@ export function LearnerDashboardClient({
                         <div className="mt-4">
                           <button
                             type="button"
+                            onClick={handleOpenHomeworkModal}
                             className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                           >
                             Submit Homework
@@ -650,6 +772,88 @@ export function LearnerDashboardClient({
               {isPending ? "Applying..." : "Yes"}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Homework Submission Modal */}
+      <Modal
+        open={showHomeworkModal}
+        onClose={handleCloseHomeworkModal}
+        contentClassName="max-w-4xl max-h-[90vh] overflow-hidden"
+        overlayClassName="bg-black/60 backdrop-blur-sm"
+      >
+        <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 className="text-lg font-semibold text-white">Submit Homework</h2>
+          <button
+            type="button"
+            onClick={handleCloseHomeworkModal}
+            className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto p-6">
+          {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+          {success && <Alert variant="success" className="mb-4">{success}</Alert>}
+          
+          {homeworkData ? (
+            <div className="space-y-4">
+              {homeworkData.sessions.map((session) => {
+                const existingHomework = homeworkData.homework.find(
+                  (h) => h.sessionId === session.id,
+                );
+                const homeworkUrl = homeworkUrls.get(session.id) || existingHomework?.homeworkUrl || "";
+                const isSubmitted = existingHomework?.completed || false;
+
+                return (
+                  <div key={session.id} className="space-y-2">
+                    <Label className="text-sm font-medium text-slate-200">
+                      Homework {session.sessionNumber}
+                      {session.sessionDate && (
+                        <span className="ml-2 text-xs text-slate-400">
+                          ({formatDate(session.sessionDate)})
+                        </span>
+                      )}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="url"
+                        placeholder="Enter homework submission URL..."
+                        value={homeworkUrl}
+                        onChange={(e) => {
+                          const newUrls = new Map(homeworkUrls);
+                          newUrls.set(session.id, e.target.value);
+                          setHomeworkUrls(newUrls);
+                        }}
+                        disabled={isSubmitted || submittingSessionId === session.id}
+                        className="flex-1 min-w-[400px]"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => handleSubmitHomework(session.id, session.sessionNumber)}
+                        disabled={isSubmitted || submittingSessionId === session.id || !homeworkUrl.trim()}
+                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submittingSessionId === session.id
+                          ? "Submitting..."
+                          : isSubmitted
+                            ? "Submitted"
+                            : "Submit"}
+                      </Button>
+                    </div>
+                    {isSubmitted && homeworkUrl && (
+                      <p className="text-xs text-slate-400">
+                        Submitted: <a href={homeworkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">{homeworkUrl}</a>
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">Loading homework data...</p>
+          )}
         </div>
       </Modal>
     </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and, notInArray, isNull } from "drizzle-orm";
+import { eq, and, notInArray, isNull, ne } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
 
   const searchParams = req.nextUrl.searchParams;
   const competencyLevelId = searchParams.get("competencyLevelId");
+  const batchId = searchParams.get("batchId"); // For editing - include existing learners
 
   if (!competencyLevelId) {
     return NextResponse.json(
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
       );
 
     // Get learners already in batches for this competency level
+    // If batchId is provided, exclude learners from OTHER batches (not the current one being edited)
     const learnersInBatches = await db
       .select({
         learnerUserId: schema.trainingBatchLearners.learnerUserId,
@@ -68,14 +70,21 @@ export async function GET(req: NextRequest) {
         schema.trainingBatch,
         eq(schema.trainingBatchLearners.trainingBatchId, schema.trainingBatch.id),
       )
-      .where(eq(schema.trainingBatch.competencyLevelId, competencyLevelId));
+      .where(
+        batchId
+          ? and(
+              eq(schema.trainingBatch.competencyLevelId, competencyLevelId),
+              ne(schema.trainingBatch.id, batchId), // Exclude learners from OTHER batches (not current)
+            )
+          : eq(schema.trainingBatch.competencyLevelId, competencyLevelId),
+      );
 
     const learnerIdsInBatches = new Set(
       learnersInBatches.map((l) => l.learnerUserId),
     );
 
-    // Filter out learners already in batches
-    const availableLearners = trainingRequests
+    // Filter out learners already in batches (excluding current batch if editing)
+    let availableLearners = trainingRequests
       .filter((tr) => !learnerIdsInBatches.has(tr.learnerUserId))
       .map((tr) => ({
         id: tr.learner.id,
@@ -83,6 +92,42 @@ export async function GET(req: NextRequest) {
         email: tr.learner.email,
         trainingRequestId: tr.id,
       }));
+
+    // If editing (batchId provided), include existing learners from this batch
+    if (batchId) {
+      const existingBatchLearners = await db.query.trainingBatchLearners.findMany({
+        where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
+        with: {
+          learner: {
+            columns: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          trainingRequest: {
+            columns: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      // Add existing learners to available learners
+      const existingLearners = existingBatchLearners.map((bl) => ({
+        id: bl.learner.id,
+        name: bl.learner.name,
+        email: bl.learner.email,
+        trainingRequestId: bl.trainingRequestId,
+      }));
+
+      // Merge and deduplicate - existing learners first, then new ones
+      const existingLearnerIds = new Set(existingLearners.map((l) => l.id));
+      availableLearners = [
+        ...existingLearners,
+        ...availableLearners.filter((l) => !existingLearnerIds.has(l.id)),
+      ];
+    }
 
     return NextResponse.json({ learners: availableLearners });
   } catch (error) {

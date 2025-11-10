@@ -247,10 +247,10 @@ export function HomeworkTable({
                               href={state.homeworkUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-400 hover:text-blue-300 transition"
+                              className="text-xs !text-blue-600 hover:!text-blue-500 transition underline"
                               title={state.homeworkUrl}
                             >
-                              <LinkIcon className="h-3 w-3" />
+                              Homework URL
                             </a>
                           )}
                         </div>

@@ -65,7 +65,7 @@ export function TrainingRequestManager({
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(25);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 

@@ -26,8 +26,45 @@ export async function GET(req: NextRequest) {
   const level = searchParams.get("level");
   const batchName = searchParams.get("batch");
   const trainer = searchParams.get("trainer");
+  const trainingRequestId = searchParams.get("trainingRequestId");
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pageSize") || "50");
+
+  // If trainingRequestId is provided, fetch batch for that training request
+  if (trainingRequestId) {
+    const trainingRequest = await db.query.trainingRequest.findFirst({
+      where: eq(schema.trainingRequest.id, trainingRequestId),
+      with: {
+        trainingBatch: {
+          with: {
+            competencyLevel: {
+              with: {
+                competency: true,
+              },
+            },
+            trainer: true,
+            learners: {
+              with: {
+                learner: true,
+              },
+            },
+            sessions: true,
+          },
+        },
+      },
+    });
+
+    if (!trainingRequest || !trainingRequest.trainingBatch) {
+      return NextResponse.json({ batches: [] });
+    }
+
+    return NextResponse.json({
+      batches: [trainingRequest.trainingBatch],
+      total: 1,
+      page: 1,
+      pageSize: 1,
+    });
+  }
 
   // Build where conditions
   const conditions: any[] = [];

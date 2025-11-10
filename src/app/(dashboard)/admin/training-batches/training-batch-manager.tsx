@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useTransition, useEffect } from "react";
+import { useState, useMemo, useTransition, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -77,16 +77,57 @@ export function TrainingBatchManager({
   trainers,
 }: TrainingBatchManagerProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(25);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedBatchForDelete, setSelectedBatchForDelete] = useState<string | null>(null);
   const [learnersModalOpen, setLearnersModalOpen] = useState(false);
   const [selectedBatchForLearners, setSelectedBatchForLearners] = useState<TrainingBatchWithRelations | null>(null);
   const [learnersData, setLearnersData] = useState<Array<{ id: string; name: string; email: string; status: string }>>([]);
+  const [removeLearnerConfirm, setRemoveLearnerConfirm] = useState<{ learnerId: string; learnerName: string } | null>(null);
+  const [dropOffLearnerConfirm, setDropOffLearnerConfirm] = useState<{ learnerId: string; learnerName: string } | null>(null);
+  const processedParamsRef = useRef<string>("");
+
+  // Check for success messages from query parameters
+  useEffect(() => {
+    const action = searchParams.get("action");
+    const name = searchParams.get("name");
+    const paramsKey = `${action}-${name}`;
+
+    // Only process if we haven't processed these params yet
+    if (action && name && paramsKey !== processedParamsRef.current) {
+      processedParamsRef.current = paramsKey;
+      const decodedName = decodeURIComponent(name);
+      
+      if (action === "created") {
+        setMessage({ text: `Training batch "${decodedName}" created successfully.`, tone: "success" });
+        // Refresh page data
+        router.refresh();
+        // Clear query parameters after message is set
+        setTimeout(() => {
+          router.replace("/admin/training-batches", { scroll: false });
+          processedParamsRef.current = ""; // Reset after clearing
+        }, 200);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
+      } else if (action === "updated") {
+        setMessage({ text: `Training batch "${decodedName}" updated successfully.`, tone: "success" });
+        // Refresh page data
+        router.refresh();
+        // Clear query parameters after message is set
+        setTimeout(() => {
+          router.replace("/admin/training-batches", { scroll: false });
+          processedParamsRef.current = ""; // Reset after clearing
+        }, 200);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
+      }
+    }
+  }, [searchParams, router]);
 
   // Search/filter state
   const [filters, setFilters] = useState({
@@ -226,16 +267,27 @@ export function TrainingBatchManager({
 
   const handleDelete = async (batchId: string) => {
     setMessage(null);
+    const batch = trainingBatches.find(b => b.id === batchId);
+    const batchName = batch?.batchName || "";
     startTransition(async () => {
       const result = await deleteTrainingBatchAction(batchId);
       if (result.success) {
         setSelectedBatchForDelete(null);
-        setMessage({ text: "Training batch deleted successfully", tone: "success" });
+        setMessage({ 
+          text: batchName 
+            ? `Training batch "${batchName}" deleted successfully.` 
+            : "Training batch deleted successfully.", 
+          tone: "success" 
+        });
         setTimeout(() => {
           router.refresh();
         }, 1000);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       } else {
-        setMessage({ text: result.error || "Failed to delete training batch", tone: "error" });
+        setMessage({ text: result.error || "Failed to delete training batch.", tone: "error" });
+        // Auto-dismiss error after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       }
     });
   };
@@ -269,10 +321,11 @@ export function TrainingBatchManager({
     if (!selectedBatchForLearners) return;
     
     setMessage(null);
+    setRemoveLearnerConfirm(null);
     startTransition(async () => {
       const result = await removeLearnerFromBatchAction(selectedBatchForLearners.id, learnerId);
       if (result.success) {
-        setMessage({ text: "Learner removed successfully", tone: "success" });
+        setMessage({ text: "Learner removed successfully.", tone: "success" });
         // Refresh learners data
         const response = await fetch(`/api/training-batches/${selectedBatchForLearners.id}/learners`);
         if (response.ok) {
@@ -282,8 +335,12 @@ export function TrainingBatchManager({
         setTimeout(() => {
           router.refresh();
         }, 1000);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       } else {
-        setMessage({ text: result.error || "Failed to remove learner", tone: "error" });
+        setMessage({ text: result.error || "Failed to remove learner.", tone: "error" });
+        // Auto-dismiss error after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       }
     });
   };
@@ -292,10 +349,11 @@ export function TrainingBatchManager({
     if (!selectedBatchForLearners) return;
     
     setMessage(null);
+    setDropOffLearnerConfirm(null);
     startTransition(async () => {
       const result = await dropOffLearnerAction(selectedBatchForLearners.id, learnerId);
       if (result.success) {
-        setMessage({ text: "Learner dropped off successfully", tone: "success" });
+        setMessage({ text: "Learner dropped off successfully.", tone: "success" });
         // Refresh learners data
         const response = await fetch(`/api/training-batches/${selectedBatchForLearners.id}/learners`);
         if (response.ok) {
@@ -305,8 +363,12 @@ export function TrainingBatchManager({
         setTimeout(() => {
           router.refresh();
         }, 1000);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       } else {
-        setMessage({ text: result.error || "Failed to drop off learner", tone: "error" });
+        setMessage({ text: result.error || "Failed to drop off learner.", tone: "error" });
+        // Auto-dismiss error after 5 seconds
+        setTimeout(() => setMessage(null), 5000);
       }
     });
   };
@@ -623,7 +685,7 @@ export function TrainingBatchManager({
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => handleRemoveLearner(learner.id)}
+                      onClick={() => setRemoveLearnerConfirm({ learnerId: learner.id, learnerName: learner.name })}
                       disabled={isPending}
                       className="rounded-md border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50"
                     >
@@ -631,7 +693,7 @@ export function TrainingBatchManager({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDropOffLearner(learner.id)}
+                      onClick={() => setDropOffLearnerConfirm({ learnerId: learner.id, learnerName: learner.name })}
                       disabled={isPending}
                       className="rounded-md border border-red-700 bg-red-800/50 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50"
                     >
@@ -660,6 +722,49 @@ export function TrainingBatchManager({
         onCancel={() => setSelectedBatchForDelete(null)}
         confirmProps={{
           className: "bg-red-600 hover:bg-red-700",
+        }}
+      />
+
+      {/* Remove Learner Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!removeLearnerConfirm}
+        title="Remove Learner from Batch"
+        description={`Are you sure you want to remove "${removeLearnerConfirm?.learnerName}" from this training batch? The learner's training request will be moved back to 'In Queue' status.`}
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          if (removeLearnerConfirm) {
+            handleRemoveLearner(removeLearnerConfirm.learnerId);
+          }
+        }}
+        onCancel={() => setRemoveLearnerConfirm(null)}
+        confirmProps={{
+          disabled: isPending,
+        }}
+        cancelProps={{
+          disabled: isPending,
+        }}
+      />
+
+      {/* Drop Off Learner Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!dropOffLearnerConfirm}
+        title="Drop Off Learner"
+        description={`Are you sure you want to drop off "${dropOffLearnerConfirm?.learnerName}" from this training batch? This action will mark the learner as dropped off.`}
+        confirmLabel="Drop Off"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          if (dropOffLearnerConfirm) {
+            handleDropOffLearner(dropOffLearnerConfirm.learnerId);
+          }
+        }}
+        onCancel={() => setDropOffLearnerConfirm(null)}
+        confirmProps={{
+          className: "bg-red-600 hover:bg-red-700",
+          disabled: isPending,
+        }}
+        cancelProps={{
+          disabled: isPending,
         }}
       />
     </div>

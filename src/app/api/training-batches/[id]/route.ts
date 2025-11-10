@@ -15,18 +15,30 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    await ensurePermission(session.user.id, "training_batch", "list");
-  } catch (error) {
-    if (error instanceof PermissionError) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
-    }
-    throw error;
-  }
-
   const { id } = await params;
 
   try {
+    // Check if user has permission or is a learner in this batch
+    let hasPermission = false;
+    try {
+      await ensurePermission(session.user.id, "training_batch", "list");
+      hasPermission = true;
+    } catch (error) {
+      // Check if user is a learner in this batch
+      const batchLearner = await db.query.trainingBatchLearners.findFirst({
+        where: (tbl, { and, eq }) =>
+          and(
+            eq(tbl.trainingBatchId, id),
+            eq(tbl.learnerUserId, session.user.id),
+          ),
+      });
+      hasPermission = !!batchLearner;
+    }
+
+    if (!hasPermission) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const batch = await db.query.trainingBatch.findFirst({
       where: eq(schema.trainingBatch.id, id),
       with: {
@@ -53,8 +65,15 @@ export async function GET(
     }
 
     // Get attendance and homework data
+    // For learners, only return their own data
+    const isLearner = batch.learners.some((l) => l.learner.id === session.user.id);
+    const learnerFilter = isLearner ? eq(schema.trainingBatchAttendanceSessions.learnerUserId, session.user.id) : undefined;
+    const homeworkLearnerFilter = isLearner ? eq(schema.trainingBatchHomeworkSessions.learnerUserId, session.user.id) : undefined;
+
     const attendance = await db.query.trainingBatchAttendanceSessions.findMany({
-      where: eq(schema.trainingBatchAttendanceSessions.trainingBatchId, id),
+      where: learnerFilter
+        ? and(eq(schema.trainingBatchAttendanceSessions.trainingBatchId, id), learnerFilter)
+        : eq(schema.trainingBatchAttendanceSessions.trainingBatchId, id),
       with: {
         session: true,
         learner: true,
@@ -62,7 +81,9 @@ export async function GET(
     });
 
     const homework = await db.query.trainingBatchHomeworkSessions.findMany({
-      where: eq(schema.trainingBatchHomeworkSessions.trainingBatchId, id),
+      where: homeworkLearnerFilter
+        ? and(eq(schema.trainingBatchHomeworkSessions.trainingBatchId, id), homeworkLearnerFilter)
+        : eq(schema.trainingBatchHomeworkSessions.trainingBatchId, id),
       with: {
         session: true,
         learner: true,

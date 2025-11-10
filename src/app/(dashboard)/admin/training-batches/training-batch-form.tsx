@@ -441,7 +441,7 @@ export function TrainingBatchForm({
   const fetchAvailableLearners = async (competencyLevelId: string) => {
     try {
       const response = await fetch(
-        `/api/training-batches/available-learners?competencyLevelId=${competencyLevelId}`,
+        `/api/training-batches/available-learners?competencyLevelId=${competencyLevelId}${isEditing && batch ? `&batchId=${batch.id}` : ""}`,
       );
       if (response.ok) {
         const data = await response.json();

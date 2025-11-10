@@ -94,3 +94,76 @@ export async function createTrainingRequestAction(competencyLevelId: string) {
   }
 }
 
+export async function submitHomeworkAction(
+  trainingBatchId: string,
+  sessionId: string,
+  homeworkUrl: string,
+) {
+  const session = await requireSession();
+
+  try {
+    // Validate URL format
+    try {
+      new URL(homeworkUrl);
+    } catch {
+      return { success: false, error: "Invalid URL format" };
+    }
+
+    // Verify the learner is part of this batch
+    const batchLearner = await db.query.trainingBatchLearners.findFirst({
+      where: (tbl, { and, eq }) =>
+        and(
+          eq(tbl.trainingBatchId, trainingBatchId),
+          eq(tbl.learnerUserId, session.user.id),
+        ),
+    });
+
+    if (!batchLearner) {
+      return { success: false, error: "You are not part of this training batch" };
+    }
+
+    // Verify the session exists in this batch
+    const sessionData = await db.query.trainingBatchSessions.findFirst({
+      where: (tbs, { and, eq }) =>
+        and(
+          eq(tbs.trainingBatchId, trainingBatchId),
+          eq(tbs.id, sessionId),
+        ),
+    });
+
+    if (!sessionData) {
+      return { success: false, error: "Session not found in this batch" };
+    }
+
+    // Upsert homework submission
+    await db
+      .insert(schema.trainingBatchHomeworkSessions)
+      .values({
+        trainingBatchId,
+        learnerUserId: session.user.id,
+        sessionId,
+        completed: true,
+        homeworkUrl,
+      })
+      .onConflictDoUpdate({
+        target: [
+          schema.trainingBatchHomeworkSessions.trainingBatchId,
+          schema.trainingBatchHomeworkSessions.learnerUserId,
+          schema.trainingBatchHomeworkSessions.sessionId,
+        ],
+        set: {
+          completed: true,
+          homeworkUrl,
+        },
+      });
+
+    revalidatePath("/admin/learner-dashboard");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to submit homework" };
+  }
+}
+
