@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
+import { Pagination } from "@/components/admin/pagination";
 import type { TrainingRequest, Competency, User } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { updateTrainingRequestAction } from "./actions";
@@ -63,6 +64,10 @@ export function TrainingRequestManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Search/filter state
   const [filters, setFilters] = useState({
@@ -72,11 +77,70 @@ export function TrainingRequestManager({
     status: "",
     trainer: "",
     batch: "",
+    customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked",
   });
 
-  // Filtered training requests
+  // Helper function to get response due date
+  const getResponseDueDate = useCallback((tr: TrainingRequestWithRelations): Date | null => {
+    if (tr.responseDue) {
+      return tr.responseDue instanceof Date ? tr.responseDue : new Date(tr.responseDue);
+    }
+    if (tr.requestedDate) {
+      const requestedDate = tr.requestedDate instanceof Date 
+        ? tr.requestedDate 
+        : new Date(tr.requestedDate);
+      const responseDueDate = new Date(requestedDate);
+      responseDueDate.setDate(responseDueDate.getDate() + 1);
+      return responseDueDate;
+    }
+    return null;
+  }, []);
+
+  // Calculate filter counts
+  // Exclude requests that have a response date (already responded)
+  const filterCounts = useMemo(() => {
+    const now = new Date();
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    let dueIn24h = 0;
+    let dueIn3d = 0;
+    let overdue = 0;
+    let blocked = 0;
+
+    trainingRequests.forEach((tr) => {
+      // Skip if already responded (has responseDate)
+      if (tr.responseDate) {
+        // Still count blocked requests even if responded
+        if (tr.isBlocked) {
+          blocked++;
+        }
+        return;
+      }
+
+      const responseDue = getResponseDueDate(tr);
+      if (responseDue) {
+        if (responseDue <= in24h && responseDue > now) {
+          dueIn24h++;
+        }
+        if (responseDue <= in3d && responseDue > now) {
+          dueIn3d++;
+        }
+        if (responseDue < now) {
+          overdue++;
+        }
+      }
+      if (tr.isBlocked) {
+        blocked++;
+      }
+    });
+
+    return { dueIn24h, dueIn3d, overdue, blocked };
+  }, [trainingRequests, getResponseDueDate]);
+
+  // Filtered and sorted training requests
   const filteredRequests = useMemo(() => {
-    return trainingRequests.filter((tr) => {
+    const filtered = trainingRequests.filter((tr) => {
       if (filters.name && !tr.learner.name.toLowerCase().includes(filters.name.toLowerCase())) {
         return false;
       }
@@ -89,10 +153,154 @@ export function TrainingRequestManager({
       if (filters.status && tr.status.toString() !== filters.status) {
         return false;
       }
-      // Add more filters as needed
+
+      // Custom filters
+      // Exclude requests that have a response date (already responded)
+      if (filters.customFilter) {
+        // Blocked filter still counts blocked requests even if responded
+        if (filters.customFilter === "blocked") {
+          if (!tr.isBlocked) return false;
+        } else {
+          // For due/overdue filters, skip if already responded
+          if (tr.responseDate) return false;
+          
+          const responseDue = getResponseDueDate(tr);
+          const now = new Date();
+          
+          if (filters.customFilter === "dueIn24h") {
+            if (!responseDue) return false;
+            const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            if (responseDue > in24h || responseDue <= now) return false;
+          } else if (filters.customFilter === "dueIn3d") {
+            if (!responseDue) return false;
+            const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+            if (responseDue > in3d || responseDue <= now) return false;
+          } else if (filters.customFilter === "overdue") {
+            if (!responseDue) return false;
+            if (responseDue >= now) return false;
+          }
+        }
+      }
+
       return true;
     });
-  }, [trainingRequests, filters]);
+
+    // Sort by column if specified, otherwise use default sort (response due date)
+    return filtered.sort((a, b) => {
+      // If sort column is specified, use it
+      if (sortColumn) {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortColumn) {
+          case "trId":
+            aValue = a.trId;
+            bValue = b.trId;
+            break;
+          case "requestedDate":
+            aValue = a.requestedDate instanceof Date ? a.requestedDate : new Date(a.requestedDate);
+            bValue = b.requestedDate instanceof Date ? b.requestedDate : new Date(b.requestedDate);
+            break;
+          case "name":
+            aValue = a.learner.name.toLowerCase();
+            bValue = b.learner.name.toLowerCase();
+            break;
+          case "competency":
+            aValue = a.competencyLevel.competency.name.toLowerCase();
+            bValue = b.competencyLevel.competency.name.toLowerCase();
+            break;
+          case "level":
+            aValue = a.competencyLevel.name.toLowerCase();
+            bValue = b.competencyLevel.name.toLowerCase();
+            break;
+          case "status":
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          case "responseDue":
+            aValue = getResponseDueDate(a);
+            bValue = getResponseDueDate(b);
+            break;
+          case "updatedAt":
+            aValue = a.updatedAt instanceof Date ? a.updatedAt : new Date(a.updatedAt);
+            bValue = b.updatedAt instanceof Date ? b.updatedAt : new Date(b.updatedAt);
+            break;
+          default:
+            aValue = null;
+            bValue = null;
+        }
+
+        // Handle null/undefined values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return 1;
+        if (bValue == null) return -1;
+
+        // Compare values
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      }
+
+      // Default sort: by response due date
+      // Items without response date (pending) come first, sorted by response due date
+      // Items with response date (responded) come after, sorted by response due date
+      const aHasResponse = !!a.responseDate;
+      const bHasResponse = !!b.responseDate;
+
+      // If one has response date and the other doesn't, pending (no response) comes first
+      if (aHasResponse !== bHasResponse) {
+        return aHasResponse ? 1 : -1;
+      }
+
+      // Both have same response status, sort by response due date
+      const aResponseDue = getResponseDueDate(a);
+      const bResponseDue = getResponseDueDate(b);
+
+      if (!aResponseDue && !bResponseDue) return 0;
+      if (!aResponseDue) return 1;
+      if (!bResponseDue) return -1;
+
+      // Sort by response due date (ascending - earliest due first)
+      return aResponseDue.getTime() - bResponseDue.getTime();
+    });
+  }, [trainingRequests, filters, getResponseDueDate, sortColumn, sortDirection]);
+
+  // Paginated training requests
+  const paginatedRequests = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredRequests.slice(startIndex, endIndex);
+  }, [filteredRequests, currentPage, pageSize]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  // Handle header click for sorting
+  const handleHeaderClick = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new column and default to ascending
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  // Get sort indicator for a column
+  const getSortIndicator = (column: string) => {
+    if (sortColumn !== column) {
+      return <span className="ml-2 text-slate-500 inline-block">↕</span>;
+    }
+    return (
+      <span className="ml-2 text-blue-400 inline-block">
+        {sortDirection === "asc" ? "↑" : "↓"}
+      </span>
+    );
+  };
 
   const handleOpenModal = (request: TrainingRequestWithRelations) => {
     setSelectedRequest(request);
@@ -140,7 +348,35 @@ export function TrainingRequestManager({
       status: "",
       trainer: "",
       batch: "",
+      customFilter: "",
     });
+  };
+
+  // Helper function to get row background color class
+  // Color rows purely based on response due date
+  // Only if it has response due date AND empty response date
+  const getRowColorClass = (tr: TrainingRequestWithRelations): string => {
+    const responseDue = getResponseDueDate(tr);
+    const now = new Date();
+    
+    // Only color if response due exists and response date is empty
+    if (!responseDue || tr.responseDate) {
+      return "";
+    }
+    
+    // Check if overdue
+    if (responseDue < now) {
+      return "bg-red-500/30"; // Red for overdue
+    }
+    
+    // Check if near due (within 3 days)
+    const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    if (responseDue <= in3d) {
+      return "bg-yellow-500/30"; // Yellow for near due
+    }
+    
+    // Default - no special color
+    return "";
   };
 
   // Get unique levels from competencies
@@ -245,6 +481,51 @@ export function TrainingRequestManager({
           <div className="flex gap-2 flex-wrap items-center">
             <Button
               type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "dueIn24h" ? "" : "dueIn24h" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "dueIn24h"
+                  ? "bg-orange-600 hover:bg-orange-700 focus-visible:ring-orange-400"
+                  : "bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-400"
+              }`}
+            >
+              Due in 24h ({filterCounts.dueIn24h})
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "dueIn3d" ? "" : "dueIn3d" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "dueIn3d"
+                  ? "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-400"
+                  : "bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-400"
+              }`}
+            >
+              Due in 3d ({filterCounts.dueIn3d})
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "overdue" ? "" : "overdue" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "overdue"
+                  ? "bg-red-700 hover:bg-red-800 focus-visible:ring-red-400"
+                  : "bg-red-600 hover:bg-red-700 focus-visible:ring-red-400"
+              }`}
+            >
+              Overdue ({filterCounts.overdue})
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "blocked" ? "" : "blocked" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "blocked"
+                  ? "bg-red-800 hover:bg-red-900 focus-visible:ring-red-400"
+                  : "bg-red-700 hover:bg-red-800 focus-visible:ring-red-400"
+              }`}
+            >
+              Blocked ({filterCounts.blocked})
+            </Button>
+            <div className="flex-1"></div>
+            <Button
+              type="button"
               onClick={handleClearFilters}
               variant="outline"
               className="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50"
@@ -261,16 +542,80 @@ export function TrainingRequestManager({
           <table className="w-full border-collapse text-sm">
             <thead className="bg-slate-950/70 text-slate-300">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">TR ID</th>
-                <th className="px-4 py-3 text-left font-medium">Requested date</th>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Competency</th>
-                <th className="px-4 py-3 text-left font-medium">Level</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("trId")}
+                >
+                  <span className="flex items-center">
+                    TR ID
+                    {getSortIndicator("trId")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("requestedDate")}
+                >
+                  <span className="flex items-center">
+                    Requested date
+                    {getSortIndicator("requestedDate")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("name")}
+                >
+                  <span className="flex items-center">
+                    Name
+                    {getSortIndicator("name")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("competency")}
+                >
+                  <span className="flex items-center">
+                    Competency
+                    {getSortIndicator("competency")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("level")}
+                >
+                  <span className="flex items-center">
+                    Level
+                    {getSortIndicator("level")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("status")}
+                >
+                  <span className="flex items-center">
+                    Status
+                    {getSortIndicator("status")}
+                  </span>
+                </th>
                 <th className="px-4 py-3 text-left font-medium">Batch</th>
                 <th className="px-4 py-3 text-left font-medium">Trainer</th>
-                <th className="px-4 py-3 text-left font-medium">Response Due Date</th>
-                <th className="px-4 py-3 text-left font-medium">Last Update</th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("responseDue")}
+                >
+                  <span className="flex items-center">
+                    Response Due Date
+                    {getSortIndicator("responseDue")}
+                  </span>
+                </th>
+                <th
+                  className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                  onClick={() => handleHeaderClick("updatedAt")}
+                >
+                  <span className="flex items-center">
+                    Last Update
+                    {getSortIndicator("updatedAt")}
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
@@ -281,8 +626,10 @@ export function TrainingRequestManager({
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((tr) => (
-                  <tr key={tr.id} className="hover:bg-slate-900/60">
+                paginatedRequests.map((tr) => {
+                  const rowColorClass = getRowColorClass(tr);
+                  return (
+                  <tr key={tr.id} className={`hover:bg-slate-900/60 ${rowColorClass}`}>
                     <td className="px-4 py-3 text-slate-400">{tr.trId}</td>
                     <td className="px-4 py-3 text-slate-300">
                       {formatDate(tr.requestedDate)}
@@ -312,18 +659,42 @@ export function TrainingRequestManager({
                     <td className="px-4 py-3 text-slate-300">-</td>
                     <td className="px-4 py-3 text-slate-300">-</td>
                     <td className="px-4 py-3 text-slate-400">
-                      {formatDate(tr.responseDue)}
+                      {formatDate(
+                        tr.responseDue || (tr.requestedDate
+                          ? (() => {
+                              const requestedDate = tr.requestedDate instanceof Date 
+                                ? tr.requestedDate 
+                                : new Date(tr.requestedDate);
+                              const responseDueDate = new Date(requestedDate);
+                              responseDueDate.setDate(responseDueDate.getDate() + 1);
+                              return responseDueDate;
+                            })()
+                          : null)
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-400">
                       {formatDate(tr.updatedAt)}
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </Card>
+
+      {/* Pagination */}
+      {filteredRequests.length > 0 && (
+        <Pagination
+          totalItems={filteredRequests.length}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[25, 50, 100]}
+        />
+      )}
 
       {/* Modal */}
       {selectedRequest && (

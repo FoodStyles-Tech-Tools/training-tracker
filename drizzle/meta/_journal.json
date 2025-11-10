@@ -92,6 +92,13 @@
       "when": 1762675000000,
       "tag": "0012_add_training_request",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1762767710343,
+      "tag": "0013_glamorous_warstar",
+      "breakpoints": true
     }
   ]
 }

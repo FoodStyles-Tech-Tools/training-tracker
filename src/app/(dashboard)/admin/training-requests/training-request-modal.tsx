@@ -220,11 +220,21 @@ export function TrainingRequestModal({
       };
 
       // Get initial values as Date objects (not ISO strings to avoid timezone issues)
+      // If responseDue is not set, calculate it as request date + 1 day
       const initialResponseDue = trainingRequest.responseDue
         ? trainingRequest.responseDue instanceof Date 
           ? trainingRequest.responseDue 
           : new Date(trainingRequest.responseDue)
-        : null;
+        : (trainingRequest.requestedDate
+            ? (() => {
+                const requestedDate = trainingRequest.requestedDate instanceof Date 
+                  ? trainingRequest.requestedDate 
+                  : new Date(trainingRequest.requestedDate);
+                const responseDueDate = new Date(requestedDate);
+                responseDueDate.setDate(responseDueDate.getDate() + 1);
+                return responseDueDate;
+              })()
+            : null);
       const initialResponseDate = trainingRequest.responseDate
         ? trainingRequest.responseDate instanceof Date 
           ? trainingRequest.responseDate 

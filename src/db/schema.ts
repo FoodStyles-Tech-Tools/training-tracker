@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -12,7 +13,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies"]);
+export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies", "training_batch"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive"]);
 export const userDepartmentEnum = pgEnum("user_department", ["curator", "scraping"]);
 
@@ -216,6 +217,10 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(sessions),
   trainerCompetencies: many(competenciesTrainer),
   competencyProgress: many(userCompetencyProgress),
+  trainingBatchesAsTrainer: many(trainingBatch),
+  trainingBatchesAsLearner: many(trainingBatchLearners),
+  attendance: many(trainingBatchAttendanceSessions),
+  homework: many(trainingBatchHomeworkSessions),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -356,6 +361,7 @@ export const competencyLevelsRelations = relations(competencyLevels, ({ one, man
   }),
   requirements: many(competencyRequirements),
   userProgress: many(userCompetencyProgress),
+  trainingBatches: many(trainingBatch),
 }));
 
 export const competenciesTrainerRelations = relations(competenciesTrainer, ({ one }) => ({
@@ -492,9 +498,229 @@ export const trainingRequestRelations = relations(trainingRequest, ({ one }) => 
   }),
 }));
 
+// Add trainingBatch relation to trainingRequest after trainingBatch is defined
+export const trainingRequestRelationsWithBatch = relations(trainingRequest, ({ one }) => ({
+  trainingBatch: one(trainingBatch, {
+    fields: [trainingRequest.trainingBatchId],
+    references: [trainingBatch.id],
+  }),
+}));
+
+// Training Batch tables
+export const trainingBatch = pgTable(
+  "training_batch",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    trainerUserId: uuid("trainer_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    batchName: text("batch_name").notNull(),
+    sessionCount: integer("session_count").notNull().default(0),
+    durationHrs: numeric("duration_hrs"),
+    estimatedStart: timestamp("estimated_start", { mode: "date" }),
+    batchStartDate: timestamp("batch_start_date", { mode: "date" }),
+    capacity: integer("capacity").notNull().default(0),
+    currentParticipant: integer("current_participant").notNull().default(0),
+    spotLeft: integer("spot_left").notNull().default(0),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (tb) => ({
+    competencyLevelIdIdx: index("training_batch_competency_level_id_idx").on(tb.competencyLevelId),
+    trainerUserIdIdx: index("training_batch_trainer_user_id_idx").on(tb.trainerUserId),
+  }),
+);
+
+export const trainingBatchSessions = pgTable(
+  "training_batch_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    trainingBatchId: uuid("training_batch_id")
+      .notNull()
+      .references(() => trainingBatch.id, { onDelete: "cascade" }),
+    sessionNumber: integer("session_number").notNull(),
+    sessionDate: timestamp("session_date", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (sessions) => ({
+    batchSessionIdx: uniqueIndex("training_batch_sessions_batch_session_idx").on(
+      sessions.trainingBatchId,
+      sessions.sessionNumber,
+    ),
+    trainingBatchIdIdx: index("training_batch_sessions_training_batch_id_idx").on(
+      sessions.trainingBatchId,
+    ),
+  }),
+);
+
+export const trainingBatchLearners = pgTable(
+  "training_batch_learners",
+  {
+    trainingBatchId: uuid("training_batch_id")
+      .notNull()
+      .references(() => trainingBatch.id, { onDelete: "cascade" }),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    trainingRequestId: uuid("training_request_id")
+      .notNull()
+      .references(() => trainingRequest.id, { onDelete: "cascade" }),
+  },
+  (learners) => ({
+    pk: primaryKey({ columns: [learners.trainingBatchId, learners.learnerUserId] }),
+    trainingRequestIdIdx: index("training_batch_learners_training_request_id_idx").on(
+      learners.trainingRequestId,
+    ),
+    learnerUserIdIdx: index("training_batch_learners_learner_user_id_idx").on(learners.learnerUserId),
+  }),
+);
+
+export const trainingBatchAttendanceSessions = pgTable(
+  "training_batch_attendance_sessions",
+  {
+    trainingBatchId: uuid("training_batch_id")
+      .notNull()
+      .references(() => trainingBatch.id, { onDelete: "cascade" }),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => trainingBatchSessions.id, { onDelete: "cascade" }),
+    attended: boolean("attended").notNull().default(false),
+  },
+  (attendance) => ({
+    pk: primaryKey({
+      columns: [attendance.trainingBatchId, attendance.learnerUserId, attendance.sessionId],
+    }),
+    learnerUserIdIdx: index("training_batch_attendance_learner_user_id_idx").on(
+      attendance.learnerUserId,
+    ),
+    sessionIdIdx: index("training_batch_attendance_session_id_idx").on(attendance.sessionId),
+  }),
+);
+
+export const trainingBatchHomeworkSessions = pgTable(
+  "training_batch_homework_sessions",
+  {
+    trainingBatchId: uuid("training_batch_id")
+      .notNull()
+      .references(() => trainingBatch.id, { onDelete: "cascade" }),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => trainingBatchSessions.id, { onDelete: "cascade" }),
+    completed: boolean("completed").notNull().default(false),
+    homeworkUrl: text("homework_url"),
+  },
+  (homework) => ({
+    pk: primaryKey({
+      columns: [homework.trainingBatchId, homework.learnerUserId, homework.sessionId],
+    }),
+    learnerUserIdIdx: index("training_batch_homework_learner_user_id_idx").on(homework.learnerUserId),
+    sessionIdIdx: index("training_batch_homework_session_id_idx").on(homework.sessionId),
+  }),
+);
+
+// Training Batch relations
+export const trainingBatchRelations = relations(trainingBatch, ({ one, many }) => ({
+  competencyLevel: one(competencyLevels, {
+    fields: [trainingBatch.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  trainer: one(users, {
+    fields: [trainingBatch.trainerUserId],
+    references: [users.id],
+  }),
+  sessions: many(trainingBatchSessions),
+  learners: many(trainingBatchLearners),
+  attendance: many(trainingBatchAttendanceSessions),
+  homework: many(trainingBatchHomeworkSessions),
+}));
+
+export const trainingBatchSessionsRelations = relations(trainingBatchSessions, ({ one, many }) => ({
+  trainingBatch: one(trainingBatch, {
+    fields: [trainingBatchSessions.trainingBatchId],
+    references: [trainingBatch.id],
+  }),
+  attendance: many(trainingBatchAttendanceSessions),
+  homework: many(trainingBatchHomeworkSessions),
+}));
+
+export const trainingBatchLearnersRelations = relations(trainingBatchLearners, ({ one }) => ({
+  trainingBatch: one(trainingBatch, {
+    fields: [trainingBatchLearners.trainingBatchId],
+    references: [trainingBatch.id],
+  }),
+  learner: one(users, {
+    fields: [trainingBatchLearners.learnerUserId],
+    references: [users.id],
+  }),
+  trainingRequest: one(trainingRequest, {
+    fields: [trainingBatchLearners.trainingRequestId],
+    references: [trainingRequest.id],
+  }),
+}));
+
+export const trainingBatchAttendanceSessionsRelations = relations(
+  trainingBatchAttendanceSessions,
+  ({ one }) => ({
+    trainingBatch: one(trainingBatch, {
+      fields: [trainingBatchAttendanceSessions.trainingBatchId],
+      references: [trainingBatch.id],
+    }),
+    learner: one(users, {
+      fields: [trainingBatchAttendanceSessions.learnerUserId],
+      references: [users.id],
+    }),
+    session: one(trainingBatchSessions, {
+      fields: [trainingBatchAttendanceSessions.sessionId],
+      references: [trainingBatchSessions.id],
+    }),
+  }),
+);
+
+export const trainingBatchHomeworkSessionsRelations = relations(
+  trainingBatchHomeworkSessions,
+  ({ one }) => ({
+    trainingBatch: one(trainingBatch, {
+      fields: [trainingBatchHomeworkSessions.trainingBatchId],
+      references: [trainingBatch.id],
+    }),
+    learner: one(users, {
+      fields: [trainingBatchHomeworkSessions.learnerUserId],
+      references: [users.id],
+    }),
+    session: one(trainingBatchSessions, {
+      fields: [trainingBatchHomeworkSessions.sessionId],
+      references: [trainingBatchSessions.id],
+    }),
+  }),
+);
+
+
 export type Competency = typeof competencies.$inferSelect;
 export type CompetencyLevel = typeof competencyLevels.$inferSelect;
 export type CompetencyTrainer = typeof competenciesTrainer.$inferSelect;
 export type CompetencyRequirement = typeof competencyRequirements.$inferSelect;
 export type UserCompetencyProgress = typeof userCompetencyProgress.$inferSelect;
 export type TrainingRequest = typeof trainingRequest.$inferSelect;
+export type TrainingBatch = typeof trainingBatch.$inferSelect;
+export type TrainingBatchSession = typeof trainingBatchSessions.$inferSelect;
+export type TrainingBatchLearner = typeof trainingBatchLearners.$inferSelect;
+export type TrainingBatchAttendanceSession = typeof trainingBatchAttendanceSessions.$inferSelect;
+export type TrainingBatchHomeworkSession = typeof trainingBatchHomeworkSessions.$inferSelect;
