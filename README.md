@@ -2,7 +2,7 @@
 
 ## Tech Stack
 
-- Next.js 16 (App Router) + React 25.1.0
+- Next.js 16 (App Router) + React 25.1.0+
 - TypeScript 5 and ESLint for type safety and linting
 - Tailwind CSS 4 with `@tailwindcss/postcss` for styling
 - Drizzle ORM with PostgreSQL for data access
