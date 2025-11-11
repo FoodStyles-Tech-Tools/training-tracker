@@ -69,12 +69,14 @@ interface TrainingBatchManagerProps {
   trainingBatches: TrainingBatchWithRelations[];
   competencies: Competency[];
   trainers: User[];
+  statusLabels: string[];
 }
 
 export function TrainingBatchManager({
   trainingBatches,
   competencies,
   trainers,
+  statusLabels,
 }: TrainingBatchManagerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -88,6 +90,7 @@ export function TrainingBatchManager({
   const [learnersModalOpen, setLearnersModalOpen] = useState(false);
   const [selectedBatchForLearners, setSelectedBatchForLearners] = useState<TrainingBatchWithRelations | null>(null);
   const [learnersData, setLearnersData] = useState<Array<{ id: string; name: string; email: string; status: string }>>([]);
+  const [learnersLoading, setLearnersLoading] = useState(false);
   const [removeLearnerConfirm, setRemoveLearnerConfirm] = useState<{ learnerId: string; learnerName: string } | null>(null);
   const [dropOffLearnerConfirm, setDropOffLearnerConfirm] = useState<{ learnerId: string; learnerName: string } | null>(null);
   const processedParamsRef = useRef<string>("");
@@ -295,6 +298,8 @@ export function TrainingBatchManager({
   const handleOpenLearnersModal = async (batch: TrainingBatchWithRelations) => {
     setSelectedBatchForLearners(batch);
     setLearnersModalOpen(true);
+    setLearnersLoading(true);
+    setLearnersData([]);
     
     // Fetch learners data
     try {
@@ -308,6 +313,8 @@ export function TrainingBatchManager({
     } catch (error) {
       console.error("Error fetching learners:", error);
       setLearnersData([]);
+    } finally {
+      setLearnersLoading(false);
     }
   };
 
@@ -315,6 +322,7 @@ export function TrainingBatchManager({
     setLearnersModalOpen(false);
     setSelectedBatchForLearners(null);
     setLearnersData([]);
+    setLearnersLoading(false);
   };
 
   const handleRemoveLearner = async (learnerId: string) => {
@@ -670,7 +678,9 @@ export function TrainingBatchManager({
         </div>
         <div className="max-h-[60vh] overflow-y-auto p-6">
           <div className="space-y-3">
-            {learnersData.length === 0 ? (
+            {learnersLoading ? (
+              <p className="text-sm text-slate-400 text-center py-4">Loading learners...</p>
+            ) : learnersData.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">No learners in this batch</p>
             ) : (
               learnersData.map((learner) => (
@@ -711,7 +721,7 @@ export function TrainingBatchManager({
       <ConfirmDialog
         open={!!selectedBatchForDelete}
         title="Delete Training Batch"
-        description="Are you sure you want to delete this training batch? This action cannot be undone. All learners will be moved back to 'In Queue' status."
+        description={`Are you sure you want to delete this training batch? This action cannot be undone. All learners will be moved back to '${statusLabels[2] || "status 2"}' status.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         onConfirm={() => {
@@ -729,7 +739,7 @@ export function TrainingBatchManager({
       <ConfirmDialog
         open={!!removeLearnerConfirm}
         title="Remove Learner from Batch"
-        description={`Are you sure you want to remove "${removeLearnerConfirm?.learnerName}" from this training batch? The learner's training request will be moved back to 'In Queue' status.`}
+        description={`Are you sure you want to remove "${removeLearnerConfirm?.learnerName}" from this training batch? The learner's training request will be moved back to '${statusLabels[2] || "status 2"}' status.`}
         confirmLabel="Remove"
         cancelLabel="Cancel"
         onConfirm={() => {

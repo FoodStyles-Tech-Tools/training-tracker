@@ -29,6 +29,14 @@ type TrainingRequestWithRelations = TrainingRequest & {
     id: string;
     name: string;
   } | null;
+  trainingBatch?: {
+    id: string;
+    batchName: string;
+    trainer: {
+      id: string;
+      name: string;
+    };
+  } | null;
 };
 
 interface TrainingRequestModalProps {
@@ -264,38 +272,33 @@ export function TrainingRequestModal({
         : null;
       initFlatpickr(requestedDateRef, requestedDateFpRef, requestedDateValue, true);
 
-      // Response Due - only when showLookingForTrainerFields is true
-      if (showLookingForTrainerFields) {
-        initFlatpickr(responseDueRef, responseDueFpRef, initialResponseDue, true); // Read-only
-        initFlatpickr(responseDateRef, responseDateFpRef, initialResponseDate, false);
-      }
+      // Always initialize all date fields to preserve values when status changes
+      // Response Due and Response Date
+      initFlatpickr(responseDueRef, responseDueFpRef, initialResponseDue, true); // Read-only
+      initFlatpickr(responseDateRef, responseDateFpRef, initialResponseDate, false);
 
-      // Expected Unblocked Date - only when isBlocked is true
-      if (formData.isBlocked) {
-        initFlatpickr(expectedUnblockedDateRef, expectedUnblockedDateFpRef, initialExpectedUnblockedDate, false);
-      }
+      // Expected Unblocked Date
+      initFlatpickr(expectedUnblockedDateRef, expectedUnblockedDateFpRef, initialExpectedUnblockedDate, false);
 
-      // Follow up dates - only when definiteAnswer is false
-      if (showDefiniteAnswerFields) {
-        // Calculate +3 days from requested date for "If no, Follow date"
-        const requestedDate = trainingRequest.requestedDate
-          ? trainingRequest.requestedDate instanceof Date 
-            ? trainingRequest.requestedDate 
-            : new Date(trainingRequest.requestedDate)
-          : null;
-        
-        const calculatedFollowUpDate = requestedDate ? (() => {
-          const followDate = new Date(requestedDate);
-          followDate.setDate(followDate.getDate() + 3);
-          return followDate;
-        })() : null;
-        
-        // Use calculated date if no existing value, otherwise use existing value
-        const noFollowUpDateValue = initialNoFollowUpDate ? initialNoFollowUpDate : calculatedFollowUpDate;
-        
-        initFlatpickr(noFollowUpDateRef, noFollowUpDateFpRef, noFollowUpDateValue, true);
-        initFlatpickr(followUpDateRef, followUpDateFpRef, initialFollowUpDate, false);
-      }
+      // Follow up dates
+      // Calculate +3 days from requested date for "If no, Follow date"
+      const requestedDate = trainingRequest.requestedDate
+        ? trainingRequest.requestedDate instanceof Date 
+          ? trainingRequest.requestedDate 
+          : new Date(trainingRequest.requestedDate)
+        : null;
+      
+      const calculatedFollowUpDate = requestedDate ? (() => {
+        const followDate = new Date(requestedDate);
+        followDate.setDate(followDate.getDate() + 3);
+        return followDate;
+      })() : null;
+      
+      // Use calculated date if no existing value, otherwise use existing value
+      const noFollowUpDateValue = initialNoFollowUpDate ? initialNoFollowUpDate : calculatedFollowUpDate;
+      
+      initFlatpickr(noFollowUpDateRef, noFollowUpDateFpRef, noFollowUpDateValue, true);
+      initFlatpickr(followUpDateRef, followUpDateFpRef, initialFollowUpDate, false);
     }, 200);
 
     // Cleanup function
@@ -324,9 +327,6 @@ export function TrainingRequestModal({
     };
   }, [
     open, 
-    showLookingForTrainerFields, 
-    formData.isBlocked, 
-    showDefiniteAnswerFields,
     trainingRequest.requestedDate, 
     trainingRequest.responseDue, 
     trainingRequest.responseDate, 
@@ -403,6 +403,29 @@ export function TrainingRequestModal({
             </div>
           </div>
 
+          {trainingRequest.trainingBatch && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="tr-batch">Batch</Label>
+                <Input
+                  id="tr-batch"
+                  type="text"
+                  value={trainingRequest.trainingBatch.batchName}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tr-trainer">Trainer</Label>
+                <Input
+                  id="tr-trainer"
+                  type="text"
+                  value={trainingRequest.trainingBatch.trainer.name}
+                  readOnly
+                />
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="tr-status">Status</Label>
@@ -411,11 +434,15 @@ export function TrainingRequestModal({
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
               >
-                {statusLabels.map((status, index) => (
-                  <option key={index} value={index}>
-                    {status}
-                  </option>
-                ))}
+                {statusLabels.map((status, index) => {
+                  // Hide "Not Started" (status 0)
+                  if (index === 0) return null;
+                  return (
+                    <option key={index} value={index}>
+                      {status}
+                    </option>
+                  );
+                })}
               </Select>
             </div>
             <div className="space-y-2">
@@ -432,49 +459,47 @@ export function TrainingRequestModal({
           </div>
         </div>
 
-        {/* Looking for Trainer Fields */}
-        {showLookingForTrainerFields && (
-          <div className="space-y-4 border-t border-slate-800/80 pt-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="tr-response-due">Response Due</Label>
-                <Input
-                  id="tr-response-due"
-                  ref={responseDueRef}
-                  type="text"
-                  readOnly
-                  placeholder="Auto-calculated"
-                  className="cursor-not-allowed"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tr-assigned-to">Assigned to</Label>
-                <Select
-                  id="tr-assigned-to"
-                  value={formData.assignedTo}
-                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                >
-                  <option value="">Select...</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
+        {/* Looking for Trainer Fields - Always render but hide when not applicable */}
+        <div className={`space-y-4 border-t border-slate-800/80 pt-4 ${showLookingForTrainerFields ? "" : "hidden"}`}>
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="tr-response-date">Response date</Label>
+              <Label htmlFor="tr-response-due">Response Due</Label>
               <Input
-                id="tr-response-date"
-                ref={responseDateRef}
+                id="tr-response-due"
+                ref={responseDueRef}
                 type="text"
-                placeholder="Select date"
-                className="cursor-pointer"
+                readOnly
+                placeholder="Auto-calculated"
+                className="cursor-not-allowed"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="tr-assigned-to">Assigned to</Label>
+              <Select
+                id="tr-assigned-to"
+                value={formData.assignedTo}
+                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+              >
+                <option value="">Select...</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
           </div>
-        )}
+          <div className="space-y-2">
+            <Label htmlFor="tr-response-date">Response date</Label>
+            <Input
+              id="tr-response-date"
+              ref={responseDateRef}
+              type="text"
+              placeholder="Select date"
+              className="cursor-pointer"
+            />
+          </div>
+        </div>
 
         {/* On Hold Fields */}
         {showOnHoldFields && (
@@ -535,30 +560,28 @@ export function TrainingRequestModal({
             />
             <Label htmlFor="tr-blocked">Blocked</Label>
           </div>
-          {formData.isBlocked && (
-            <div className="space-y-4 pl-7">
-              <div className="space-y-2">
-                <Label htmlFor="tr-block-reason">Block reason</Label>
-                <Textarea
-                  id="tr-block-reason"
-                  rows={3}
-                  value={formData.blockedReason}
-                  onChange={(e) => setFormData({ ...formData, blockedReason: e.target.value })}
-                  placeholder="Enter reason for blocking..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tr-expected-unblock-date">Expected unblocked date</Label>
-                <Input
-                  id="tr-expected-unblock-date"
-                  ref={expectedUnblockedDateRef}
-                  type="text"
-                  placeholder="Select date"
-                  className="cursor-pointer"
-                />
-              </div>
+          <div className={`space-y-4 pl-7 ${formData.isBlocked ? "" : "hidden"}`}>
+            <div className="space-y-2">
+              <Label htmlFor="tr-block-reason">Block reason</Label>
+              <Textarea
+                id="tr-block-reason"
+                rows={3}
+                value={formData.blockedReason}
+                onChange={(e) => setFormData({ ...formData, blockedReason: e.target.value })}
+                placeholder="Enter reason for blocking..."
+              />
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="tr-expected-unblock-date">Expected unblocked date</Label>
+              <Input
+                id="tr-expected-unblock-date"
+                ref={expectedUnblockedDateRef}
+                type="text"
+                placeholder="Select date"
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Notes */}
@@ -593,31 +616,29 @@ export function TrainingRequestModal({
               <option value="no">No</option>
             </Select>
           </div>
-          {showDefiniteAnswerFields && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tr-follow-date">If no, Follow date (+3 days from Requested date)</Label>
-                <Input
-                  id="tr-follow-date"
-                  ref={noFollowUpDateRef}
-                  type="text"
-                  readOnly
-                  placeholder="Will auto-calculate"
-                  className="cursor-not-allowed"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tr-followup-date">Follow up Date</Label>
-                <Input
-                  id="tr-followup-date"
-                  ref={followUpDateRef}
-                  type="text"
-                  placeholder="Select date"
-                  className="cursor-pointer"
-                />
-              </div>
+          <div className={`space-y-4 ${showDefiniteAnswerFields ? "" : "hidden"}`}>
+            <div className="space-y-2">
+              <Label htmlFor="tr-follow-date">If no, Follow date (+3 days from Requested date)</Label>
+              <Input
+                id="tr-follow-date"
+                ref={noFollowUpDateRef}
+                type="text"
+                readOnly
+                placeholder="Will auto-calculate"
+                className="cursor-not-allowed"
+              />
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="tr-followup-date">Follow up Date</Label>
+              <Input
+                id="tr-followup-date"
+                ref={followUpDateRef}
+                type="text"
+                placeholder="Select date"
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}

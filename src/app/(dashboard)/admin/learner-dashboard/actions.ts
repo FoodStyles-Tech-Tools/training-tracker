@@ -75,7 +75,7 @@ export async function createTrainingRequestAction(competencyLevelId: string) {
         requestedDate,
         learnerUserId: session.user.id,
         competencyLevelId,
-        status: 0, // Not Started
+        status: 1, // Status 1 (Looking for trainer - defined in env.TRAINING_REQUEST_STATUS)
         responseDue, // Auto-fill as requested date + 1 day
       })
       .returning();

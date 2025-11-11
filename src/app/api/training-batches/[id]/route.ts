@@ -264,7 +264,7 @@ export async function PATCH(
             .update(schema.trainingRequest)
             .set({
               trainingBatchId: null,
-              status: 2, // In Queue
+              status: 2, // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
               updatedAt: new Date(),
             })
             .where(eq(schema.trainingRequest.learnerUserId, toRemove[0]));
@@ -278,7 +278,7 @@ export async function PATCH(
             .where(
               and(
                 eq(schema.trainingRequest.competencyLevelId, updatedBatch.competencyLevelId),
-                eq(schema.trainingRequest.status, 2), // In Queue
+                eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
                 eq(schema.trainingRequest.learnerUserId, toAdd[0]),
               ),
             );
@@ -294,7 +294,7 @@ export async function PATCH(
               .update(schema.trainingRequest)
               .set({
                 trainingBatchId: id,
-                status: 4, // In Progress
+                status: 4, // Status 4 (defined in env.TRAINING_REQUEST_STATUS)
                 updatedAt: new Date(),
               })
               .where(eq(schema.trainingRequest.id, trainingRequests[0].id));

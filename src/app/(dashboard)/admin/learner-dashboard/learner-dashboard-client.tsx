@@ -28,7 +28,7 @@ type TrainingRequest = {
   trId: string;
   requestedDate: Date;
   competencyLevelId: string;
-  status: number; // 0=Not Started, 1=Looking for trainer, 2=In Queue, 3=No batch match, 4=In Progress, 5=Sessions Completed, 6=On Hold, 7=Drop Off
+  status: number; // Status values defined in env.TRAINING_REQUEST_STATUS
 };
 
 type ProjectApproval = {
@@ -44,6 +44,7 @@ interface LearnerDashboardClientProps {
   userId: string;
   trainingRequests?: TrainingRequest[];
   projectApprovals?: ProjectApproval[];
+  statusLabels: string[];
 }
 
 type LevelType = "basic" | "competent" | "advanced";
@@ -66,6 +67,7 @@ export function LearnerDashboardClient({
   userId,
   trainingRequests = [],
   projectApprovals = [],
+  statusLabels,
 }: LearnerDashboardClientProps) {
   const [selectedCompetencyId, setSelectedCompetencyId] = useState<string>(
     competencies[0]?.id ?? "",
@@ -144,7 +146,7 @@ export function LearnerDashboardClient({
   const isProjectSubmitted = currentProjectApproval && currentProjectApproval.status > 0;
 
   // Check if all requirements are met
-  // A requirement is met if the user has a training request with status 5 (Sessions Completed) or higher
+  // A requirement is met if the user has a training request with status >= 5 (Sessions Completed or higher)
   const areRequirementsMet = useMemo(() => {
     if (!selectedCompetency || !selectedLevelData) return true; // No requirements = requirements met
     
@@ -157,7 +159,7 @@ export function LearnerDashboardClient({
         (tr) => tr.competencyLevelId === requiredLevelId,
       );
       
-      // Requirement is met if training request exists and status is 5 (Sessions Completed) or higher
+      // Requirement is met if training request exists and status >= 5
       return trainingRequest && trainingRequest.status >= 5;
     });
   }, [selectedCompetency, trainingRequests, selectedLevelData]);
@@ -570,24 +572,10 @@ export function LearnerDashboardClient({
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-300">Training Status:</span>
                         <span className="text-slate-200">
-                          {currentTrainingRequest.status === 0
-                            ? "Not Started"
-                            : currentTrainingRequest.status === 1
-                              ? "Looking for trainer"
-                              : currentTrainingRequest.status === 2
-                                ? "In Queue"
-                                : currentTrainingRequest.status === 3
-                                  ? "No batch match"
-                                  : currentTrainingRequest.status === 4
-                                    ? "In Progress"
-                                    : currentTrainingRequest.status === 5
-                                      ? "Training Complete"
-                                      : currentTrainingRequest.status === 6
-                                        ? "On Hold"
-                                        : "Drop Off"}
+                          {statusLabels[currentTrainingRequest.status] || "Unknown"}
                         </span>
                       </div>
-                      {/* Homework Submit Button - Only show if status is 4 (In Progress) */}
+                      {/* Homework Submit Button - Only show if status is 4 */}
                       {currentTrainingRequest.status === 4 && (
                         <div className="mt-4">
                           <button
@@ -604,7 +592,7 @@ export function LearnerDashboardClient({
                 </Card>
               )}
 
-              {/* Project Submission - Only show if training request status is 5 (Sessions Completed) */}
+              {/* Project Submission - Only show if training request status is 5 */}
               {currentTrainingRequest && currentTrainingRequest.status === 5 && (
                 <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
                   <CardContent className="space-y-4 p-6">

@@ -103,7 +103,7 @@ export async function createTrainingBatchAction(
           .where(
             and(
               eq(schema.trainingRequest.competencyLevelId, parsed.competencyLevelId),
-              eq(schema.trainingRequest.status, 2), // In Queue
+              eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
               inArray(schema.trainingRequest.learnerUserId, parsed.learnerIds),
             ),
           );
@@ -126,7 +126,7 @@ export async function createTrainingBatchAction(
           .update(schema.trainingRequest)
           .set({
             trainingBatchId: batch.id,
-            status: 4, // In Progress
+            status: 4, // Status 4 (defined in env.TRAINING_REQUEST_STATUS)
             updatedAt: new Date(),
           })
           .where(
@@ -339,7 +339,7 @@ export async function updateTrainingBatchAction(
                   schema.trainingRequest.competencyLevelId,
                   updatedBatch.competencyLevelId,
                 ),
-                eq(schema.trainingRequest.status, 2), // In Queue
+                eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
                 inArray(schema.trainingRequest.learnerUserId, toAdd),
               ),
             );
@@ -361,7 +361,7 @@ export async function updateTrainingBatchAction(
             .update(schema.trainingRequest)
             .set({
               trainingBatchId: parsed.id,
-              status: 4, // In Progress
+              status: 4, // Status 4 (defined in env.TRAINING_REQUEST_STATUS)
               updatedAt: new Date(),
             })
             .where(
@@ -631,7 +631,7 @@ export async function dropOffLearnerAction(
         .update(schema.trainingRequest)
         .set({
           trainingBatchId: null,
-          status: 7, // Drop Off
+          status: 7, // Status 7 (defined in env.TRAINING_REQUEST_STATUS)
           dropOffReason: dropOffReason || null,
           updatedAt: new Date(),
         })

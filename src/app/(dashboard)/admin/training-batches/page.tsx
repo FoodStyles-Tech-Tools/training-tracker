@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { env } from "@/env";
 import { TrainingBatchManager } from "./training-batch-manager";
 
 export default async function TrainingBatchesPage() {
@@ -59,6 +60,7 @@ export default async function TrainingBatchesPage() {
         trainingBatches={trainingBatchesData}
         competencies={competencies}
         trainers={trainers}
+        statusLabels={env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim())}
       />
     </Suspense>
   );

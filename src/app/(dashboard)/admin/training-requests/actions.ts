@@ -9,7 +9,7 @@ import { requireSession } from "@/lib/session";
 
 const trainingRequestUpdateSchema = z.object({
   id: z.string().uuid(),
-  status: z.number().int().min(0).max(7).optional(),
+  status: z.number().int().min(0).max(8).optional(),
   onHoldBy: z.number().int().optional().nullable(),
   onHoldReason: z.string().optional().nullable(),
   dropOffReason: z.string().optional().nullable(),
@@ -64,7 +64,8 @@ export async function updateTrainingRequestAction(
       })
       .where(eq(schema.trainingRequest.id, parsed.id));
 
-    revalidatePath("/admin/training-requests");
+    // Don't revalidate to avoid page refresh - state is updated locally
+    // revalidatePath("/admin/training-requests");
     return { success: true };
   } catch (error) {
     if (error instanceof Error) {

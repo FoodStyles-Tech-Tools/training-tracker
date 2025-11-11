@@ -45,6 +45,14 @@ type TrainingRequestWithRelations = TrainingRequest & {
     id: string;
     name: string;
   } | null;
+  trainingBatch?: {
+    id: string;
+    batchName: string;
+    trainer: {
+      id: string;
+      name: string;
+    };
+  } | null;
 };
 
 interface TrainingRequestManagerProps {
@@ -55,15 +63,21 @@ interface TrainingRequestManagerProps {
 }
 
 export function TrainingRequestManager({
-  trainingRequests,
+  trainingRequests: initialTrainingRequests,
   competencies,
   users,
   statusLabels,
 }: TrainingRequestManagerProps) {
+  const [trainingRequests, setTrainingRequests] = useState<TrainingRequestWithRelations[]>(initialTrainingRequests);
   const [selectedRequest, setSelectedRequest] = useState<TrainingRequestWithRelations | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
+  
+  // Update local state when prop changes (e.g., from external refresh)
+  useEffect(() => {
+    setTrainingRequests(initialTrainingRequests);
+  }, [initialTrainingRequests]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -77,7 +91,7 @@ export function TrainingRequestManager({
     status: "",
     trainer: "",
     batch: "",
-    customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked",
+    customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked" | "followUp",
   });
 
   // Helper function to get response due date
@@ -107,8 +121,14 @@ export function TrainingRequestManager({
     let dueIn3d = 0;
     let overdue = 0;
     let blocked = 0;
+    let followUp = 0;
 
     trainingRequests.forEach((tr) => {
+      // Count follow up: definiteAnswer is false and followUpDate is empty (count all, regardless of responseDate)
+      if (tr.definiteAnswer === false && !tr.followUpDate) {
+        followUp++;
+      }
+      
       // Skip if already responded (has responseDate)
       if (tr.responseDate) {
         // Still count blocked requests even if responded
@@ -135,7 +155,7 @@ export function TrainingRequestManager({
       }
     });
 
-    return { dueIn24h, dueIn3d, overdue, blocked };
+    return { dueIn24h, dueIn3d, overdue, blocked, followUp };
   }, [trainingRequests, getResponseDueDate]);
 
   // Filtered and sorted training requests
@@ -160,6 +180,9 @@ export function TrainingRequestManager({
         // Blocked filter still counts blocked requests even if responded
         if (filters.customFilter === "blocked") {
           if (!tr.isBlocked) return false;
+        } else if (filters.customFilter === "followUp") {
+          // Follow up: definiteAnswer is false and followUpDate is empty
+          if (tr.definiteAnswer !== false || tr.followUpDate) return false;
         } else {
           // For due/overdue filters, skip if already responded
           if (tr.responseDate) return false;
@@ -323,17 +346,37 @@ export function TrainingRequestManager({
       });
 
       if (result.success) {
-        // Close modal first
-        setIsModalOpen(false);
-        setSelectedRequest(null);
+        // Update the local state with the new data
+        // Preserve all date fields if not explicitly changed
+        const updatedRequest = {
+          ...selectedRequest,
+          ...data,
+          // Preserve dates if not explicitly changed
+          responseDate: data.responseDate !== undefined ? data.responseDate : selectedRequest.responseDate,
+          responseDue: data.responseDue !== undefined ? data.responseDue : selectedRequest.responseDue,
+          expectedUnblockedDate: data.expectedUnblockedDate !== undefined ? data.expectedUnblockedDate : selectedRequest.expectedUnblockedDate,
+          noFollowUpDate: data.noFollowUpDate !== undefined ? data.noFollowUpDate : selectedRequest.noFollowUpDate,
+          followUpDate: data.followUpDate !== undefined ? data.followUpDate : selectedRequest.followUpDate,
+          updatedAt: new Date(),
+        };
+        
+        setTrainingRequests((prev) =>
+          prev.map((tr) =>
+            tr.id === selectedRequest.id ? updatedRequest : tr
+          )
+        );
+        
+        // Update selectedRequest so modal shows updated data if still open
+        setSelectedRequest(updatedRequest);
         
         // Show success message
         setMessage({ text: `${selectedRequest.trId} Successfully updated`, tone: "success" });
         
-        // Reload after showing message for 5 seconds
+        // Close modal after a short delay to show the success message
         setTimeout(() => {
-          window.location.reload();
-        }, 5000);
+          setIsModalOpen(false);
+          setSelectedRequest(null);
+        }, 1000);
       } else {
         setMessage({ text: result.error || "Failed to update training request", tone: "error" });
       }
@@ -523,6 +566,17 @@ export function TrainingRequestManager({
             >
               Blocked ({filterCounts.blocked})
             </Button>
+            <Button
+              type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "followUp" ? "" : "followUp" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "followUp"
+                  ? "bg-purple-600 hover:bg-purple-700 focus-visible:ring-purple-400"
+                  : "bg-purple-500 hover:bg-purple-600 focus-visible:ring-purple-400"
+              }`}
+            >
+              Follow Up ({filterCounts.followUp})
+            </Button>
             <div className="flex-1"></div>
             <Button
               type="button"
@@ -656,8 +710,12 @@ export function TrainingRequestManager({
                         {getTrainingRequestStatusLabel(tr.status, statusLabels)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-300">-</td>
-                    <td className="px-4 py-3 text-slate-300">-</td>
+                    <td className="px-4 py-3 text-slate-300">
+                      {tr.trainingBatch?.batchName || "-"}
+                    </td>
+                    <td className="px-4 py-3 text-slate-300">
+                      {tr.trainingBatch?.trainer.name || "-"}
+                    </td>
                     <td className="px-4 py-3 text-slate-400">
                       {formatDate(
                         tr.responseDue || (tr.requestedDate

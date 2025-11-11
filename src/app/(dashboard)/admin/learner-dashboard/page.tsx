@@ -1,6 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
+import { env } from "@/env";
 import { LearnerDashboardClient } from "./learner-dashboard-client";
 
 export default async function LearnerDashboardPage() {
@@ -64,6 +65,7 @@ export default async function LearnerDashboardPage() {
         userId={session.user.id}
         trainingRequests={trainingRequests}
         projectApprovals={projectApprovals}
+        statusLabels={env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim())}
       />
     </div>
   );

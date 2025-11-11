@@ -19,6 +19,11 @@ export default async function TrainingRequestsPage() {
         },
       },
       assignedUser: true,
+      trainingBatch: {
+        with: {
+          trainer: true,
+        },
+      },
     },
     orderBy: desc(schema.trainingRequest.createdAt),
   });

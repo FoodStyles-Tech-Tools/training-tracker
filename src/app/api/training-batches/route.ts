@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
           .where(
             and(
               eq(schema.trainingRequest.competencyLevelId, competencyLevelId),
-              eq(schema.trainingRequest.status, 2), // In Queue
+              eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
               inArray(schema.trainingRequest.learnerUserId, learnerIds),
             ),
           );
@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
           .update(schema.trainingRequest)
           .set({
             trainingBatchId: batch.id,
-            status: 4, // In Progress
+            status: 4, // Status 4 (defined in env.TRAINING_REQUEST_STATUS)
             updatedAt: new Date(),
           })
           .where(

@@ -451,7 +451,7 @@ export const trainingRequest = pgTable(
       .notNull()
       .references(() => competencyLevels.id, { onDelete: "cascade" }),
     trainingBatchId: uuid("training_batch_id"), // Will reference training_batch table when it's added
-    status: integer("status").notNull().default(0), // 0=Not Started, 1=Looking for trainer, 2=In Queue, 3=No batch match, 4=In Progress, 5=Sessions Completed, 6=On Hold, 7=Drop Off
+    status: integer("status").notNull().default(0), // Status values defined in env.TRAINING_REQUEST_STATUS (0-8)
     onHoldBy: integer("on_hold_by"), // 0=Learner, 1=Trainer
     onHoldReason: text("on_hold_reason"),
     dropOffReason: text("drop_off_reason"),
@@ -496,10 +496,6 @@ export const trainingRequestRelations = relations(trainingRequest, ({ one }) => 
     fields: [trainingRequest.assignedTo],
     references: [users.id],
   }),
-}));
-
-// Add trainingBatch relation to trainingRequest after trainingBatch is defined
-export const trainingRequestRelationsWithBatch = relations(trainingRequest, ({ one }) => ({
   trainingBatch: one(trainingBatch, {
     fields: [trainingRequest.trainingBatchId],
     references: [trainingBatch.id],

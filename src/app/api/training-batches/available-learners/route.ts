@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       .where(
         and(
           eq(schema.trainingRequest.competencyLevelId, competencyLevelId),
-          eq(schema.trainingRequest.status, 2), // In Queue
+          eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
           isNull(schema.trainingRequest.trainingBatchId), // Not already in a batch
         ),
       );

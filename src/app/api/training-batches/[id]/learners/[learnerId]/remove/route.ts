@@ -58,7 +58,7 @@ export async function POST(
         .update(schema.trainingRequest)
         .set({
           trainingBatchId: null,
-          status: 2, // In Queue
+          status: 2, // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
           updatedAt: new Date(),
         })
         .where(eq(schema.trainingRequest.id, batchLearner.trainingRequestId));

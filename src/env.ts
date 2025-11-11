@@ -11,7 +11,7 @@ const serverSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   TRAINING_REQUEST_STATUS: z
     .string()
-    .default("Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off"),
+    .default("Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off,Training Completed"),
 });
 
 const parsed = serverSchema.safeParse({
@@ -22,7 +22,7 @@ const parsed = serverSchema.safeParse({
   ADMIN_SEED_PASSWORD: process.env.ADMIN_SEED_PASSWORD,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS ?? "Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off",
+  TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS,
 });
 
 if (!parsed.success) {

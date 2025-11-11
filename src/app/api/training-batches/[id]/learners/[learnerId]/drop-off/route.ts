@@ -60,7 +60,7 @@ export async function POST(
         .update(schema.trainingRequest)
         .set({
           trainingBatchId: null,
-          status: 7, // Drop Off
+          status: 7, // Status 7 (defined in env.TRAINING_REQUEST_STATUS)
           dropOffReason: dropOffReason || null,
           updatedAt: new Date(),
         })
