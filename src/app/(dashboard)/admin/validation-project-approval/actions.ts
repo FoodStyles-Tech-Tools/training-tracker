@@ -14,6 +14,7 @@ const vpaUpdateSchema = z.object({
   responseDue: z.date().optional().nullable(),
   responseDate: z.date().optional().nullable(),
   projectDetails: z.string().optional().nullable(),
+  rejectionReason: z.string().optional().nullable(),
 });
 
 // Helper function to convert Date to DATE only (no timezone, no time)
@@ -43,24 +44,34 @@ export async function updateVPAAction(
       return { success: false, error: "VPA not found" };
     }
 
+    // Determine assignedTo value:
+    // - If assignedTo in database is empty/null, set it to current logged-in user
+    // - If assignedTo in database exists, preserve it (don't change)
+    const assignedToValue = currentVPA.assignedTo 
+      ? currentVPA.assignedTo  // Preserve existing value
+      : session.user.id;       // Set to current user if empty
+
     // Update the VPA record
     await db
       .update(schema.validationProjectApproval)
       .set({
         status: parsed.status,
-        assignedTo: parsed.assignedTo,
+        assignedTo: assignedToValue,
         responseDue: toDateOnly(parsed.responseDue),
         responseDate: toDateOnly(parsed.responseDate),
         projectDetails: parsed.projectDetails,
+        rejectionReason: parsed.rejectionReason,
         updatedAt: new Date(),
       })
       .where(eq(schema.validationProjectApproval.id, parsed.id));
 
     // Create log entry
+    const finalStatus = parsed.status ?? currentVPA.status;
     await db.insert(schema.validationProjectApprovalLog).values({
       vpaId: currentVPA.vpaId,
-      status: parsed.status ?? currentVPA.status,
+      status: finalStatus,
       projectDetailsText: parsed.projectDetails ?? currentVPA.projectDetails,
+      rejectionReason: parsed.rejectionReason ?? (finalStatus === 2 ? currentVPA.rejectionReason : null),
       updatedBy: session.user.id,
     });
 

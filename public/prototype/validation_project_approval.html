@@ -628,6 +628,18 @@
                 ></textarea>
               </div>
 
+              <!-- Rejection Reason (shown when status is Rejected) -->
+              <div id="vpa-rejection-reason-section" class="hidden space-y-2 border-t border-slate-800/80 pt-4">
+                <label for="vpa-rejection-reason-display" class="block text-sm font-medium text-slate-300">Rejection Reason</label>
+                <textarea
+                  id="vpa-rejection-reason-display"
+                  rows="4"
+                  readonly
+                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-400"
+                  placeholder="No rejection reason provided"
+                ></textarea>
+              </div>
+
             </div>
 
             <!-- Action Buttons -->
@@ -664,6 +676,63 @@
         </div>
       </div>
     
+    <!-- Rejection Reason Modal -->
+    <div
+      id="rejection-reason-modal"
+      class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeRejectionReasonModal(event)"
+    >
+      <div
+        class="prototype-card max-h-[90vh] w-full max-w-2xl overflow-y-auto"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-white">Rejection Reason</h2>
+            <p class="text-sm text-slate-400">Please provide a reason for rejecting this validation project</p>
+          </div>
+          <button
+            type="button"
+            onclick="closeRejectionReasonModal()"
+            class="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <form class="space-y-6" onsubmit="event.preventDefault(); submitRejectionReason()">
+            <div class="space-y-2">
+              <label for="rejection-reason-text" class="block text-sm font-medium text-slate-300">Rejection Reason</label>
+              <textarea
+                id="rejection-reason-text"
+                rows="6"
+                class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                placeholder="Enter the reason for rejecting this validation project..."
+                required
+              ></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+              <button
+                type="button"
+                onclick="closeRejectionReasonModal()"
+                class="rounded-md border border-slate-700 bg-slate-800/50 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                Confirm Rejection
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <script src="navigation.js"></script>
     <script src="table-sort.js"></script>
@@ -672,7 +741,7 @@
       let flatpickrInstances = {};
 
       // Open VPA Modal
-      window.openVPAModal = function(vpaId, name, competency, level, vpaStatus, vpaDate) {
+      window.openVPAModal = function(vpaId, name, competency, level, vpaStatus, vpaDate, rejectionReason) {
         const modal = document.getElementById("vpa-modal");
         
         // Populate VPA fields
@@ -686,6 +755,23 @@
         if (vpaId) {
           const projectDetails = `This is a sample validation project for ${competency} at ${level} level. The project involves demonstrating practical competency through real-world scenarios and case studies.`;
           document.getElementById("vpa-project-details").value = projectDetails;
+        }
+        
+        // Set rejection reason if provided
+        if (rejectionReason) {
+          document.getElementById("vpa-rejection-reason-display").value = rejectionReason;
+          // Also set it in the hidden field for form submission
+          let rejectionReasonField = document.getElementById("vpa-rejection-reason");
+          if (!rejectionReasonField) {
+            rejectionReasonField = document.createElement("input");
+            rejectionReasonField.type = "hidden";
+            rejectionReasonField.id = "vpa-rejection-reason";
+            rejectionReasonField.name = "rejection_reason";
+            document.querySelector("#vpa-modal form").appendChild(rejectionReasonField);
+          }
+          rejectionReasonField.value = rejectionReason;
+        } else {
+          document.getElementById("vpa-rejection-reason-display").value = "";
         }
         
         // Clear conditional fields
@@ -718,12 +804,20 @@
       function handleVPAStatusChange() {
         const status = document.getElementById("vpa-status").value;
         const responseFields = document.getElementById("vpa-response-fields");
+        const rejectionReasonSection = document.getElementById("vpa-rejection-reason-section");
         
         if (status == 1) {
           responseFields.classList.remove("hidden");
           calculateResponseDue();
         } else {
           responseFields.classList.add("hidden");
+        }
+        
+        // Show/hide rejection reason section based on status
+        if (status == 3) {
+          rejectionReasonSection.classList.remove("hidden");
+        } else {
+          rejectionReasonSection.classList.add("hidden");
         }
       }
 
@@ -733,8 +827,57 @@
       }
 
       function handleReject() {
+        // Show rejection reason modal instead of directly setting status
+        const rejectionModal = document.getElementById("rejection-reason-modal");
+        rejectionModal.classList.remove("hidden");
+        rejectionModal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeRejectionReasonModal(event) {
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+        const modal = document.getElementById("rejection-reason-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+        // Clear the rejection reason text
+        document.getElementById("rejection-reason-text").value = "";
+      }
+
+      function submitRejectionReason() {
+        const rejectionReason = document.getElementById("rejection-reason-text").value.trim();
+        
+        if (!rejectionReason) {
+          alert("Please provide a rejection reason");
+          return;
+        }
+
+        // Set the status to rejected
         document.getElementById("vpa-status").value = "3";
         handleVPAStatusChange();
+        
+        // Store the rejection reason (you can add a hidden field or store it in a variable)
+        // For now, we'll add it to a hidden field in the form
+        let rejectionReasonField = document.getElementById("vpa-rejection-reason");
+        if (!rejectionReasonField) {
+          rejectionReasonField = document.createElement("input");
+          rejectionReasonField.type = "hidden";
+          rejectionReasonField.id = "vpa-rejection-reason";
+          rejectionReasonField.name = "rejection_reason";
+          document.querySelector("#vpa-modal form").appendChild(rejectionReasonField);
+        }
+        rejectionReasonField.value = rejectionReason;
+        
+        // Also update the display field
+        document.getElementById("vpa-rejection-reason-display").value = rejectionReason;
+
+        // Close the rejection reason modal
+        closeRejectionReasonModal();
+        
+        // Optionally show a success message or update the UI
+        console.log("Rejection reason saved:", rejectionReason);
       }
 
       function calculateResponseDue() {
@@ -829,8 +972,12 @@
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
-          const modal = document.getElementById("vpa-modal");
-          if (!modal.classList.contains("hidden")) {
+          const vpaModal = document.getElementById("vpa-modal");
+          const rejectionModal = document.getElementById("rejection-reason-modal");
+          
+          if (rejectionModal && !rejectionModal.classList.contains("hidden")) {
+            closeRejectionReasonModal();
+          } else if (vpaModal && !vpaModal.classList.contains("hidden")) {
             closeVPAModal();
           }
         }

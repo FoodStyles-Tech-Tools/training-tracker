@@ -738,10 +738,11 @@ export const validationProjectApproval = pgTable(
       .notNull()
       .references(() => competencyLevels.id, { onDelete: "cascade" }),
     projectDetails: text("project_details"),
-    status: integer("status").notNull().default(0), // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected, 4 = Resubmit for Re-validation
+    status: integer("status").notNull().default(0), // 0 = Pending Validation Project Approval, 1 = Approved, 2 = Rejected, 3 = Resubmit for Re-validation
     assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
     responseDue: timestamp("response_due", { mode: "date" }),
     responseDate: timestamp("response_date", { mode: "date" }),
+    rejectionReason: text("rejection_reason"),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -764,6 +765,7 @@ export const validationProjectApprovalLog = pgTable(
     vpaId: text("vpa_id").notNull(),
     status: integer("status"),
     projectDetailsText: text("project_details_text"),
+    rejectionReason: text("rejection_reason"),
     updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
@@ -799,3 +801,64 @@ export const validationProjectApprovalLogRelations = relations(validationProject
 
 export type ValidationProjectApproval = typeof validationProjectApproval.$inferSelect;
 export type ValidationProjectApprovalLog = typeof validationProjectApprovalLog.$inferSelect;
+
+// Validation Schedule Request tables
+export const validationScheduleRequest = pgTable(
+  "validation_schedule_request",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    vsrId: text("vsr_id").notNull(),
+    trId: text("tr_id"),
+    requestedDate: timestamp("requested_date", { mode: "date" }).notNull(),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    description: text("description"),
+    status: integer("status").notNull().default(0), // 0 = Pending Validation, 1 = Pending Re-validation, 2 = Validation Scheduled, 3 = Fail, 4 = Pass
+    responseDue: timestamp("response_due", { mode: "date" }),
+    responseDate: timestamp("response_date", { mode: "date" }),
+    definiteAnswer: boolean("definite_answer"),
+    noFollowUpDate: timestamp("no_follow_up_date", { mode: "date" }),
+    followUpDate: timestamp("follow_up_date", { mode: "date" }),
+    scheduledDate: timestamp("scheduled_date", { mode: "date" }),
+    validatorOps: uuid("validator_ops").references(() => users.id, { onDelete: "set null" }),
+    validatorTrainer: uuid("validator_trainer").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (vsr) => ({
+    vsrIdIdx: uniqueIndex("validation_schedule_request_vsr_id_idx").on(vsr.vsrId),
+    learnerUserIdIdx: index("validation_schedule_request_learner_user_id_idx").on(vsr.learnerUserId),
+    competencyLevelIdIdx: index("validation_schedule_request_competency_level_id_idx").on(vsr.competencyLevelId),
+    validatorOpsIdx: index("validation_schedule_request_validator_ops_idx").on(vsr.validatorOps),
+    validatorTrainerIdx: index("validation_schedule_request_validator_trainer_idx").on(vsr.validatorTrainer),
+  }),
+);
+
+export const validationScheduleRequestRelations = relations(validationScheduleRequest, ({ one }) => ({
+  learner: one(users, {
+    fields: [validationScheduleRequest.learnerUserId],
+    references: [users.id],
+  }),
+  competencyLevel: one(competencyLevels, {
+    fields: [validationScheduleRequest.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  validatorOpsUser: one(users, {
+    fields: [validationScheduleRequest.validatorOps],
+    references: [users.id],
+  }),
+  validatorTrainerUser: one(users, {
+    fields: [validationScheduleRequest.validatorTrainer],
+    references: [users.id],
+  }),
+}));
+
+export type ValidationScheduleRequest = typeof validationScheduleRequest.$inferSelect;

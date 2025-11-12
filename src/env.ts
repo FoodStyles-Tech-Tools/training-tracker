@@ -4,17 +4,32 @@ import { z } from "zod";
 const serverSchema = z.object({
   DATABASE_URL: z.string().url(),
   BETTER_AUTH_SECRET: z.string().min(32),
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
   ADMIN_SEED_EMAIL: z.string().email().optional(),
   ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   TRAINING_REQUEST_STATUS: z
     .string()
-    .default("Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off,Training Completed"),
+    .default([
+      "Not Started", // 0
+      "Looking for trainer", // 1
+      "In Queue", // 2
+      "No batch match", // 3
+      "In Progress", // 4
+      "Sessions Completed", // 5
+      "On Hold", // 6
+      "Drop Off", // 7
+      "Training Completed", // 8
+    ].join(",")),
   VPA_STATUS: z
     .string()
-    .default("Pending Project Submission,Pending Validation Project Approval,Approved,Rejected,Resubmit for Re-validation"),
+    .default([
+      "Pending Validation Project Approval", // 0
+      "Approved", // 1
+      "Rejected", // 2
+      "Resubmit for Re-validation", // 3
+    ].join(",")),
 });
 
 const parsed = serverSchema.safeParse({

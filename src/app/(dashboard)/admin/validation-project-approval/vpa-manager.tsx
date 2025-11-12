@@ -115,7 +115,7 @@ export function VPAManager({
   }, []);
 
   // Calculate filter counts
-  // Only count VPAs with status 1 (Pending Validation Project Approval) and no response date
+  // Only count VPAs with status 0 (Pending Validation Project Approval) and no response date
   const filterCounts = useMemo(() => {
     const now = new Date();
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -126,8 +126,8 @@ export function VPAManager({
     let overdue = 0;
 
     vpas.forEach((vpa) => {
-      // Only count if status is 1 (Pending Validation Project Approval) and no response date
-      if (vpa.status !== 1 || vpa.responseDate) {
+      // Only count if status is 0 (Pending Validation Project Approval) and no response date
+      if (vpa.status !== 0 || vpa.responseDate) {
         return;
       }
 
@@ -164,22 +164,25 @@ export function VPAManager({
         return false;
       }
 
-      // Custom filters - only for status 1 (Pending Validation Project Approval)
+      // Custom filters - only for status 0 (Pending Validation Project Approval)
       if (filters.customFilter) {
-        if (vpa.status !== 1 || vpa.responseDate) return false;
+        if (vpa.status !== 0 || vpa.responseDate) return false;
         
         const responseDue = getResponseDueDate(vpa);
         const now = new Date();
         
         if (filters.customFilter === "dueIn24h") {
+          // Only show VPAs with status 0, no response date, and due within 24h
           if (!responseDue) return false;
           const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
           if (responseDue > in24h || responseDue <= now) return false;
         } else if (filters.customFilter === "dueIn3d") {
+          // Only show VPAs with status 0, no response date, and due within 3 days
           if (!responseDue) return false;
           const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
           if (responseDue > in3d || responseDue <= now) return false;
         } else if (filters.customFilter === "overdue") {
+          // Only show VPAs with status 0, no response date, and overdue
           if (!responseDue) return false;
           if (responseDue >= now) return false;
         }
@@ -321,6 +324,7 @@ export function VPAManager({
           ...data,
           responseDate: data.responseDate !== undefined ? data.responseDate : selectedVPA.responseDate,
           responseDue: data.responseDue !== undefined ? data.responseDue : selectedVPA.responseDue,
+          rejectionReason: data.rejectionReason !== undefined ? data.rejectionReason : selectedVPA.rejectionReason,
           updatedAt: new Date(),
         };
         
@@ -590,9 +594,9 @@ export function VPAManager({
                 paginatedVPAs.map((vpa) => {
                   const responseDue = getResponseDueDate(vpa);
                   const now = new Date();
-                  const isOverdue = responseDue && responseDue < now && vpa.status === 1 && !vpa.responseDate;
-                  const isDueIn24h = responseDue && responseDue <= new Date(now.getTime() + 24 * 60 * 60 * 1000) && responseDue > now && vpa.status === 1 && !vpa.responseDate;
-                  const isDueIn3d = responseDue && responseDue <= new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) && responseDue > now && vpa.status === 1 && !vpa.responseDate;
+                  const isOverdue = responseDue && responseDue < now && vpa.status === 0 && !vpa.responseDate;
+                  const isDueIn24h = responseDue && responseDue <= new Date(now.getTime() + 24 * 60 * 60 * 1000) && responseDue > now && vpa.status === 0 && !vpa.responseDate;
+                  const isDueIn3d = responseDue && responseDue <= new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) && responseDue > now && vpa.status === 0 && !vpa.responseDate;
                   
                   let rowColorClass = "";
                   if (isOverdue) {

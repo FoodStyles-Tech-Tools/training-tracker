@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { QuillEditor } from "@/components/ui/quill-editor";
 import type { Competency, CompetencyLevel } from "@/db/schema";
-import { createTrainingRequestAction, submitHomeworkAction } from "./actions";
+import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
 import { X } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
@@ -35,8 +36,16 @@ type ProjectApproval = {
   id: string;
   vpaId: string;
   competencyLevelId: string;
-  status: number; // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected
+  status: number; // 0 = Pending Validation Project Approval, 1 = Approved, 2 = Rejected, 3 = Resubmit for Re-validation
   projectDetails: string | null;
+  requestedDate: Date | null;
+  responseDate: Date | null;
+  assignedTo: string | null;
+  assignedToUser: {
+    id: string;
+    name: string | null;
+  } | null;
+  rejectionReason: string | null;
 };
 
 interface LearnerDashboardClientProps {
@@ -45,6 +54,7 @@ interface LearnerDashboardClientProps {
   trainingRequests?: TrainingRequest[];
   projectApprovals?: ProjectApproval[];
   statusLabels: string[];
+  vpaStatusLabels: string[];
 }
 
 type LevelType = "basic" | "competent" | "advanced";
@@ -68,6 +78,7 @@ export function LearnerDashboardClient({
   trainingRequests = [],
   projectApprovals = [],
   statusLabels,
+  vpaStatusLabels,
 }: LearnerDashboardClientProps) {
   const [selectedCompetencyId, setSelectedCompetencyId] = useState<string>(
     competencies[0]?.id ?? "",
@@ -85,6 +96,8 @@ export function LearnerDashboardClient({
   } | null>(null);
   const [homeworkUrls, setHomeworkUrls] = useState<Map<string, string>>(new Map());
   const [submittingSessionId, setSubmittingSessionId] = useState<string | null>(null);
+  const [projectDetails, setProjectDetails] = useState<string>("");
+  const [submittingProject, setSubmittingProject] = useState(false);
   const router = useRouter();
 
   const selectedCompetency = useMemo(
@@ -142,8 +155,33 @@ export function LearnerDashboardClient({
     );
   }, [projectApprovals, selectedLevelData]);
 
-  // Check if project is submitted (status > 0 means it's been submitted)
-  const isProjectSubmitted = currentProjectApproval && currentProjectApproval.status > 0;
+  // Initialize project details from current project approval
+  useEffect(() => {
+    if (currentProjectApproval?.projectDetails) {
+      setProjectDetails(currentProjectApproval.projectDetails);
+    } else {
+      setProjectDetails("");
+    }
+  }, [currentProjectApproval]);
+
+  // Helper to check if QuillJS content is empty
+  const isProjectDetailsEmpty = useMemo(() => {
+    if (!projectDetails || projectDetails.trim() === "" || projectDetails === "<p><br></p>") {
+      return true;
+    }
+    // Remove HTML tags and check if there's actual text content
+    const textOnly = projectDetails.replace(/<[^>]*>/g, "").trim();
+    return textOnly === "";
+  }, [projectDetails]);
+
+  // VPA Status mapping:
+  // Status 0 = Pending Validation Project Approval (read-only after submission)
+  // Status 1 = Approved (read-only)
+  // Status 2 = Rejected (editable, can resubmit)
+  // Status 3 = Resubmit for Re-validation (read-only)
+  const isProjectSubmitted = !!currentProjectApproval; // Project is submitted if approval exists
+  const isProjectEditable = !currentProjectApproval || currentProjectApproval.status === 2; // Only editable when rejected (status 2) or not yet submitted
+  const isProjectApproved = currentProjectApproval && currentProjectApproval.status === 1;
 
   // Check if all requirements are met
   // A requirement is met if the user has a training request with status = 8 (Training Completed)
@@ -370,6 +408,34 @@ export function LearnerDashboardClient({
     });
   };
 
+  const handleSubmitProject = async () => {
+    if (!selectedLevelData) return;
+
+    if (isProjectDetailsEmpty) {
+      setError("Project details cannot be empty");
+      return;
+    }
+
+    setSubmittingProject(true);
+    setError(null);
+    setSuccess(null);
+
+    startTransition(async () => {
+      const result = await submitProjectAction(selectedLevelData.id, projectDetails);
+      if (result.success) {
+        setSuccess("Project submitted successfully");
+        // Refresh the data to show the updated project approval
+        router.refresh();
+        setTimeout(() => {
+          setSuccess(null);
+        }, 3000);
+      } else {
+        setError(result.error || "Failed to submit project");
+      }
+      setSubmittingProject(false);
+    });
+  };
+
   if (competencies.length === 0) {
     return (
       <Card>
@@ -557,39 +623,59 @@ export function LearnerDashboardClient({
                   </Card>
                 )}
 
-              {/* Training Request Display - Only show if training request exists */}
-              {currentTrainingRequest && (
-                <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
-                  <CardContent className="space-y-3 p-6">
-                    <h3 className="text-lg font-semibold text-white">Training Request</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-300">Applied at:</span>
-                        <span className="text-slate-200">
-                          {formatDate(currentTrainingRequest.requestedDate)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-300">Training Status:</span>
-                        <span className="text-slate-200">
-                          {statusLabels[currentTrainingRequest.status] || "Unknown"}
-                        </span>
-                      </div>
-                      {/* Homework Submit Button - Only show if status is 4 */}
-                      {currentTrainingRequest.status === 4 && (
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            onClick={handleOpenHomeworkModal}
-                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                          >
-                            Submit Homework
-                          </button>
+              {/* Training Request and Validation Cards - Side by side */}
+              {(currentTrainingRequest || isProjectApproved) && (
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {/* Training Request Display - Only show if training request exists */}
+                  {currentTrainingRequest && (
+                    <Card className="border border-slate-800/80 bg-slate-950/50">
+                      <CardContent className="space-y-3 p-6">
+                        <h3 className="text-lg font-semibold text-white">Training Request</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Applied at:</span>
+                            <span className="text-slate-200">
+                              {formatDate(currentTrainingRequest.requestedDate)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Training Status:</span>
+                            <span className="text-slate-200">
+                              {statusLabels[currentTrainingRequest.status] || "Unknown"}
+                            </span>
+                          </div>
+                          {/* Homework Submit Button - Only show if status is 4 */}
+                          {currentTrainingRequest.status === 4 && (
+                            <div className="mt-4">
+                              <button
+                                type="button"
+                                onClick={handleOpenHomeworkModal}
+                                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                              >
+                                Submit Homework
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Validation Interface - Only show after project is approved */}
+                  {isProjectApproved && (
+                    <Card className="border border-slate-800/80 bg-slate-950/50">
+                      <CardContent className="space-y-3 p-6">
+                        <h3 className="text-lg font-semibold text-white">Validation</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Validation Status:</span>
+                            <span className="text-slate-200">Pending Validation</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
 
               {/* Project Submission - Show if training request status is 5 (Sessions Completed) or 8 (Training Completed) */}
@@ -599,43 +685,115 @@ export function LearnerDashboardClient({
                     <h3 className="text-lg font-semibold text-white">Submit Project</h3>
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-slate-200">Project details</label>
-                      <textarea
-                        rows={6}
-                        className="w-full resize-none rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100"
-                        placeholder="Enter project details..."
-                        defaultValue={currentProjectApproval?.projectDetails || ""}
+                      <QuillEditor
+                        value={projectDetails}
+                        onChange={(value) => setProjectDetails(value)}
+                        placeholder={isProjectDetailsEmpty ? "Enter project details..." : undefined}
+                        disabled={submittingProject || isPending || !isProjectEditable}
+                        className="min-h-[200px]"
                       />
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                      >
-                        Submit
-                      </button>
+                      {/* Status Details - Show when project is submitted */}
+                      {isProjectSubmitted && currentProjectApproval && (
+                        <div className="text-sm border-t border-slate-800/80 pt-3">
+                          <div className="flex gap-6">
+                            <div className="space-y-2 flex-1">
+                              {currentProjectApproval.requestedDate && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Submitted Date:</span>
+                                  <span className="text-slate-200">
+                                    {formatDate(currentProjectApproval.requestedDate)}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-300">Status:</span>
+                                <span
+                                  className={`font-semibold ${
+                                    currentProjectApproval.status === 0
+                                      ? "text-slate-200"
+                                      : currentProjectApproval.status === 1
+                                        ? "text-emerald-400"
+                                        : currentProjectApproval.status === 2
+                                          ? "text-red-400"
+                                          : "text-slate-200"
+                                  }`}
+                                >
+                                  {vpaStatusLabels[currentProjectApproval.status] || "Unknown"}
+                                </span>
+                              </div>
+                              {currentProjectApproval.status === 1 && currentProjectApproval.assignedToUser && (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-300">Approved by:</span>
+                                    <span className="text-slate-200">
+                                      {currentProjectApproval.assignedToUser.name || "Unknown"}
+                                    </span>
+                                  </div>
+                                  {currentProjectApproval.responseDate && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-slate-300">Approved at:</span>
+                                      <span className="text-slate-200">
+                                        {formatDate(currentProjectApproval.responseDate)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                              {currentProjectApproval.status === 2 && (
+                                <>
+                                  {currentProjectApproval.assignedToUser && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-slate-300">Rejected by:</span>
+                                      <span className="text-slate-200">
+                                        {currentProjectApproval.assignedToUser.name || "Unknown"}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {currentProjectApproval.responseDate && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-slate-300">Rejected at:</span>
+                                      <span className="text-slate-200">
+                                        {formatDate(currentProjectApproval.responseDate)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            {currentProjectApproval.status === 2 && currentProjectApproval.rejectionReason && (
+                              <div className="flex-1">
+                                <div className="flex flex-col gap-2">
+                                  <span className="font-medium text-slate-300">Rejection reason:</span>
+                                  <span className="text-slate-200">
+                                    {currentProjectApproval.rejectionReason}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {!isProjectApproved && (
+                        <button
+                          type="button"
+                          onClick={handleSubmitProject}
+                          disabled={submittingProject || isPending || !isProjectEditable || isProjectDetailsEmpty}
+                          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                        >
+                          {submittingProject || isPending
+                            ? "Submitting..."
+                            : currentProjectApproval?.status === 2
+                              ? "Resubmit"
+                              : isProjectSubmitted
+                                ? "Submitted"
+                                : "Submit"}
+                        </button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Validation Interface - Only show after project is submitted */}
-              {isProjectSubmitted && (
-                <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
-                  <CardContent className="space-y-3 p-6">
-                    <h3 className="text-lg font-semibold text-white">Validation</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-300">Validation Status:</span>
-                        <span className="text-slate-200">Pending Validation</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="mt-4 inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                    >
-                      Request Project
-                    </button>
-                  </CardContent>
-                </Card>
-              )}
 
               {/* Level Content */}
               {selectedLevelData && (
@@ -663,7 +821,7 @@ export function LearnerDashboardClient({
                           What team member should know
                         </label>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2"
+                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.teamKnowledge,
                           }}
@@ -674,7 +832,7 @@ export function LearnerDashboardClient({
                           Eligibility criteria
                         </label>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2"
+                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.eligibilityCriteria,
                           }}
@@ -683,7 +841,7 @@ export function LearnerDashboardClient({
                       <div className="space-y-1">
                         <label className="text-sm font-medium text-slate-200">Verification</label>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2"
+                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.verification,
                           }}
@@ -701,7 +859,7 @@ export function LearnerDashboardClient({
                             Relevant Links
                           </label>
                           <div
-                            className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
+                            className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
                             dangerouslySetInnerHTML={{
                               __html: selectedCompetency.relevantLinks,
                             }}

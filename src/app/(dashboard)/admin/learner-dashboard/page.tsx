@@ -36,20 +36,37 @@ export default async function LearnerDashboardPage() {
     where: eq(schema.trainingRequest.learnerUserId, session.user.id),
   });
 
-  // Get user's project approvals (if validation_project_approval table exists)
-  // TODO: Fetch project approvals once schema is added
-  // const projectApprovals = await db.query.validationProjectApproval.findMany({
-  //   where: eq(schema.validationProjectApproval.learnerUserId, session.user.id),
-  // });
+  // Get user's project approvals with assigned user information
+  const projectApprovalsData = await db.query.validationProjectApproval.findMany({
+    where: eq(schema.validationProjectApproval.learnerUserId, session.user.id),
+    with: {
+      assignedUser: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 
-  // For now, pass empty array - will be populated when schema is added
-  const projectApprovals: Array<{
-    id: string;
-    vpaId: string;
-    competencyLevelId: string;
-    status: number;
-    projectDetails: string | null;
-  }> = [];
+  // Map to the expected format
+  const projectApprovals = projectApprovalsData.map((vpa) => ({
+    id: vpa.id,
+    vpaId: vpa.vpaId,
+    competencyLevelId: vpa.competencyLevelId,
+    status: vpa.status,
+    projectDetails: vpa.projectDetails,
+    requestedDate: vpa.requestedDate,
+    responseDate: vpa.responseDate,
+    assignedTo: vpa.assignedTo,
+    assignedToUser: vpa.assignedUser
+      ? {
+          id: vpa.assignedUser.id,
+          name: vpa.assignedUser.name,
+        }
+      : null,
+    rejectionReason: vpa.rejectionReason,
+  }));
 
   return (
     <div className="space-y-6">
@@ -66,6 +83,7 @@ export default async function LearnerDashboardPage() {
         trainingRequests={trainingRequests}
         projectApprovals={projectApprovals}
         statusLabels={env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim())}
+        vpaStatusLabels={env.VPA_STATUS.split(",").map((s) => s.trim())}
       />
     </div>
   );

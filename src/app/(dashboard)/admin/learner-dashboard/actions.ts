@@ -42,6 +42,42 @@ async function generateTrId(): Promise<string> {
   return `TR${trNumber.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Generate the next VPA ID (e.g., VPA01, VPA02, etc.)
+ * Uses PostgreSQL's atomic UPDATE to ensure thread-safe number generation
+ */
+async function generateVpaId(): Promise<string> {
+  // First, ensure the 'vpa' module exists in custom_numbering
+  const existing = await db.query.customNumbering.findFirst({
+    where: eq(schema.customNumbering.module, "vpa"),
+  });
+
+  if (!existing) {
+    // Initialize with running_number = 0 (will be incremented to 1 for first VPA ID)
+    await db.insert(schema.customNumbering).values({
+      module: "vpa",
+      runningNumber: 0,
+    });
+  }
+
+  // Atomically increment and get the new number
+  // First request will be VPA01 (running_number becomes 1), second will be VPA02, etc.
+  const result = await db
+    .update(schema.customNumbering)
+    .set({
+      runningNumber: sql`${schema.customNumbering.runningNumber} + 1`,
+    })
+    .where(eq(schema.customNumbering.module, "vpa"))
+    .returning({ runningNumber: schema.customNumbering.runningNumber });
+
+  if (!result[0]) {
+    throw new Error("Failed to generate VPA ID");
+  }
+
+  const vpaNumber = result[0].runningNumber;
+  return `VPA${vpaNumber.toString().padStart(2, "0")}`;
+}
+
 export async function createTrainingRequestAction(competencyLevelId: string) {
   const session = await requireSession();
 
@@ -164,6 +200,110 @@ export async function submitHomeworkAction(
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to submit homework" };
+  }
+}
+
+export async function submitProjectAction(
+  competencyLevelId: string,
+  projectDetails: string,
+) {
+  const session = await requireSession();
+
+  try {
+    // Validate project details
+    if (!projectDetails || projectDetails.trim() === "") {
+      return { success: false, error: "Project details cannot be empty" };
+    }
+
+    // Get the training request for this competency level
+    const trainingRequest = await db.query.trainingRequest.findFirst({
+      where: (tr, { and, eq }) =>
+        and(
+          eq(tr.learnerUserId, session.user.id),
+          eq(tr.competencyLevelId, competencyLevelId),
+        ),
+    });
+
+    if (!trainingRequest) {
+      return { success: false, error: "Training request not found for this competency level" };
+    }
+
+    // Check if project approval already exists
+    const existingProjectApproval = await db.query.validationProjectApproval.findFirst({
+      where: (vpa, { and, eq }) =>
+        and(
+          eq(vpa.learnerUserId, session.user.id),
+          eq(vpa.competencyLevelId, competencyLevelId),
+        ),
+    });
+
+    const requestedDate = new Date();
+    const responseDue = new Date(requestedDate);
+    responseDue.setDate(responseDue.getDate() + 1);
+
+    let vpaId: string;
+    let projectApprovalId: string;
+
+    // Always set status to 0 (Pending Validation Project Approval) when submitting
+    const submissionStatus = 0;
+
+    if (existingProjectApproval) {
+      // Update existing project approval
+      vpaId = existingProjectApproval.vpaId;
+      projectApprovalId = existingProjectApproval.id;
+
+      await db
+        .update(schema.validationProjectApproval)
+        .set({
+          projectDetails: projectDetails.trim(),
+          status: submissionStatus, // 0 = Pending Validation Project Approval
+          requestedDate,
+          responseDue,
+          responseDate: null, // Clear response date when resubmitting
+          trId: trainingRequest.trId,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.validationProjectApproval.id, existingProjectApproval.id));
+    } else {
+      // Create new project approval
+      vpaId = await generateVpaId();
+
+      const [newProjectApproval] = await db
+        .insert(schema.validationProjectApproval)
+        .values({
+          vpaId,
+          trId: trainingRequest.trId,
+          requestedDate,
+          learnerUserId: session.user.id,
+          competencyLevelId,
+          projectDetails: projectDetails.trim(),
+          status: submissionStatus, // 0 = Pending Validation Project Approval
+          responseDue,
+        })
+        .returning();
+
+      if (!newProjectApproval) {
+        throw new Error("Failed to create project approval");
+      }
+
+      projectApprovalId = newProjectApproval.id;
+    }
+
+    // Create log entry
+    await db.insert(schema.validationProjectApprovalLog).values({
+      vpaId,
+      status: submissionStatus, // 1 = Pending Validation Project Approval
+      projectDetailsText: projectDetails.trim(),
+      updatedBy: session.user.id,
+    });
+
+    revalidatePath("/admin/learner-dashboard");
+    return { success: true, vpaId };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to submit project" };
   }
 }
 

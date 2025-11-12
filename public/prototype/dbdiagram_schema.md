@@ -317,10 +317,11 @@ Table validation_project_approval {
   learner_user_id uuid [not null]
   competency_level_id uuid [not null]
   project_details text
-  status int [not null, default: 0] // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected
+  status int [not null, default: 0] // 0 = Pending Validation Project Approval, 1 = Approved, 2 = Rejected, 3 = Resubmit for Re-validation
   assigned_to uuid 
   response_due date // if status Pending Validation Project Approval, fill +1 from requested date
   response_date date
+  rejection_reason text
   updated_at timestamptz [not null, default: `now()`]
   created_at timestamptz [not null, default: `now()`]
 
@@ -337,6 +338,7 @@ Table validation_project_approval_log {
   vpa_id text [not null]
   status int
   project_details_text text 
+  rejection_reason text
   updated_by uuid
   created_at timestamptz [not null, default: `now()`]
 

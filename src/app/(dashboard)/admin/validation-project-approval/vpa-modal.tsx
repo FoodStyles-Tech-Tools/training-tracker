@@ -6,9 +6,10 @@ import "flatpickr/dist/flatpickr.min.css";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { QuillEditor } from "@/components/ui/quill-editor";
 import type { ValidationProjectApproval, User } from "@/db/schema";
 
 type VPAWithRelations = ValidationProjectApproval & {
@@ -64,7 +65,11 @@ export function VPAModal({
     status: vpa.status,
     assignedTo: vpa.assignedTo || "",
     projectDetails: vpa.projectDetails || "",
+    rejectionReason: vpa.rejectionReason || "",
   });
+  
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -72,7 +77,10 @@ export function VPAModal({
         status: vpa.status,
         assignedTo: vpa.assignedTo || "",
         projectDetails: vpa.projectDetails || "",
+        rejectionReason: vpa.rejectionReason || "",
       });
+      setRejectionReason("");
+      setIsRejectionModalOpen(false);
     }
   }, [open, vpa]);
 
@@ -94,20 +102,50 @@ export function VPAModal({
       assignedTo: formData.assignedTo || null,
       responseDate: responseDate,
       projectDetails: formData.projectDetails || null,
+      rejectionReason: formData.rejectionReason || null,
     });
   };
 
   const handleApprove = () => {
-    setFormData({ ...formData, status: 2 });
+    setFormData({ ...formData, status: 1 }); // Status 1 = Approved
   };
 
   const handleReject = () => {
-    setFormData({ ...formData, status: 3 });
+    setIsRejectionModalOpen(true);
   };
 
-  const showResponseFields = formData.status === 1; // Pending Validation Project Approval
+  const handleConfirmRejection = async () => {
+    if (!rejectionReason.trim()) {
+      return; // Don't proceed if rejection reason is empty
+    }
 
-  // Auto-calculate Response Due date (+1 day from requested date) when status changes to 1
+    // Set today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to midnight to avoid timezone issues
+
+    // Update form data with rejection status and rejection reason
+    setFormData({ ...formData, status: 2, rejectionReason: rejectionReason.trim() }); // Status 2 = Rejected
+
+    // Close rejection modal
+    setIsRejectionModalOpen(false);
+
+    // Save the rejection with status, responseDate, and rejectionReason
+    await onSave({
+      status: 2, // Rejected
+      responseDate: today,
+      rejectionReason: rejectionReason.trim(),
+    });
+  };
+
+  const handleCancelRejection = () => {
+    setIsRejectionModalOpen(false);
+    setRejectionReason("");
+  };
+
+  const showResponseFields = formData.status === 0; // Show only when status is 0
+  const showRejectionReason = formData.status === 2; // Show when status is 2 (Rejected)
+
+  // Auto-calculate Response Due date (+1 day from requested date) when status is 0
   useEffect(() => {
     if (showResponseFields && responseDueFpRef.current && vpa.requestedDate) {
       // Check if Response Due is already set
@@ -123,6 +161,7 @@ export function VPAModal({
       }
     }
   }, [showResponseFields, vpa.requestedDate]);
+
 
   // Initialize flatpickr for all date inputs
   useEffect(() => {
@@ -235,6 +274,7 @@ export function VPAModal({
   ]);
 
   return (
+    <>
     <Modal
       open={open}
       onClose={onClose}
@@ -375,14 +415,29 @@ export function VPAModal({
           {/* Project Details */}
           <div className="space-y-2 border-t border-slate-800/80 pt-4">
             <Label htmlFor="vpa-project-details">Project Details</Label>
-            <Textarea
+            <QuillEditor
               id="vpa-project-details"
-              rows={6}
               value={formData.projectDetails}
-              onChange={(e) => setFormData({ ...formData, projectDetails: e.target.value })}
-              placeholder="Project details..."
+              onChange={(value) => setFormData({ ...formData, projectDetails: value })}
+              placeholder="Enter project details..."
+              className="min-h-[200px]"
             />
           </div>
+
+          {/* Rejection Reason - shown when status is Rejected */}
+          {showRejectionReason && (
+            <div className="space-y-2 border-t border-slate-800/80 pt-4">
+              <Label htmlFor="vpa-rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="vpa-rejection-reason"
+                rows={4}
+                value={formData.rejectionReason}
+                onChange={(e) => setFormData({ ...formData, rejectionReason: e.target.value })}
+                placeholder="Enter the reason for rejecting this validation project..."
+                className="focus-visible:ring-red-500 focus-visible:border-red-500"
+              />
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -412,6 +467,80 @@ export function VPAModal({
         </div>
       </form>
     </Modal>
+
+    {/* Rejection Reason Modal */}
+    <Modal
+      open={isRejectionModalOpen}
+      onClose={handleCancelRejection}
+      contentClassName="max-w-2xl"
+      overlayClassName="bg-black/60 backdrop-blur-sm z-[70]"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Rejection Reason</h2>
+          <p className="text-sm text-slate-400">Please provide a reason for rejecting this validation project</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleCancelRejection}
+          className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-6">
+        <form
+          className="space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleConfirmRejection();
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="rejection-reason-text">Rejection Reason</Label>
+            <Textarea
+              id="rejection-reason-text"
+              rows={6}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter the reason for rejecting this validation project..."
+              required
+              className="focus-visible:ring-red-500 focus-visible:border-red-500"
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelRejection}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              disabled={isPending || !rejectionReason.trim()}
+            >
+              {isPending ? "Processing..." : "Confirm Rejection"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+    </>
   );
 }
 
