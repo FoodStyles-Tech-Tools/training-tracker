@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { QuillEditor } from "@/components/ui/quill-editor";
 import type { Competency, CompetencyLevel } from "@/db/schema";
 import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
+import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
 import { X } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
@@ -48,13 +49,37 @@ type ProjectApproval = {
   rejectionReason: string | null;
 };
 
+type ValidationScheduleRequest = {
+  id: string;
+  vsrId: string;
+  competencyLevelId: string;
+  status: number; // 0 = Pending Validation, 1 = Pending Re-validation, 2 = Validation Scheduled, 3 = Fail, 4 = Pass
+  requestedDate: Date | null;
+  responseDate: Date | null;
+  responseDue: Date | null;
+  scheduledDate: Date | null;
+  validatorOps: string | null;
+  validatorOpsUser: {
+    id: string;
+    name: string | null;
+  } | null;
+  validatorTrainer: string | null;
+  validatorTrainerUser: {
+    id: string;
+    name: string | null;
+  } | null;
+  description: string | null;
+};
+
 interface LearnerDashboardClientProps {
   competencies: CompetencyWithLevels[];
   userId: string;
   trainingRequests?: TrainingRequest[];
   projectApprovals?: ProjectApproval[];
+  validationScheduleRequests?: ValidationScheduleRequest[];
   statusLabels: string[];
   vpaStatusLabels: string[];
+  vsrStatusLabels: string[];
 }
 
 type LevelType = "basic" | "competent" | "advanced";
@@ -72,13 +97,36 @@ function formatDate(date: Date | string | null | undefined): string {
   return `${day} ${month} ${year}`;
 }
 
+// Helper function to format dates with time as "d M Y h:mm A" (e.g., "21 Nov 2025 3:30 PM")
+function formatDateTime(date: Date | string | null | undefined): string {
+  if (!date) return "-";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "-";
+  
+  const day = d.getDate().toString().padStart(2, "0");
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  
+  // Convert to 12-hour format with AM/PM
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  
+  return `${day} ${month} ${year} ${hours}:${minutes} ${ampm}`;
+}
+
 export function LearnerDashboardClient({
   competencies,
   userId,
   trainingRequests = [],
   projectApprovals = [],
+  validationScheduleRequests = [],
   statusLabels,
   vpaStatusLabels,
+  vsrStatusLabels,
 }: LearnerDashboardClientProps) {
   const [selectedCompetencyId, setSelectedCompetencyId] = useState<string>(
     competencies[0]?.id ?? "",
@@ -155,6 +203,14 @@ export function LearnerDashboardClient({
     );
   }, [projectApprovals, selectedLevelData]);
 
+  // Get validation schedule request (VSR) for selected competency and level
+  const currentVSR = useMemo(() => {
+    if (!selectedLevelData) return null;
+    return validationScheduleRequests.find(
+      (vsr) => vsr.competencyLevelId === selectedLevelData.id,
+    );
+  }, [validationScheduleRequests, selectedLevelData]);
+
   // Initialize project details from current project approval
   useEffect(() => {
     if (currentProjectApproval?.projectDetails) {
@@ -178,9 +234,9 @@ export function LearnerDashboardClient({
   // Status 0 = Pending Validation Project Approval (read-only after submission)
   // Status 1 = Approved (read-only)
   // Status 2 = Rejected (editable, can resubmit)
-  // Status 3 = Resubmit for Re-validation (read-only)
+  // Status 3 = Resubmit for Re-validation (editable, can resubmit)
   const isProjectSubmitted = !!currentProjectApproval; // Project is submitted if approval exists
-  const isProjectEditable = !currentProjectApproval || currentProjectApproval.status === 2; // Only editable when rejected (status 2) or not yet submitted
+  const isProjectEditable = !currentProjectApproval || currentProjectApproval.status === 2 || currentProjectApproval.status === 3; // Editable when rejected (status 2), resubmit (status 3), or not yet submitted
   const isProjectApproved = currentProjectApproval && currentProjectApproval.status === 1;
 
   // Check if all requirements are met
@@ -522,20 +578,37 @@ export function LearnerDashboardClient({
                   )}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleApply}
-                    disabled={isPending || !!currentTrainingRequest || !areRequirementsMet}
-                    className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
-                  >
-                    {isPending
-                      ? "Applying..."
-                      : currentTrainingRequest
-                        ? "Applied"
-                        : !areRequirementsMet
-                          ? "Requirements Not Met"
-                          : "Apply"}
-                  </button>
+                  {currentTrainingRequest?.status === 8 && currentVSR?.status === 4 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Scroll to project submission section
+                        const projectSection = document.getElementById("project-submission-section");
+                        if (projectSection) {
+                          projectSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                          projectSection.focus();
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                    >
+                      Request Project
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleApply}
+                      disabled={isPending || !!currentTrainingRequest || !areRequirementsMet}
+                      className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                    >
+                      {isPending
+                        ? "Applying..."
+                        : currentTrainingRequest
+                          ? "Applied"
+                          : !areRequirementsMet
+                            ? "Requirements Not Met"
+                            : "Apply"}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -624,7 +697,7 @@ export function LearnerDashboardClient({
                 )}
 
               {/* Training Request and Validation Cards - Side by side */}
-              {(currentTrainingRequest || isProjectApproved) && (
+              {(currentTrainingRequest || isProjectApproved || currentVSR) && (
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                   {/* Training Request Display - Only show if training request exists */}
                   {currentTrainingRequest && (
@@ -661,16 +734,67 @@ export function LearnerDashboardClient({
                     </Card>
                   )}
 
-                  {/* Validation Interface - Only show after project is approved */}
-                  {isProjectApproved && (
+                  {/* Validation Interface - Show when VSR exists (including Fail status) */}
+                  {currentVSR && (
                     <Card className="border border-slate-800/80 bg-slate-950/50">
                       <CardContent className="space-y-3 p-6">
                         <h3 className="text-lg font-semibold text-white">Validation</h3>
                         <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-300">Validation Status:</span>
-                            <span className="text-slate-200">Pending Validation</span>
-                          </div>
+                          {currentVSR ? (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-300">VSR ID:</span>
+                                <span className="text-slate-200">{currentVSR.vsrId}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-300">Validation Status:</span>
+                                <span
+                                  className={`inline-block rounded-md px-2 py-0.5 text-xs font-semibold ${getVSRStatusBadgeClass(
+                                    currentVSR.status,
+                                  )}`}
+                                >
+                                  {vsrStatusLabels[currentVSR.status] || "Unknown"}
+                                </span>
+                              </div>
+                              {currentVSR.requestedDate && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Requested Date:</span>
+                                  <span className="text-slate-200">
+                                    {formatDate(currentVSR.requestedDate)}
+                                  </span>
+                                </div>
+                              )}
+                              {currentVSR.scheduledDate && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Scheduled Date Time:</span>
+                                  <span className="text-slate-200">
+                                    {formatDateTime(currentVSR.scheduledDate)} (UK Time)
+                                  </span>
+                                </div>
+                              )}
+                              {currentVSR.validatorOpsUser && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Validator (Ops):</span>
+                                  <span className="text-slate-200">
+                                    {currentVSR.validatorOpsUser.name || "-"}
+                                  </span>
+                                </div>
+                              )}
+                              {currentVSR.validatorTrainerUser && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Validator (Trainer):</span>
+                                  <span className="text-slate-200">
+                                    {currentVSR.validatorTrainerUser.name || "-"}
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-300">Validation Status:</span>
+                              <span className="text-slate-200">Pending Validation</span>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -680,6 +804,7 @@ export function LearnerDashboardClient({
 
               {/* Project Submission - Show if training request status is 5 (Sessions Completed) or 8 (Training Completed) */}
               {currentTrainingRequest && (currentTrainingRequest.status === 5 || currentTrainingRequest.status === 8) && (
+                <div id="project-submission-section">
                 <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
                   <CardContent className="space-y-4 p-6">
                     <h3 className="text-lg font-semibold text-white">Submit Project</h3>
@@ -782,7 +907,7 @@ export function LearnerDashboardClient({
                         >
                           {submittingProject || isPending
                             ? "Submitting..."
-                            : currentProjectApproval?.status === 2
+                            : currentProjectApproval?.status === 2 || currentProjectApproval?.status === 3
                               ? "Resubmit"
                               : isProjectSubmitted
                                 ? "Submitted"
@@ -792,6 +917,7 @@ export function LearnerDashboardClient({
                     </div>
                   </CardContent>
                 </Card>
+                </div>
               )}
 
 

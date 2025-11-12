@@ -120,6 +120,13 @@
       "when": 1762934349001,
       "tag": "0016_wide_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1762938934763,
+      "tag": "0017_icy_banshee",
+      "breakpoints": true
     }
   ]
 }

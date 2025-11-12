@@ -68,6 +68,52 @@ export default async function LearnerDashboardPage() {
     rejectionReason: vpa.rejectionReason,
   }));
 
+  // Get user's validation schedule requests (VSR) with validator information
+  const vsrData = await db.query.validationScheduleRequest.findMany({
+    where: eq(schema.validationScheduleRequest.learnerUserId, session.user.id),
+    with: {
+      validatorOpsUser: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+      validatorTrainerUser: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Map to the expected format
+  const validationScheduleRequests = vsrData.map((vsr) => ({
+    id: vsr.id,
+    vsrId: vsr.vsrId,
+    competencyLevelId: vsr.competencyLevelId,
+    status: vsr.status,
+    requestedDate: vsr.requestedDate,
+    responseDate: vsr.responseDate,
+    responseDue: vsr.responseDue,
+    scheduledDate: vsr.scheduledDate,
+    validatorOps: vsr.validatorOps,
+    validatorOpsUser: vsr.validatorOpsUser
+      ? {
+          id: vsr.validatorOpsUser.id,
+          name: vsr.validatorOpsUser.name,
+        }
+      : null,
+    validatorTrainer: vsr.validatorTrainer,
+    validatorTrainerUser: vsr.validatorTrainerUser
+      ? {
+          id: vsr.validatorTrainerUser.id,
+          name: vsr.validatorTrainerUser.name,
+        }
+      : null,
+    description: vsr.description,
+  }));
+
   return (
     <div className="space-y-6">
       <div>
@@ -82,8 +128,10 @@ export default async function LearnerDashboardPage() {
         userId={session.user.id}
         trainingRequests={trainingRequests}
         projectApprovals={projectApprovals}
+        validationScheduleRequests={validationScheduleRequests}
         statusLabels={env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim())}
         vpaStatusLabels={env.VPA_STATUS.split(",").map((s) => s.trim())}
+        vsrStatusLabels={env.VSR_STATUS.split(",").map((s) => s.trim())}
       />
     </div>
   );

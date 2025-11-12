@@ -30,6 +30,15 @@ const serverSchema = z.object({
       "Rejected", // 2
       "Resubmit for Re-validation", // 3
     ].join(",")),
+  VSR_STATUS: z
+    .string()
+    .default([
+      "Pending Validation", // 0
+      "Pending Re-validation", // 1
+      "Validation Scheduled", // 2
+      "Fail", // 3
+      "Pass", // 4
+    ].join(",")),
 });
 
 const parsed = serverSchema.safeParse({
@@ -42,6 +51,7 @@ const parsed = serverSchema.safeParse({
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS,
   VPA_STATUS: process.env.VPA_STATUS,
+  VSR_STATUS: process.env.VSR_STATUS,
 });
 
 if (!parsed.success) {

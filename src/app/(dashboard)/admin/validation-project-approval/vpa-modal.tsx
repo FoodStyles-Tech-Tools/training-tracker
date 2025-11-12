@@ -106,8 +106,24 @@ export function VPAModal({
     });
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
+    // Set today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to midnight to avoid timezone issues
+
+    // Update form data with approved status
     setFormData({ ...formData, status: 1 }); // Status 1 = Approved
+
+    // Update flatpickr instance to show response date immediately
+    if (responseDateFpRef.current) {
+      responseDateFpRef.current.setDate(today, false);
+    }
+
+    // Immediately save the approval with status and responseDate
+    await onSave({
+      status: 1, // Approved
+      responseDate: today,
+    });
   };
 
   const handleReject = () => {

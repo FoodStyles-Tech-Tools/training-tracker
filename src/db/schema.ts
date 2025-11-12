@@ -223,6 +223,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   homework: many(trainingBatchHomeworkSessions),
   validationProjectApprovals: many(validationProjectApproval),
   validationProjectApprovalLogs: many(validationProjectApprovalLog),
+  validationScheduleRequestLogs: many(validationScheduleRequestLog),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -826,6 +827,7 @@ export const validationScheduleRequest = pgTable(
     scheduledDate: timestamp("scheduled_date", { mode: "date" }),
     validatorOps: uuid("validator_ops").references(() => users.id, { onDelete: "set null" }),
     validatorTrainer: uuid("validator_trainer").references(() => users.id, { onDelete: "set null" }),
+    assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -839,6 +841,24 @@ export const validationScheduleRequest = pgTable(
     competencyLevelIdIdx: index("validation_schedule_request_competency_level_id_idx").on(vsr.competencyLevelId),
     validatorOpsIdx: index("validation_schedule_request_validator_ops_idx").on(vsr.validatorOps),
     validatorTrainerIdx: index("validation_schedule_request_validator_trainer_idx").on(vsr.validatorTrainer),
+    assignedToIdx: index("validation_schedule_request_assigned_to_idx").on(vsr.assignedTo),
+  }),
+);
+
+export const validationScheduleRequestLog = pgTable(
+  "validation_schedule_request_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    vsrId: text("vsr_id").notNull(),
+    status: integer("status"),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (log) => ({
+    vsrIdIdx: index("validation_schedule_request_log_vsr_id_idx").on(log.vsrId),
+    updatedByIdx: index("validation_schedule_request_log_updated_by_idx").on(log.updatedBy),
   }),
 );
 
@@ -859,6 +879,18 @@ export const validationScheduleRequestRelations = relations(validationScheduleRe
     fields: [validationScheduleRequest.validatorTrainer],
     references: [users.id],
   }),
+  assignedUser: one(users, {
+    fields: [validationScheduleRequest.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export const validationScheduleRequestLogRelations = relations(validationScheduleRequestLog, ({ one }) => ({
+  updatedByUser: one(users, {
+    fields: [validationScheduleRequestLog.updatedBy],
+    references: [users.id],
+  }),
 }));
 
 export type ValidationScheduleRequest = typeof validationScheduleRequest.$inferSelect;
+export type ValidationScheduleRequestLog = typeof validationScheduleRequestLog.$inferSelect;

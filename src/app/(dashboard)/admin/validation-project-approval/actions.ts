@@ -7,6 +7,42 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 
+/**
+ * Generate the next VSR ID (e.g., VSR01, VSR02, etc.)
+ * Uses PostgreSQL's atomic UPDATE to ensure thread-safe number generation
+ */
+async function generateVSRId(): Promise<string> {
+  // First, ensure the 'vsr' module exists in custom_numbering
+  const existing = await db.query.customNumbering.findFirst({
+    where: eq(schema.customNumbering.module, "vsr"),
+  });
+
+  if (!existing) {
+    // Initialize with running_number = 0 (will be incremented to 1 for first VSR ID)
+    await db.insert(schema.customNumbering).values({
+      module: "vsr",
+      runningNumber: 0,
+    });
+  }
+
+  // Atomically increment and get the new number
+  // First request will be VSR01 (running_number becomes 1), second will be VSR02, etc.
+  const result = await db
+    .update(schema.customNumbering)
+    .set({
+      runningNumber: sql`${schema.customNumbering.runningNumber} + 1`,
+    })
+    .where(eq(schema.customNumbering.module, "vsr"))
+    .returning({ runningNumber: schema.customNumbering.runningNumber });
+
+  if (!result[0]) {
+    throw new Error("Failed to generate VSR ID");
+  }
+
+  const vsrNumber = result[0].runningNumber;
+  return `VSR${vsrNumber.toString().padStart(2, "0")}`;
+}
+
 const vpaUpdateSchema = z.object({
   id: z.string().uuid(),
   status: z.number().int().min(0).max(4).optional(),
@@ -74,6 +110,49 @@ export async function updateVPAAction(
       rejectionReason: parsed.rejectionReason ?? (finalStatus === 2 ? currentVPA.rejectionReason : null),
       updatedBy: session.user.id,
     });
+
+    // If status is changing to 1 (Approved), update existing VSR or create new one
+    const wasApproved = finalStatus === 1 && currentVPA.status !== 1;
+    if (wasApproved && currentVPA.trId) {
+      // Find existing VSR with the same trId
+      const existingVSR = await db.query.validationScheduleRequest.findFirst({
+        where: eq(schema.validationScheduleRequest.trId, currentVPA.trId),
+      });
+      
+      // Calculate requested date (today) and response due (today + 1 day)
+      const requestedDate = new Date();
+      requestedDate.setHours(0, 0, 0, 0); // Set to midnight
+      const responseDue = new Date(requestedDate);
+      responseDue.setDate(responseDue.getDate() + 1);
+      
+      if (existingVSR) {
+        // Update existing VSR - reset to Pending Validation status
+        await db
+          .update(schema.validationScheduleRequest)
+          .set({
+            requestedDate,
+            status: 0, // Pending Validation
+            responseDue,
+            description: currentVPA.projectDetails, // Update project details as description
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.validationScheduleRequest.id, existingVSR.id));
+      } else {
+        // Create new VSR if none exists
+        const vsrId = await generateVSRId();
+        
+        await db.insert(schema.validationScheduleRequest).values({
+          vsrId,
+          trId: currentVPA.trId,
+          requestedDate,
+          learnerUserId: currentVPA.learnerUserId,
+          competencyLevelId: currentVPA.competencyLevelId,
+          status: 0, // Pending Validation
+          responseDue,
+          description: currentVPA.projectDetails, // Copy project details as description
+        });
+      }
+    }
 
     // Don't revalidate to avoid page refresh - state is updated locally
     // revalidatePath("/admin/validation-project-approval");
