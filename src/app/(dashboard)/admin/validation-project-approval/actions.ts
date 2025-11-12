@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
+import { ensurePermission } from "@/lib/permissions";
 
 /**
  * Generate the next VSR ID (e.g., VSR01, VSR02, etc.)
@@ -63,10 +64,42 @@ function toDateOnly(date: Date | null | undefined): Date | null | undefined {
   return new Date(Date.UTC(year, month, day));
 }
 
+export async function getVPAById(id: string) {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_project_approval", "list");
+
+  try {
+    const vpa = await db.query.validationProjectApproval.findFirst({
+      where: eq(schema.validationProjectApproval.id, id),
+      with: {
+        learner: true,
+        competencyLevel: {
+          with: {
+            competency: true,
+          },
+        },
+        assignedUser: true,
+      },
+    });
+
+    if (!vpa) {
+      return { success: false, error: "VPA not found" };
+    }
+
+    return { success: true, data: vpa };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to fetch VPA" };
+  }
+}
+
 export async function updateVPAAction(
   input: z.infer<typeof vpaUpdateSchema>,
 ) {
   const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_project_approval", "edit");
 
   const parsed = vpaUpdateSchema.parse(input);
 

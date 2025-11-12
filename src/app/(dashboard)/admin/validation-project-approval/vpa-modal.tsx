@@ -40,16 +40,18 @@ interface VPAModalProps {
   statusLabels: string[];
   onSave: (data: Partial<ValidationProjectApproval>) => Promise<void>;
   isPending: boolean;
+  onFetch?: () => Promise<VPAWithRelations | null>;
 }
 
 export function VPAModal({
   open,
   onClose,
-  vpa,
+  vpa: initialVPA,
   users,
   statusLabels,
   onSave,
   isPending,
+  onFetch,
 }: VPAModalProps) {
   // Refs for flatpickr instances
   const submittedDateRef = useRef<HTMLInputElement>(null);
@@ -61,28 +63,53 @@ export function VPAModal({
   const responseDueFpRef = useRef<flatpickr.Instance | null>(null);
   const responseDateFpRef = useRef<flatpickr.Instance | null>(null);
   
+  // State to hold the current VPA (may be updated from fetch)
+  const [vpa, setVPA] = useState<VPAWithRelations>(initialVPA);
+  
   const [formData, setFormData] = useState({
-    status: vpa.status,
-    assignedTo: vpa.assignedTo || "",
-    projectDetails: vpa.projectDetails || "",
-    rejectionReason: vpa.rejectionReason || "",
+    status: initialVPA.status,
+    assignedTo: initialVPA.assignedTo || "",
+    projectDetails: initialVPA.projectDetails || "",
+    rejectionReason: initialVPA.rejectionReason || "",
   });
   
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
 
+  // Fetch fresh data when modal opens
   useEffect(() => {
-    if (open) {
+    if (open && onFetch) {
+      onFetch().then((freshData) => {
+        if (freshData) {
+          setVPA(freshData);
+          setFormData({
+            status: freshData.status,
+            assignedTo: freshData.assignedTo || "",
+            projectDetails: freshData.projectDetails || "",
+            rejectionReason: freshData.rejectionReason || "",
+          });
+          setRejectionReason("");
+          setIsRejectionModalOpen(false);
+          setIsApproveConfirmOpen(false);
+        }
+      }).catch((error) => {
+        console.error("Failed to fetch fresh VPA data:", error);
+      });
+    } else if (open) {
+      // If no fetch function, use the prop data
+      setVPA(initialVPA);
       setFormData({
-        status: vpa.status,
-        assignedTo: vpa.assignedTo || "",
-        projectDetails: vpa.projectDetails || "",
-        rejectionReason: vpa.rejectionReason || "",
+        status: initialVPA.status,
+        assignedTo: initialVPA.assignedTo || "",
+        projectDetails: initialVPA.projectDetails || "",
+        rejectionReason: initialVPA.rejectionReason || "",
       });
       setRejectionReason("");
       setIsRejectionModalOpen(false);
+      setIsApproveConfirmOpen(false);
     }
-  }, [open, vpa]);
+  }, [open, onFetch, initialVPA]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +133,13 @@ export function VPAModal({
     });
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
+    setIsApproveConfirmOpen(true);
+  };
+
+  const handleConfirmApprove = async () => {
+    setIsApproveConfirmOpen(false);
+    
     // Set today's date
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to midnight to avoid timezone issues
@@ -124,6 +157,10 @@ export function VPAModal({
       status: 1, // Approved
       responseDate: today,
     });
+  };
+
+  const handleCancelApprove = () => {
+    setIsApproveConfirmOpen(false);
   };
 
   const handleReject = () => {
@@ -554,6 +591,74 @@ export function VPAModal({
             </Button>
           </div>
         </form>
+      </div>
+    </Modal>
+
+    {/* Approve Confirmation Modal */}
+    <Modal
+      open={isApproveConfirmOpen}
+      onClose={handleCancelApprove}
+      contentClassName="max-w-md"
+      overlayClassName="bg-black/60 backdrop-blur-sm z-[70]"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+        <h2 className="text-lg font-semibold text-white">Confirm Approval</h2>
+        <button
+          type="button"
+          onClick={handleCancelApprove}
+          className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-6">
+        <p className="mb-4 text-sm text-slate-300">
+          Are you sure you want to approve this validation project?
+        </p>
+        <div className="mb-6 space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Competency:</span>
+            <span className="text-slate-200">{vpa.competencyLevel.competency.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Level:</span>
+            <span className="text-slate-200">{vpa.competencyLevel.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Learner:</span>
+            <span className="text-slate-200">{vpa.learner.name}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancelApprove}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirmApprove}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            disabled={isPending}
+          >
+            {isPending ? "Processing..." : "Confirm Approval"}
+          </Button>
+        </div>
       </div>
     </Modal>
     </>

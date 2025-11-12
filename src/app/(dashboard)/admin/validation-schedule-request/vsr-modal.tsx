@@ -132,17 +132,19 @@ interface VSRModalProps {
   onSave: (data: Partial<ValidationScheduleRequest>) => Promise<void>;
   isPending: boolean;
   currentUserId: string;
+  onFetch?: () => Promise<VSRWithRelations | null>;
 }
 
 export function VSRModal({
   open,
   onClose,
-  vsr,
+  vsr: initialVSR,
   users,
   statusLabels,
   onSave,
   isPending,
   currentUserId,
+  onFetch,
 }: VSRModalProps) {
   // Refs for flatpickr instances
   const requestedDateRef = useRef<HTMLInputElement>(null);
@@ -158,13 +160,19 @@ export function VSRModal({
   const scheduledDatetimeFpRef = useRef<flatpickr.Instance | null>(null);
   const followupDateFpRef = useRef<flatpickr.Instance | null>(null);
   
+  // State to hold the current VSR (may be updated from fetch)
+  const [vsr, setVSR] = useState<VSRWithRelations>(initialVSR);
+  
   const [formData, setFormData] = useState({
-    status: vsr.status,
-    assignedTo: vsr.assignedTo || currentUserId || "",
-    validatorOps: vsr.validatorOps || "",
-    validatorTrainer: vsr.validatorTrainer || "",
-    definiteAnswer: vsr.definiteAnswer === null ? "" : (vsr.definiteAnswer ? "yes" : "no"),
+    status: initialVSR.status,
+    assignedTo: initialVSR.assignedTo || currentUserId || "",
+    validatorOps: initialVSR.validatorOps || "",
+    validatorTrainer: initialVSR.validatorTrainer || "",
+    definiteAnswer: initialVSR.definiteAnswer === null ? "" : (initialVSR.definiteAnswer ? "yes" : "no"),
   });
+
+  const [isFailConfirmOpen, setIsFailConfirmOpen] = useState(false);
+  const [isPassConfirmOpen, setIsPassConfirmOpen] = useState(false);
 
   // Filter users by role
   const opsUsers = users.filter(
@@ -196,17 +204,39 @@ export function VSRModal({
 
   const calendarUrl = getCalendarUrl(formData.validatorOps);
 
+  // Fetch fresh data when modal opens
   useEffect(() => {
-    if (open) {
-      setFormData({
-        status: vsr.status,
-        assignedTo: vsr.assignedTo || currentUserId || "",
-        validatorOps: vsr.validatorOps || "",
-        validatorTrainer: vsr.validatorTrainer || "",
-        definiteAnswer: vsr.definiteAnswer === null ? "" : (vsr.definiteAnswer ? "yes" : "no"),
+    if (open && onFetch) {
+      onFetch().then((freshData) => {
+        if (freshData) {
+          setVSR(freshData);
+          setFormData({
+            status: freshData.status,
+            assignedTo: freshData.assignedTo || currentUserId || "",
+            validatorOps: freshData.validatorOps || "",
+            validatorTrainer: freshData.validatorTrainer || "",
+            definiteAnswer: freshData.definiteAnswer === null ? "" : (freshData.definiteAnswer ? "yes" : "no"),
+          });
+          setIsFailConfirmOpen(false);
+          setIsPassConfirmOpen(false);
+        }
+      }).catch((error) => {
+        console.error("Failed to fetch fresh VSR data:", error);
       });
+    } else if (open) {
+      // If no fetch function, use the prop data
+      setVSR(initialVSR);
+      setFormData({
+        status: initialVSR.status,
+        assignedTo: initialVSR.assignedTo || currentUserId || "",
+        validatorOps: initialVSR.validatorOps || "",
+        validatorTrainer: initialVSR.validatorTrainer || "",
+        definiteAnswer: initialVSR.definiteAnswer === null ? "" : (initialVSR.definiteAnswer ? "yes" : "no"),
+      });
+      setIsFailConfirmOpen(false);
+      setIsPassConfirmOpen(false);
     }
-  }, [open, vsr, currentUserId]);
+  }, [open, onFetch, initialVSR, currentUserId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,6 +292,32 @@ export function VSRModal({
 
   const handleSetStatus = (status: number) => {
     setFormData({ ...formData, status });
+  };
+
+  const handleFailClick = () => {
+    setIsFailConfirmOpen(true);
+  };
+
+  const handlePassClick = () => {
+    setIsPassConfirmOpen(true);
+  };
+
+  const handleConfirmFail = async () => {
+    setIsFailConfirmOpen(false);
+    await handlePassFail(3); // Status 3 = Fail
+  };
+
+  const handleConfirmPass = async () => {
+    setIsPassConfirmOpen(false);
+    await handlePassFail(4); // Status 4 = Pass
+  };
+
+  const handleCancelFail = () => {
+    setIsFailConfirmOpen(false);
+  };
+
+  const handleCancelPass = () => {
+    setIsPassConfirmOpen(false);
   };
 
   const handlePassFail = async (status: number) => {
@@ -350,6 +406,21 @@ export function VSRModal({
       }
     }
   }, [showDefiniteAnswerFields, vsr.requestedDate]);
+
+  // Cleanup follow-up date flatpickr when field is hidden
+  useEffect(() => {
+    if (!showDefiniteAnswerFields && followupDateFpRef.current) {
+      try {
+        followupDateFpRef.current.destroy();
+      } catch (e) {
+        // Instance might already be destroyed
+      }
+      followupDateFpRef.current = null;
+      if (followupDateRef.current) {
+        delete followupDateRef.current.dataset.flatpickr;
+      }
+    }
+  }, [showDefiniteAnswerFields]);
 
   // Initialize flatpickr for all date inputs
   useEffect(() => {
@@ -465,8 +536,10 @@ export function VSRModal({
         initFlatpickr(scheduledDatetimeRef, scheduledDatetimeFpRef, initialScheduledDate, false, true);
       }
 
-      // Follow up Date
-      initFlatpickr(followupDateRef, followupDateFpRef, initialFollowUpDate, false);
+      // Follow up Date (only if definiteAnswer is "no")
+      if (showDefiniteAnswerFields) {
+        initFlatpickr(followupDateRef, followupDateFpRef, initialFollowUpDate, false);
+      }
     }, 200);
 
     // Cleanup function
@@ -500,11 +573,14 @@ export function VSRModal({
     vsr.scheduledDate,
     vsr.followUpDate,
     formData.status,
+    formData.definiteAnswer,
     showResponseFields,
     showScheduleSection,
+    showDefiniteAnswerFields,
   ]);
 
   return (
+    <>
     <Modal
       open={open}
       onClose={onClose}
@@ -772,7 +848,7 @@ export function VSRModal({
           </Button>
           <Button
             type="button"
-            onClick={() => handlePassFail(3)}
+            onClick={handleFailClick}
             className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             disabled={isPending}
           >
@@ -780,7 +856,7 @@ export function VSRModal({
           </Button>
           <Button
             type="button"
-            onClick={() => handlePassFail(4)}
+            onClick={handlePassClick}
             className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             disabled={isPending}
           >
@@ -792,6 +868,151 @@ export function VSRModal({
         </div>
       </form>
     </Modal>
+
+    {/* Fail Confirmation Modal */}
+    <Modal
+      open={isFailConfirmOpen}
+      onClose={handleCancelFail}
+      contentClassName="max-w-md"
+      overlayClassName="bg-black/60 backdrop-blur-sm z-[70]"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+        <h2 className="text-lg font-semibold text-white">Confirm Fail</h2>
+        <button
+          type="button"
+          onClick={handleCancelFail}
+          className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-6">
+        <p className="mb-4 text-sm text-slate-300">
+          Are you sure you want to mark this validation as failed?
+        </p>
+        <div className="mb-6 space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">VSR ID:</span>
+            <span className="text-slate-200">{vsr.vsrId}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Competency:</span>
+            <span className="text-slate-200">{vsr.competencyLevel.competency.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Level:</span>
+            <span className="text-slate-200">{vsr.competencyLevel.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Learner:</span>
+            <span className="text-slate-200">{vsr.learner.name}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancelFail}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirmFail}
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            disabled={isPending}
+          >
+            {isPending ? "Processing..." : "Confirm Fail"}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    {/* Pass Confirmation Modal */}
+    <Modal
+      open={isPassConfirmOpen}
+      onClose={handleCancelPass}
+      contentClassName="max-w-md"
+      overlayClassName="bg-black/60 backdrop-blur-sm z-[70]"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+        <h2 className="text-lg font-semibold text-white">Confirm Pass</h2>
+        <button
+          type="button"
+          onClick={handleCancelPass}
+          className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-6">
+        <p className="mb-4 text-sm text-slate-300">
+          Are you sure you want to mark this validation as passed?
+        </p>
+        <div className="mb-6 space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">VSR ID:</span>
+            <span className="text-slate-200">{vsr.vsrId}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Competency:</span>
+            <span className="text-slate-200">{vsr.competencyLevel.competency.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Level:</span>
+            <span className="text-slate-200">{vsr.competencyLevel.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-300">Learner:</span>
+            <span className="text-slate-200">{vsr.learner.name}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancelPass}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirmPass}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            disabled={isPending}
+          >
+            {isPending ? "Processing..." : "Confirm Pass"}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+    </>
   );
 }
 

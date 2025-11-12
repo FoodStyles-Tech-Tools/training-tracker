@@ -239,15 +239,66 @@ export function LearnerDashboardClient({
   const isProjectEditable = !currentProjectApproval || currentProjectApproval.status === 2 || currentProjectApproval.status === 3; // Editable when rejected (status 2), resubmit (status 3), or not yet submitted
   const isProjectApproved = currentProjectApproval && currentProjectApproval.status === 1;
 
+  // Get applicable requirements for the selected level
+  // Default requirements are automatically added when creating/updating competencies:
+  // - Competent level requires Basic level (of the same competency)
+  // - Advanced level requires Competent level (of the same competency)
+  const applicableRequirements = useMemo(() => {
+    if (!selectedCompetency || !selectedLevelData) return [];
+
+    const selectedLevelName = selectedLevelData.name.toLowerCase();
+
+    // Filter requirements based on the selected level:
+    // - Basic level: no default requirements (only manually set requirements from different competencies)
+    // - Competent level: requires Basic level (of same competency) + manually set requirements
+    // - Advanced level: requires Competent level (of same competency) + manually set requirements
+    return selectedCompetency.requirements.filter((req) => {
+      const requiredLevel = req.requiredLevel;
+      const requiredLevelName = requiredLevel.name.toLowerCase();
+      const isSameCompetency = requiredLevel.competency.id === selectedCompetency.id;
+
+      // If requirement is from a different competency, it applies to all levels (manually set)
+      if (!isSameCompetency) {
+        return true;
+      }
+
+      // For same competency requirements (default requirements):
+      // - Basic level requirement applies to Competent and Advanced
+      // - Competent level requirement applies to Advanced only
+      if (requiredLevelName === "basic") {
+        return selectedLevelName === "competent" || selectedLevelName === "advanced";
+      } else if (requiredLevelName === "competent") {
+        return selectedLevelName === "advanced";
+      }
+
+      return false;
+    });
+  }, [selectedCompetency, selectedLevelData]);
+
+  // Get unmet requirements for display
+  const unmetRequirements = useMemo(() => {
+    if (!selectedCompetency || !selectedLevelData) return [];
+
+    return applicableRequirements.filter((req) => {
+      // Filter out requirements that are already met
+      const requiredLevelId = req.requiredLevel.id;
+      const trainingRequest = trainingRequests.find(
+        (tr) => tr.competencyLevelId === requiredLevelId,
+      );
+      const isRequirementMet = trainingRequest && trainingRequest.status === 8;
+      return !isRequirementMet;
+    });
+  }, [applicableRequirements, trainingRequests, selectedCompetency, selectedLevelData]);
+
   // Check if all requirements are met
   // A requirement is met if the user has a training request with status = 8 (Training Completed)
   const areRequirementsMet = useMemo(() => {
     if (!selectedCompetency || !selectedLevelData) return true; // No requirements = requirements met
     
-    if (selectedCompetency.requirements.length === 0) return true; // No requirements = requirements met
+    if (applicableRequirements.length === 0) return true; // No requirements = requirements met
 
     // Check each requirement
-    return selectedCompetency.requirements.every((req) => {
+    return applicableRequirements.every((req) => {
       const requiredLevelId = req.requiredLevel.id;
       const trainingRequest = trainingRequests.find(
         (tr) => tr.competencyLevelId === requiredLevelId,
@@ -256,7 +307,7 @@ export function LearnerDashboardClient({
       // Requirement is met if training request exists and status = 8 (Training Completed)
       return trainingRequest && trainingRequest.status === 8;
     });
-  }, [selectedCompetency, trainingRequests, selectedLevelData]);
+  }, [applicableRequirements, trainingRequests, selectedCompetency, selectedLevelData]);
 
   const getLevelBadgeClass = (level: string) => {
     const levelLower = level.toLowerCase();
@@ -612,9 +663,9 @@ export function LearnerDashboardClient({
                 </div>
               </div>
 
-              {/* Requirements Section */}
+              {/* Requirements Section - Only show unmet requirements */}
               {selectedLevelData &&
-                selectedCompetency.requirements.length > 0 && (
+                unmetRequirements.length > 0 && (
                   <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
                     <CardContent className="space-y-3 p-6">
                       <div className="flex items-center gap-2">
@@ -637,60 +688,33 @@ export function LearnerDashboardClient({
                         </h3>
                       </div>
                       <p className="text-sm text-slate-300">
-                        To apply for this competency, you need to complete the following:
+                        To apply for this competency level, you need to complete the following:
                       </p>
                       <div className="space-y-2">
-                        {selectedCompetency.requirements.map((req, index) => {
-                          const requiredLevelId = req.requiredLevel.id;
-                          const trainingRequest = trainingRequests.find(
-                            (tr) => tr.competencyLevelId === requiredLevelId,
-                          );
-                          const isRequirementMet = trainingRequest && trainingRequest.status >= 5;
-
-                          return (
-                            <div
-                              key={`${req.requiredLevel.competency.id}-${req.requiredLevel.name}-${index}`}
-                              className="flex items-center gap-2 text-sm"
+                        {unmetRequirements.map((req, index) => (
+                          <div
+                            key={`${req.requiredLevel.competency.id}-${req.requiredLevel.name}-${index}`}
+                            className="flex items-center gap-2 text-sm"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-slate-500"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             >
-                              {isRequirementMet ? (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 text-emerald-400"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 text-slate-500"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <circle cx="12" cy="12" r="10"></circle>
-                                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                </svg>
-                              )}
-                              <span className={isRequirementMet ? "text-emerald-200" : "text-slate-200"}>
-                                {req.requiredLevel.competency.name} - {req.requiredLevel.name}
-                                {isRequirementMet && (
-                                  <span className="ml-2 text-xs text-emerald-400">(Completed)</span>
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="8" x2="12" y2="12"></line>
+                              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span className="text-slate-200">
+                              {req.requiredLevel.competency.name} - {req.requiredLevel.name}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>

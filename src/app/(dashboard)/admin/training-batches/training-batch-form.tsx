@@ -592,20 +592,32 @@ export function TrainingBatchForm({
   const spotLeft = Math.max(0, watchedCapacity - currentParticipant);
 
   // Get all levels from all competencies for the level dropdown
+  // Only show levels that have both training plan document and team knowledge not empty
+  // Exception: if editing a batch, always include the currently selected level
   const allLevels = useMemo(() => {
     const levels: Array<{ id: string; name: string; competencyId: string; competencyName: string }> = [];
+    const currentLevelId = batch?.competencyLevelId;
+    
     competencies.forEach((comp) => {
       comp.levels.forEach((level) => {
-        levels.push({
-          id: level.id,
-          name: level.name,
-          competencyId: comp.id,
-          competencyName: comp.name,
-        });
+        // Filter: only include levels where both trainingPlanDocument and teamKnowledge are not empty
+        // Exception: always include the currently selected level when editing
+        const hasTrainingPlan = level.trainingPlanDocument && level.trainingPlanDocument.trim() !== "";
+        const hasTeamKnowledge = level.teamKnowledge && level.teamKnowledge.trim() !== "";
+        const isCurrentLevel = batch && level.id === currentLevelId;
+        
+        if ((hasTrainingPlan && hasTeamKnowledge) || isCurrentLevel) {
+          levels.push({
+            id: level.id,
+            name: level.name,
+            competencyId: comp.id,
+            competencyName: comp.name,
+          });
+        }
       });
     });
     return levels;
-  }, [competencies]);
+  }, [competencies, batch]);
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

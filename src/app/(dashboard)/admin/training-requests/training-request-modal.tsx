@@ -47,16 +47,18 @@ interface TrainingRequestModalProps {
   statusLabels: string[];
   onSave: (data: Partial<TrainingRequest>) => Promise<void>;
   isPending: boolean;
+  onFetch?: () => Promise<TrainingRequestWithRelations | null>;
 }
 
 export function TrainingRequestModal({
   open,
   onClose,
-  trainingRequest,
+  trainingRequest: initialTrainingRequest,
   users,
   statusLabels,
   onSave,
   isPending,
+  onFetch,
 }: TrainingRequestModalProps) {
   // Refs for flatpickr instances
   const requestedDateRef = useRef<HTMLInputElement>(null);
@@ -74,33 +76,58 @@ export function TrainingRequestModal({
   const noFollowUpDateFpRef = useRef<flatpickr.Instance | null>(null);
   const followUpDateFpRef = useRef<flatpickr.Instance | null>(null);
   
+  // State to hold the current training request (may be updated from fetch)
+  const [trainingRequest, setTrainingRequest] = useState<TrainingRequestWithRelations>(initialTrainingRequest);
+  
   const [formData, setFormData] = useState({
-    status: trainingRequest.status,
-    onHoldBy: trainingRequest.onHoldBy,
-    onHoldReason: trainingRequest.onHoldReason || "",
-    dropOffReason: trainingRequest.dropOffReason || "",
-    isBlocked: trainingRequest.isBlocked,
-    blockedReason: trainingRequest.blockedReason || "",
-    notes: trainingRequest.notes || "",
-    assignedTo: trainingRequest.assignedTo || "",
-    definiteAnswer: trainingRequest.definiteAnswer,
+    status: initialTrainingRequest.status,
+    onHoldBy: initialTrainingRequest.onHoldBy,
+    onHoldReason: initialTrainingRequest.onHoldReason || "",
+    dropOffReason: initialTrainingRequest.dropOffReason || "",
+    isBlocked: initialTrainingRequest.isBlocked,
+    blockedReason: initialTrainingRequest.blockedReason || "",
+    notes: initialTrainingRequest.notes || "",
+    assignedTo: initialTrainingRequest.assignedTo || "",
+    definiteAnswer: initialTrainingRequest.definiteAnswer,
   });
 
+  // Fetch fresh data when modal opens
   useEffect(() => {
-    if (open) {
+    if (open && onFetch) {
+      onFetch().then((freshData) => {
+        if (freshData) {
+          setTrainingRequest(freshData);
+          setFormData({
+            status: freshData.status,
+            onHoldBy: freshData.onHoldBy,
+            onHoldReason: freshData.onHoldReason || "",
+            dropOffReason: freshData.dropOffReason || "",
+            isBlocked: freshData.isBlocked,
+            blockedReason: freshData.blockedReason || "",
+            notes: freshData.notes || "",
+            assignedTo: freshData.assignedTo || "",
+            definiteAnswer: freshData.definiteAnswer,
+          });
+        }
+      }).catch((error) => {
+        console.error("Failed to fetch fresh training request data:", error);
+      });
+    } else if (open) {
+      // If no fetch function, use the prop data
+      setTrainingRequest(initialTrainingRequest);
       setFormData({
-        status: trainingRequest.status,
-        onHoldBy: trainingRequest.onHoldBy,
-        onHoldReason: trainingRequest.onHoldReason || "",
-        dropOffReason: trainingRequest.dropOffReason || "",
-        isBlocked: trainingRequest.isBlocked,
-        blockedReason: trainingRequest.blockedReason || "",
-        notes: trainingRequest.notes || "",
-        assignedTo: trainingRequest.assignedTo || "",
-        definiteAnswer: trainingRequest.definiteAnswer,
+        status: initialTrainingRequest.status,
+        onHoldBy: initialTrainingRequest.onHoldBy,
+        onHoldReason: initialTrainingRequest.onHoldReason || "",
+        dropOffReason: initialTrainingRequest.dropOffReason || "",
+        isBlocked: initialTrainingRequest.isBlocked,
+        blockedReason: initialTrainingRequest.blockedReason || "",
+        notes: initialTrainingRequest.notes || "",
+        assignedTo: initialTrainingRequest.assignedTo || "",
+        definiteAnswer: initialTrainingRequest.definiteAnswer,
       });
     }
-  }, [open, trainingRequest]);
+  }, [open, onFetch, initialTrainingRequest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,27 +164,27 @@ export function TrainingRequestModal({
     });
   };
 
-  const showLookingForTrainerFields = formData.status === 1;
+  // Show Response Due, Assigned to, and Response date fields for: Looking for trainer (1), In Queue (2), No batch match (3)
+  const showResponseFields = formData.status === 1 || formData.status === 2 || formData.status === 3;
   const showOnHoldFields = formData.status === 6;
   const showDropOffFields = formData.status === 7;
   const showDefiniteAnswerFields = formData.definiteAnswer === false;
 
-  // Auto-calculate Response Due date (+1 day from requested date) when status changes to "Looking for trainer"
+  // Auto-calculate Response Due date when status changes
+  // +1 day for "Looking for trainer" (1) and "In Queue" (2)
+  // +5 days for "No batch match" (3)
   useEffect(() => {
-    if (showLookingForTrainerFields && responseDueFpRef.current && trainingRequest.requestedDate) {
-      // Check if Response Due is already set
-      const currentResponseDue = responseDueFpRef.current.selectedDates.length;
-      if (!currentResponseDue) {
-        // Calculate +1 day from requested date
-        const requestedDate = new Date(trainingRequest.requestedDate);
-        const responseDueDate = new Date(requestedDate);
-        responseDueDate.setDate(responseDueDate.getDate() + 1);
-        
-        // Set the calculated date
-        responseDueFpRef.current.setDate(responseDueDate, false);
-      }
+    if (showResponseFields && responseDueFpRef.current && trainingRequest.requestedDate) {
+      // Always recalculate when status changes to ensure correct days are added
+      const requestedDate = new Date(trainingRequest.requestedDate);
+      const responseDueDate = new Date(requestedDate);
+      const daysToAdd = formData.status === 3 ? 5 : 1; // +5 days for "No batch match", +1 day for others
+      responseDueDate.setDate(responseDueDate.getDate() + daysToAdd);
+      
+      // Set the calculated date
+      responseDueFpRef.current.setDate(responseDueDate, false);
     }
-  }, [showLookingForTrainerFields, trainingRequest.requestedDate]);
+  }, [showResponseFields, formData.status, trainingRequest.requestedDate]);
 
 
   // Auto-calculate follow-up date when definite answer is "no" (Requested Date + 3 days)
@@ -228,7 +255,9 @@ export function TrainingRequestModal({
       };
 
       // Get initial values as Date objects (not ISO strings to avoid timezone issues)
-      // If responseDue is not set, calculate it as request date + 1 day
+      // If responseDue is not set, calculate it based on status:
+      // +1 day for "Looking for trainer" (1) and "In Queue" (2)
+      // +5 days for "No batch match" (3)
       const initialResponseDue = trainingRequest.responseDue
         ? trainingRequest.responseDue instanceof Date 
           ? trainingRequest.responseDue 
@@ -239,7 +268,8 @@ export function TrainingRequestModal({
                   ? trainingRequest.requestedDate 
                   : new Date(trainingRequest.requestedDate);
                 const responseDueDate = new Date(requestedDate);
-                responseDueDate.setDate(responseDueDate.getDate() + 1);
+                const daysToAdd = trainingRequest.status === 3 ? 5 : 1; // +5 days for "No batch match", +1 day for others
+                responseDueDate.setDate(responseDueDate.getDate() + daysToAdd);
                 return responseDueDate;
               })()
             : null);
@@ -437,6 +467,10 @@ export function TrainingRequestModal({
                 {statusLabels.map((status, index) => {
                   // Hide "Not Started" (status 0)
                   if (index === 0) return null;
+                  
+                  // When status is "Looking for trainer" (1), only show "Looking for trainer" (1) and "In Queue" (2)
+                  if (formData.status === 1 && index !== 1 && index !== 2) return null;
+                  
                   return (
                     <option key={index} value={index}>
                       {status}
@@ -459,8 +493,8 @@ export function TrainingRequestModal({
           </div>
         </div>
 
-        {/* Looking for Trainer Fields - Always render but hide when not applicable */}
-        <div className={`space-y-4 border-t border-slate-800/80 pt-4 ${showLookingForTrainerFields ? "" : "hidden"}`}>
+        {/* Response Fields - Show for Looking for trainer (1), In Queue (2), and No batch match (3) */}
+        <div className={`space-y-4 border-t border-slate-800/80 pt-4 ${showResponseFields ? "" : "hidden"}`}>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="tr-response-due">Response Due</Label>

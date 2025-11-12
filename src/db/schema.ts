@@ -13,7 +13,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies", "training_batch"]);
+export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies", "training_batch", "training_request", "validation_project_approval", "validation_schedule_request"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive"]);
 export const userDepartmentEnum = pgEnum("user_department", ["curator", "scraping"]);
 
@@ -465,6 +465,7 @@ export const trainingRequest = pgTable(
     assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
     responseDue: timestamp("response_due", { mode: "date" }),
     responseDate: timestamp("response_date", { mode: "date" }),
+    inQueueDate: timestamp("in_queue_date", { mode: "date" }),
     definiteAnswer: boolean("definite_answer"),
     noFollowUpDate: timestamp("no_follow_up_date", { mode: "date" }),
     followUpDate: timestamp("follow_up_date", { mode: "date" }),

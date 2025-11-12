@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
 import type { ValidationScheduleRequest, Competency, User } from "@/db/schema";
 import { getVSRStatusLabel, getVSRStatusBadgeClass, getVSRLevelBadgeClass } from "@/lib/vsr-config";
-import { updateVSRAction } from "./actions";
+import { updateVSRAction, getVSRById } from "./actions";
 import { VSRModal } from "./vsr-modal";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
@@ -68,6 +68,13 @@ type VSRWithRelations = ValidationScheduleRequest & {
   } | null;
 };
 
+const customFilterLabels = {
+  dueIn24h: "Due in 24h",
+  dueIn3d: "Due in 3 days",
+  overdue: "Overdue",
+  followUp: "Follow Up",
+} as const;
+
 interface VSRManagerProps {
   vsrs: VSRWithRelations[];
   competencies: Competency[];
@@ -105,8 +112,11 @@ export function VSRManager({
     competency: "",
     level: "",
     status: "",
-    customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue",
+    customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "followUp",
   });
+  const activeCustomFilterLabel = filters.customFilter
+    ? customFilterLabels[filters.customFilter]
+    : null;
 
   // Helper function to get response due date
   const getResponseDueDate = useCallback((vsr: VSRWithRelations): Date | null => {
@@ -134,8 +144,14 @@ export function VSRManager({
     let dueIn24h = 0;
     let dueIn3d = 0;
     let overdue = 0;
+    let followUp = 0;
 
     vsrs.forEach((vsr) => {
+      // Count follow up: definiteAnswer is false and followUpDate is empty (count all, regardless of responseDate)
+      if (vsr.definiteAnswer === false && !vsr.followUpDate) {
+        followUp++;
+      }
+
       // Only count if status is 0 or 1 (Pending Validation or Pending Re-validation) and no response date
       if ((vsr.status !== 0 && vsr.status !== 1) || vsr.responseDate) {
         return;
@@ -155,7 +171,7 @@ export function VSRManager({
       }
     });
 
-    return { dueIn24h, dueIn3d, overdue };
+    return { dueIn24h, dueIn3d, overdue, followUp };
   }, [vsrs, getResponseDueDate]);
 
   // Filtered and sorted VSRs
@@ -174,27 +190,33 @@ export function VSRManager({
         return false;
       }
 
-      // Custom filters - only for status 0 or 1 (Pending Validation or Pending Re-validation)
+      // Custom filters
       if (filters.customFilter) {
-        if ((vsr.status !== 0 && vsr.status !== 1) || vsr.responseDate) return false;
-        
-        const responseDue = getResponseDueDate(vsr);
-        const now = new Date();
-        
-        if (filters.customFilter === "dueIn24h") {
-          // Only show VSRs with status 0 or 1, no response date, and due within 24h
-          if (!responseDue) return false;
-          const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-          if (responseDue > in24h || responseDue <= now) return false;
-        } else if (filters.customFilter === "dueIn3d") {
-          // Only show VSRs with status 0 or 1, no response date, and due within 3 days
-          if (!responseDue) return false;
-          const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-          if (responseDue > in3d || responseDue <= now) return false;
-        } else if (filters.customFilter === "overdue") {
-          // Only show VSRs with status 0 or 1, no response date, and overdue
-          if (!responseDue) return false;
-          if (responseDue >= now) return false;
+        if (filters.customFilter === "followUp") {
+          // Follow up: definiteAnswer is false and followUpDate is empty
+          if (vsr.definiteAnswer !== false || vsr.followUpDate) return false;
+        } else {
+          // For due/overdue filters, only for status 0 or 1 (Pending Validation or Pending Re-validation)
+          if ((vsr.status !== 0 && vsr.status !== 1) || vsr.responseDate) return false;
+          
+          const responseDue = getResponseDueDate(vsr);
+          const now = new Date();
+          
+          if (filters.customFilter === "dueIn24h") {
+            // Only show VSRs with status 0 or 1, no response date, and due within 24h
+            if (!responseDue) return false;
+            const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            if (responseDue > in24h || responseDue <= now) return false;
+          } else if (filters.customFilter === "dueIn3d") {
+            // Only show VSRs with status 0 or 1, no response date, and due within 3 days
+            if (!responseDue) return false;
+            const in3d = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+            if (responseDue > in3d || responseDue <= now) return false;
+          } else if (filters.customFilter === "overdue") {
+            // Only show VSRs with status 0 or 1, no response date, and overdue
+            if (!responseDue) return false;
+            if (responseDue >= now) return false;
+          }
         }
       }
 
@@ -349,7 +371,7 @@ export function VSRManager({
         setTimeout(() => {
           setIsModalOpen(false);
           setSelectedVSR(null);
-        }, 1000);
+        }, 500);
       } else {
         setMessage({ text: result.error || "Failed to update validation schedule request", tone: "error" });
       }
@@ -499,6 +521,17 @@ export function VSRManager({
             >
               Overdue ({filterCounts.overdue})
             </Button>
+            <Button
+              type="button"
+              onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "followUp" ? "" : "followUp" })}
+              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
+                filters.customFilter === "followUp"
+                  ? "bg-purple-600 hover:bg-purple-700 focus-visible:ring-purple-400"
+                  : "bg-purple-500 hover:bg-purple-600 focus-visible:ring-purple-400"
+              }`}
+            >
+              Follow Up ({filterCounts.followUp})
+            </Button>
             <div className="flex-1"></div>
             <Button
               type="button"
@@ -509,6 +542,13 @@ export function VSRManager({
               Clear
             </Button>
           </div>
+          {activeCustomFilterLabel && (
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-200">
+                Custom filter active: {activeCustomFilterLabel}
+              </span>
+            </div>
+          )}
         </form>
       </Card>
 
@@ -682,6 +722,13 @@ export function VSRManager({
           onSave={handleSave}
           isPending={isPending}
           currentUserId={currentUserId}
+          onFetch={async () => {
+            const result = await getVSRById(selectedVSR.id);
+            if (result.success && result.data) {
+              return result.data as VSRWithRelations;
+            }
+            return null;
+          }}
         />
       )}
     </div>

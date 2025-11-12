@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
+import { ensurePermission } from "@/lib/permissions";
 
 const vsrUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -32,10 +33,44 @@ function toDateOnly(date: Date | null | undefined): Date | null | undefined {
   return new Date(Date.UTC(year, month, day));
 }
 
+export async function getVSRById(id: string) {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_schedule_request", "list");
+
+  try {
+    const vsr = await db.query.validationScheduleRequest.findFirst({
+      where: eq(schema.validationScheduleRequest.id, id),
+      with: {
+        learner: true,
+        competencyLevel: {
+          with: {
+            competency: true,
+          },
+        },
+        validatorOpsUser: true,
+        validatorTrainerUser: true,
+        assignedUser: true,
+      },
+    });
+
+    if (!vsr) {
+      return { success: false, error: "VSR not found" };
+    }
+
+    return { success: true, data: vsr };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to fetch VSR" };
+  }
+}
+
 export async function updateVSRAction(
   input: z.infer<typeof vsrUpdateSchema>,
 ) {
   const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_schedule_request", "edit");
 
   const parsed = vsrUpdateSchema.parse(input);
 
@@ -145,6 +180,7 @@ export async function updateVSRAction(
 
 export async function deleteVSRAction(vsrId: string) {
   const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_schedule_request", "delete");
 
   try {
     // Find VSR by vsrId

@@ -294,6 +294,7 @@ Table training_request {
   assigned_to uuid // check if this still used
   response_due date
   response_date date
+  in_queue_date date
   definite_answer bool
   no_follow_up_date date
   follow_up_date date

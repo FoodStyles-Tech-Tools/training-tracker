@@ -127,6 +127,20 @@
       "when": 1762938934763,
       "tag": "0017_icy_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1762956019847,
+      "tag": "0018_tearful_redwing",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1762960305596,
+      "tag": "0019_clammy_wither",
+      "breakpoints": true
     }
   ]
 }

@@ -10,7 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
 import type { TrainingRequest, Competency, User } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
-import { updateTrainingRequestAction } from "./actions";
+import { updateTrainingRequestAction, getTrainingRequestById } from "./actions";
 import { TrainingRequestModal } from "./training-request-modal";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
@@ -55,6 +55,14 @@ type TrainingRequestWithRelations = TrainingRequest & {
   } | null;
 };
 
+const customFilterLabels = {
+  dueIn24h: "Due in 24h",
+  dueIn3d: "Due in 3 days",
+  overdue: "Overdue",
+  blocked: "Blocked",
+  followUp: "Follow Up",
+} as const;
+
 interface TrainingRequestManagerProps {
   trainingRequests: TrainingRequestWithRelations[];
   competencies: Competency[];
@@ -93,6 +101,9 @@ export function TrainingRequestManager({
     batch: "",
     customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked" | "followUp",
   });
+  const activeCustomFilterLabel = filters.customFilter
+    ? customFilterLabels[filters.customFilter]
+    : null;
 
   // Helper function to get response due date
   const getResponseDueDate = useCallback((tr: TrainingRequestWithRelations): Date | null => {
@@ -376,7 +387,7 @@ export function TrainingRequestManager({
         setTimeout(() => {
           setIsModalOpen(false);
           setSelectedRequest(null);
-        }, 1000);
+        }, 500);
       } else {
         setMessage({ text: result.error || "Failed to update training request", tone: "error" });
       }
@@ -587,6 +598,13 @@ export function TrainingRequestManager({
               Clear
             </Button>
           </div>
+          {activeCustomFilterLabel && (
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-200">
+                Custom filter active: {activeCustomFilterLabel}
+              </span>
+            </div>
+          )}
         </form>
       </Card>
 
@@ -764,6 +782,13 @@ export function TrainingRequestManager({
           statusLabels={statusLabels}
           onSave={handleSave}
           isPending={isPending}
+          onFetch={async () => {
+            const result = await getTrainingRequestById(selectedRequest.id);
+            if (result.success && result.data) {
+              return result.data as TrainingRequestWithRelations;
+            }
+            return null;
+          }}
         />
       )}
     </div>

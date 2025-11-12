@@ -13,7 +13,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset-tr": "tsx scripts/reset-training-requests.ts",
-    "db:generate-test-tr": "tsx scripts/generate-test-training-requests.ts"
+    "db:generate-test-tr": "tsx scripts/generate-test-training-requests.ts",
+    "db:apply-default-requirements": "tsx scripts/apply-default-requirements.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

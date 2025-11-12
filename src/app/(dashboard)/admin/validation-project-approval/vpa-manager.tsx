@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
 import type { ValidationProjectApproval, Competency, User } from "@/db/schema";
 import { getVPAStatusLabel, getVPAStatusBadgeClass, getVPALevelBadgeClass } from "@/lib/vpa-config";
-import { updateVPAAction } from "./actions";
+import { updateVPAAction, getVPAById } from "./actions";
 import { VPAModal } from "./vpa-modal";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
@@ -60,6 +60,12 @@ type VPAWithRelations = ValidationProjectApproval & {
   } | null;
 };
 
+const customFilterLabels = {
+  dueIn24h: "Due in 24h",
+  dueIn3d: "Due in 3 days",
+  overdue: "Overdue",
+} as const;
+
 interface VPAManagerProps {
   vpas: VPAWithRelations[];
   competencies: Competency[];
@@ -97,6 +103,9 @@ export function VPAManager({
     status: "",
     customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue",
   });
+  const activeCustomFilterLabel = filters.customFilter
+    ? customFilterLabels[filters.customFilter]
+    : null;
 
   // Helper function to get response due date
   const getResponseDueDate = useCallback((vpa: VPAWithRelations): Date | null => {
@@ -340,7 +349,7 @@ export function VPAManager({
         setTimeout(() => {
           setIsModalOpen(false);
           setSelectedVPA(null);
-        }, 1000);
+        }, 500);
       } else {
         setMessage({ text: result.error || "Failed to update validation project approval", tone: "error" });
       }
@@ -500,6 +509,13 @@ export function VPAManager({
               Clear
             </Button>
           </div>
+          {activeCustomFilterLabel && (
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-200">
+                Custom filter active: {activeCustomFilterLabel}
+              </span>
+            </div>
+          )}
         </form>
       </Card>
 
@@ -672,6 +688,13 @@ export function VPAManager({
           statusLabels={statusLabels}
           onSave={handleSave}
           isPending={isPending}
+          onFetch={async () => {
+            const result = await getVPAById(selectedVPA.id);
+            if (result.success && result.data) {
+              return result.data as VPAWithRelations;
+            }
+            return null;
+          }}
         />
       )}
     </div>
