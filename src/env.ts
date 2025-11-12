@@ -12,6 +12,9 @@ const serverSchema = z.object({
   TRAINING_REQUEST_STATUS: z
     .string()
     .default("Not Started,Looking for trainer,In Queue,No batch match,In Progress,Sessions Completed,On Hold,Drop Off,Training Completed"),
+  VPA_STATUS: z
+    .string()
+    .default("Pending Project Submission,Pending Validation Project Approval,Approved,Rejected,Resubmit for Re-validation"),
 });
 
 const parsed = serverSchema.safeParse({
@@ -23,6 +26,7 @@ const parsed = serverSchema.safeParse({
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS,
+  VPA_STATUS: process.env.VPA_STATUS,
 });
 
 if (!parsed.success) {

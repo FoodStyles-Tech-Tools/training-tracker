@@ -1,0 +1,417 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
+import { Modal } from "@/components/ui/modal";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import type { ValidationProjectApproval, User } from "@/db/schema";
+
+type VPAWithRelations = ValidationProjectApproval & {
+  learner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  competencyLevel: {
+    id: string;
+    name: string;
+    competency: {
+      id: string;
+      name: string;
+    };
+  };
+  assignedUser?: {
+    id: string;
+    name: string;
+  } | null;
+};
+
+interface VPAModalProps {
+  open: boolean;
+  onClose: () => void;
+  vpa: VPAWithRelations;
+  users: User[];
+  statusLabels: string[];
+  onSave: (data: Partial<ValidationProjectApproval>) => Promise<void>;
+  isPending: boolean;
+}
+
+export function VPAModal({
+  open,
+  onClose,
+  vpa,
+  users,
+  statusLabels,
+  onSave,
+  isPending,
+}: VPAModalProps) {
+  // Refs for flatpickr instances
+  const submittedDateRef = useRef<HTMLInputElement>(null);
+  const responseDueRef = useRef<HTMLInputElement>(null);
+  const responseDateRef = useRef<HTMLInputElement>(null);
+  
+  // Refs to store flatpickr instances for date retrieval
+  const submittedDateFpRef = useRef<flatpickr.Instance | null>(null);
+  const responseDueFpRef = useRef<flatpickr.Instance | null>(null);
+  const responseDateFpRef = useRef<flatpickr.Instance | null>(null);
+  
+  const [formData, setFormData] = useState({
+    status: vpa.status,
+    assignedTo: vpa.assignedTo || "",
+    projectDetails: vpa.projectDetails || "",
+  });
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        status: vpa.status,
+        assignedTo: vpa.assignedTo || "",
+        projectDetails: vpa.projectDetails || "",
+      });
+    }
+  }, [open, vpa]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Get date values from flatpickr instances
+    const getDateFromFp = (fpRef: React.RefObject<flatpickr.Instance | null>): Date | null => {
+      if (fpRef.current && fpRef.current.selectedDates.length > 0) {
+        return fpRef.current.selectedDates[0];
+      }
+      return null;
+    };
+    
+    const responseDate = getDateFromFp(responseDateFpRef);
+    
+    await onSave({
+      status: formData.status,
+      assignedTo: formData.assignedTo || null,
+      responseDate: responseDate,
+      projectDetails: formData.projectDetails || null,
+    });
+  };
+
+  const handleApprove = () => {
+    setFormData({ ...formData, status: 2 });
+  };
+
+  const handleReject = () => {
+    setFormData({ ...formData, status: 3 });
+  };
+
+  const showResponseFields = formData.status === 1; // Pending Validation Project Approval
+
+  // Auto-calculate Response Due date (+1 day from requested date) when status changes to 1
+  useEffect(() => {
+    if (showResponseFields && responseDueFpRef.current && vpa.requestedDate) {
+      // Check if Response Due is already set
+      const currentResponseDue = responseDueFpRef.current.selectedDates.length;
+      if (!currentResponseDue) {
+        // Calculate +1 day from requested date
+        const requestedDate = new Date(vpa.requestedDate);
+        const responseDueDate = new Date(requestedDate);
+        responseDueDate.setDate(responseDueDate.getDate() + 1);
+        
+        // Set the calculated date
+        responseDueFpRef.current.setDate(responseDueDate, false);
+      }
+    }
+  }, [showResponseFields, vpa.requestedDate]);
+
+  // Initialize flatpickr for all date inputs
+  useEffect(() => {
+    if (!open) return;
+
+    const flatpickrInstances: flatpickr.Instance[] = [];
+
+    // Initialize flatpickr after a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      // Initialize flatpickr for each date input
+      const initFlatpickr = (
+        ref: React.RefObject<HTMLInputElement>,
+        fpRef: React.RefObject<flatpickr.Instance | null>,
+        initialValue: Date | null,
+        readOnly = false,
+      ) => {
+        if (!ref.current) {
+          return;
+        }
+        
+        if (ref.current.dataset.flatpickr) {
+          return;
+        }
+
+        try {
+          const fp = flatpickr(ref.current, {
+            dateFormat: "d M Y", // Format: "20 Nov 2025"
+            allowInput: !readOnly,
+            clickOpens: !readOnly,
+            appendTo: document.body, // Append to body to avoid z-index issues
+            defaultDate: initialValue || undefined,
+            // Force formatting on ready
+            onReady: function(selectedDates, dateStr, instance) {
+              if (selectedDates.length > 0) {
+                instance.setDate(selectedDates[0], false);
+              }
+            },
+          });
+          ref.current.dataset.flatpickr = "true";
+          flatpickrInstances.push(fp);
+          fpRef.current = fp; // Store instance for date retrieval
+        } catch (error) {
+          console.error('Error initializing flatpickr:', error);
+        }
+      };
+
+      // Get initial values as Date objects
+      const initialSubmittedDate = vpa.requestedDate
+        ? vpa.requestedDate instanceof Date 
+          ? vpa.requestedDate 
+          : new Date(vpa.requestedDate)
+        : null;
+      
+      // If responseDue is not set, calculate it as requested date + 1 day
+      const initialResponseDue = vpa.responseDue
+        ? vpa.responseDue instanceof Date 
+          ? vpa.responseDue 
+          : new Date(vpa.responseDue)
+        : (vpa.requestedDate
+            ? (() => {
+                const requestedDate = vpa.requestedDate instanceof Date 
+                  ? vpa.requestedDate 
+                  : new Date(vpa.requestedDate);
+                const responseDueDate = new Date(requestedDate);
+                responseDueDate.setDate(responseDueDate.getDate() + 1);
+                return responseDueDate;
+              })()
+            : null);
+      
+      const initialResponseDate = vpa.responseDate
+        ? vpa.responseDate instanceof Date 
+          ? vpa.responseDate 
+          : new Date(vpa.responseDate)
+        : null;
+
+      // Submitted date (readonly) - always visible
+      initFlatpickr(submittedDateRef, submittedDateFpRef, initialSubmittedDate, true);
+
+      // Response Due and Response Date
+      initFlatpickr(responseDueRef, responseDueFpRef, initialResponseDue, true); // Read-only
+      initFlatpickr(responseDateRef, responseDateFpRef, initialResponseDate, false);
+    }, 200);
+
+    // Cleanup function
+    return () => {
+      clearTimeout(timeoutId);
+      flatpickrInstances.forEach((fp) => {
+        try {
+          fp.destroy();
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+      });
+      // Remove flatpickr markers and clear instance refs
+      [submittedDateRef, responseDueRef, responseDateRef].forEach((ref) => {
+        if (ref.current) {
+          delete ref.current.dataset.flatpickr;
+        }
+      });
+      // Clear flatpickr instance refs
+      submittedDateFpRef.current = null;
+      responseDueFpRef.current = null;
+      responseDateFpRef.current = null;
+    };
+  }, [
+    open, 
+    vpa.requestedDate, 
+    vpa.responseDue, 
+    vpa.responseDate
+  ]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      contentClassName="max-w-5xl max-h-[90vh] overflow-y-auto"
+      overlayClassName="bg-black/60 backdrop-blur-sm"
+    >
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Validation Project Approval</h2>
+          <p className="text-sm text-slate-400">Manage validation project approval details</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        {/* Basic Information */}
+        <div className="space-y-4">
+          {/* Row 1: VPA ID | Submitted Date */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="vpa-id">VPA ID</Label>
+              <Input id="vpa-id" type="text" value={vpa.vpaId} readOnly />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vpa-submitted-date">Submitted Date</Label>
+              <Input
+                id="vpa-submitted-date"
+                ref={submittedDateRef}
+                type="text"
+                readOnly
+                placeholder="Select date"
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
+        
+          {/* Row 2: Competency | Level */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="vpa-competency">Competency</Label>
+              <Input
+                id="vpa-competency"
+                type="text"
+                value={vpa.competencyLevel.competency.name}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vpa-level">Level</Label>
+              <Input
+                id="vpa-level"
+                type="text"
+                value={vpa.competencyLevel.name}
+                readOnly
+              />
+            </div>
+          </div>
+        
+          {/* Row 3: Status | Assigned to */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="vpa-status">Status</Label>
+              <Select
+                id="vpa-status"
+                value={formData.status}
+                onChange={(e) => {
+                  const newStatus = parseInt(e.target.value);
+                  setFormData({ ...formData, status: newStatus });
+                }}
+              >
+                {statusLabels.map((status, index) => (
+                  <option key={index} value={index}>
+                    {status}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vpa-assigned-to">Assigned to</Label>
+              <Select
+                id="vpa-assigned-to"
+                value={formData.assignedTo}
+                onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+              >
+                <option value="">Select...</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        
+          {/* Row 4: Response Due | Response Date (conditional based on status) */}
+          <div className={`grid gap-4 md:grid-cols-2 ${showResponseFields ? "" : "hidden"}`}>
+            <div className="space-y-2">
+              <Label htmlFor="vpa-response-due">Response Due</Label>
+              <Input
+                id="vpa-response-due"
+                ref={responseDueRef}
+                type="text"
+                readOnly
+                placeholder="Auto-calculated"
+                className="cursor-not-allowed"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vpa-response-date">Response Date</Label>
+              <Input
+                id="vpa-response-date"
+                ref={responseDateRef}
+                type="text"
+                placeholder="Select date"
+                className="cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Project Details */}
+          <div className="space-y-2 border-t border-slate-800/80 pt-4">
+            <Label htmlFor="vpa-project-details">Project Details</Label>
+            <Textarea
+              id="vpa-project-details"
+              rows={6}
+              value={formData.projectDetails}
+              onChange={(e) => setFormData({ ...formData, projectDetails: e.target.value })}
+              placeholder="Project details..."
+            />
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleReject}
+            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            disabled={isPending}
+          >
+            Reject
+          </Button>
+          <Button
+            type="button"
+            onClick={handleApprove}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            disabled={isPending}
+          >
+            Approve
+          </Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+

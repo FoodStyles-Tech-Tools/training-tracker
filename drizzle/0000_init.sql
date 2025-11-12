@@ -1,7 +1,11 @@
 -- drizzle-kit baseline migration
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TYPE module_name AS ENUM ('roles', 'users');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'module_name') THEN
+    CREATE TYPE module_name AS ENUM ('roles', 'users');
+  END IF;
+END $$;
 
 CREATE TABLE roles_list (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

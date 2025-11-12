@@ -118,10 +118,17 @@ type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
 };
 
+type TrainerWithCompetencies = {
+  id: string;
+  name: string;
+  email?: string;
+  competencyIds: string[];
+};
+
 interface TrainingBatchFormProps {
   batch?: TrainingBatchWithRelations;
   competencies: CompetencyWithLevels[];
-  trainers: User[];
+  trainers: TrainerWithCompetencies[];
 }
 
 export function TrainingBatchForm({
@@ -555,6 +562,31 @@ export function TrainingBatchForm({
     return null;
   }, [watchedCompetencyLevelId, competencies]);
 
+  // Filter trainers based on selected competency
+  const availableTrainers = useMemo(() => {
+    if (!selectedCompetency) {
+      // If no competency is selected, show all trainers
+      return trainers;
+    }
+    // Filter trainers to only those assigned to the selected competency
+    return trainers.filter((trainer) =>
+      trainer.competencyIds.includes(selectedCompetency.competency.id),
+    );
+  }, [selectedCompetency, trainers]);
+
+  // Reset trainer selection if current trainer is not available for selected competency
+  useEffect(() => {
+    const currentTrainerId = form.getValues("trainerUserId");
+    if (currentTrainerId && selectedCompetency) {
+      const isTrainerAvailable = availableTrainers.some(
+        (trainer) => trainer.id === currentTrainerId,
+      );
+      if (!isTrainerAvailable) {
+        form.setValue("trainerUserId", "");
+      }
+    }
+  }, [selectedCompetency, availableTrainers, form]);
+
   // Calculate current participant and spot left
   const currentParticipant = (form.getValues("learnerIds") || []).length;
   const spotLeft = Math.max(0, watchedCapacity - currentParticipant);
@@ -611,8 +643,9 @@ export function TrainingBatchForm({
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      // Reset learners when competency changes
+                      // Reset learners and trainer when competency changes
                       form.setValue("learnerIds", []);
+                      form.setValue("trainerUserId", "");
                     }}
                   >
                     <option value="">Select a competency and level</option>
@@ -637,9 +670,20 @@ export function TrainingBatchForm({
                 name="trainerUserId"
                 control={form.control}
                 render={({ field }) => (
-                  <Select id="trainer" value={field.value} onChange={field.onChange}>
-                    <option value="">Select a trainer</option>
-                    {trainers.map((trainer) => (
+                  <Select
+                    id="trainer"
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                    disabled={!selectedCompetency}
+                  >
+                    <option value="">
+                      {selectedCompetency
+                        ? "Select a trainer"
+                        : "Select a competency first"}
+                    </option>
+                    {availableTrainers.map((trainer) => (
                       <option key={trainer.id} value={trainer.id}>
                         {trainer.name}
                       </option>
@@ -650,6 +694,11 @@ export function TrainingBatchForm({
               {form.formState.errors.trainerUserId && (
                 <p className="text-xs text-red-400">
                   {form.formState.errors.trainerUserId.message}
+                </p>
+              )}
+              {selectedCompetency && availableTrainers.length === 0 && (
+                <p className="text-xs text-yellow-400">
+                  No trainers assigned to this competency. Please assign trainers in the competency settings.
                 </p>
               )}
             </div>

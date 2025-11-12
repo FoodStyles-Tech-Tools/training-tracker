@@ -221,6 +221,8 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   trainingBatchesAsLearner: many(trainingBatchLearners),
   attendance: many(trainingBatchAttendanceSessions),
   homework: many(trainingBatchHomeworkSessions),
+  validationProjectApprovals: many(validationProjectApproval),
+  validationProjectApprovalLogs: many(validationProjectApprovalLog),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -720,3 +722,80 @@ export type TrainingBatchSession = typeof trainingBatchSessions.$inferSelect;
 export type TrainingBatchLearner = typeof trainingBatchLearners.$inferSelect;
 export type TrainingBatchAttendanceSession = typeof trainingBatchAttendanceSessions.$inferSelect;
 export type TrainingBatchHomeworkSession = typeof trainingBatchHomeworkSessions.$inferSelect;
+
+// Validation Project Approval tables
+export const validationProjectApproval = pgTable(
+  "validation_project_approval",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    vpaId: text("vpa_id").notNull(),
+    trId: text("tr_id"),
+    requestedDate: timestamp("requested_date", { mode: "date" }),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    projectDetails: text("project_details"),
+    status: integer("status").notNull().default(0), // 0 = Pending Project Submission, 1 = Pending Validation Project Approval, 2 = Approved, 3 = Rejected, 4 = Resubmit for Re-validation
+    assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
+    responseDue: timestamp("response_due", { mode: "date" }),
+    responseDate: timestamp("response_date", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (vpa) => ({
+    vpaIdIdx: uniqueIndex("validation_project_approval_vpa_id_idx").on(vpa.vpaId),
+    learnerUserIdIdx: index("validation_project_approval_learner_user_id_idx").on(vpa.learnerUserId),
+    competencyLevelIdIdx: index("validation_project_approval_competency_level_id_idx").on(vpa.competencyLevelId),
+    assignedToIdx: index("validation_project_approval_assigned_to_idx").on(vpa.assignedTo),
+  }),
+);
+
+export const validationProjectApprovalLog = pgTable(
+  "validation_project_approval_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    vpaId: text("vpa_id").notNull(),
+    status: integer("status"),
+    projectDetailsText: text("project_details_text"),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (log) => ({
+    vpaIdIdx: index("validation_project_approval_log_vpa_id_idx").on(log.vpaId),
+    updatedByIdx: index("validation_project_approval_log_updated_by_idx").on(log.updatedBy),
+  }),
+);
+
+export const validationProjectApprovalRelations = relations(validationProjectApproval, ({ one }) => ({
+  learner: one(users, {
+    fields: [validationProjectApproval.learnerUserId],
+    references: [users.id],
+  }),
+  competencyLevel: one(competencyLevels, {
+    fields: [validationProjectApproval.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  assignedUser: one(users, {
+    fields: [validationProjectApproval.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export const validationProjectApprovalLogRelations = relations(validationProjectApprovalLog, ({ one }) => ({
+  updatedByUser: one(users, {
+    fields: [validationProjectApprovalLog.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export type ValidationProjectApproval = typeof validationProjectApproval.$inferSelect;
+export type ValidationProjectApprovalLog = typeof validationProjectApprovalLog.$inferSelect;
