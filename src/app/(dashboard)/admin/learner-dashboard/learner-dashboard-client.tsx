@@ -146,7 +146,7 @@ export function LearnerDashboardClient({
   const isProjectSubmitted = currentProjectApproval && currentProjectApproval.status > 0;
 
   // Check if all requirements are met
-  // A requirement is met if the user has a training request with status >= 5 (Sessions Completed or higher)
+  // A requirement is met if the user has a training request with status = 8 (Training Completed)
   const areRequirementsMet = useMemo(() => {
     if (!selectedCompetency || !selectedLevelData) return true; // No requirements = requirements met
     
@@ -159,8 +159,8 @@ export function LearnerDashboardClient({
         (tr) => tr.competencyLevelId === requiredLevelId,
       );
       
-      // Requirement is met if training request exists and status >= 5
-      return trainingRequest && trainingRequest.status >= 5;
+      // Requirement is met if training request exists and status = 8 (Training Completed)
+      return trainingRequest && trainingRequest.status === 8;
     });
   }, [selectedCompetency, trainingRequests, selectedLevelData]);
 
@@ -592,8 +592,8 @@ export function LearnerDashboardClient({
                 </Card>
               )}
 
-              {/* Project Submission - Only show if training request status is 5 */}
-              {currentTrainingRequest && currentTrainingRequest.status === 5 && (
+              {/* Project Submission - Show if training request status is 5 (Sessions Completed) or 8 (Training Completed) */}
+              {currentTrainingRequest && (currentTrainingRequest.status === 5 || currentTrainingRequest.status === 8) && (
                 <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
                   <CardContent className="space-y-4 p-6">
                     <h3 className="text-lg font-semibold text-white">Submit Project</h3>
@@ -647,12 +647,12 @@ export function LearnerDashboardClient({
                         <label className="text-sm font-medium text-slate-200">
                           Training Plan Document
                         </label>
-                        <div className="text-sm text-slate-300">
+                        <div className="text-sm">
                           <a
                             href={selectedLevelData.trainingPlanDocument}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-400 underline"
+                            className="!text-blue-400 hover:!text-blue-300 underline"
                           >
                             {selectedLevelData.trainingPlanDocument}
                           </a>
