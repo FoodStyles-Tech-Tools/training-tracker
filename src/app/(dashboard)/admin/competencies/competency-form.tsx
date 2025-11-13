@@ -79,7 +79,7 @@ const formSchema = z.object({
       },
     ),
   trainerIds: z.array(z.string()).min(1, "At least one trainer is required"),
-  requirementLevelIds: z.array(z.string()).optional().default([]),
+  requirementLevelIds: z.array(z.string()).default([]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
