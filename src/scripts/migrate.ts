@@ -10,6 +10,12 @@ const isProduction = process.env.NODE_ENV === "production";
 const hasSSLMode = env.DATABASE_URL.includes("sslmode");
 const shouldUseSSL = isVercel || isProduction || hasSSLMode;
 
+// Remove sslmode from connection string if present, as it conflicts with our SSL config
+// We'll handle SSL purely through the Pool configuration
+const connectionString = shouldUseSSL 
+  ? env.DATABASE_URL.replace(/[?&]sslmode=[^&]*/g, '').replace(/\?$/, '')
+  : env.DATABASE_URL;
+
 // Debug logging (only in Vercel to avoid cluttering local logs)
 if (isVercel) {
   console.log("SSL Configuration:", {
@@ -17,20 +23,21 @@ if (isVercel) {
     NODE_ENV: process.env.NODE_ENV,
     hasSSLMode,
     shouldUseSSL,
+    connectionStringModified: connectionString !== env.DATABASE_URL,
     sslConfig: shouldUseSSL ? { rejectUnauthorized: false } : undefined,
   });
 }
 
 const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString,
   // Connection pool settings for production
   max: 1, // Use single connection for migrations
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
   // SSL configuration for self-signed certificates
   // CRITICAL: Always enable SSL with rejectUnauthorized: false in Vercel/production
-  // This must be set as an object, not undefined, to override connection string SSL settings
-  ...(shouldUseSSL && { ssl: { rejectUnauthorized: false } }),
+  // Connection string SSL params are removed above to prevent conflicts
+  ssl: shouldUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 
 const db = drizzle(pool);
