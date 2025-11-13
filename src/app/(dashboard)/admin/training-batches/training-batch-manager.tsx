@@ -3,12 +3,12 @@
 import { useState, useMemo, useTransition, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
+import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Pagination } from "@/components/admin/pagination";
 import type { TrainingBatch, Competency, User } from "@/db/schema";
@@ -608,13 +608,15 @@ export function TrainingBatchManager({
                           >
                             Edit
                           </Link>
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={() => setSelectedBatchForDelete(batch.id)}
-                            className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            className="border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -701,14 +703,16 @@ export function TrainingBatchManager({
                     >
                       Remove from Batch
                     </button>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => setDropOffLearnerConfirm({ learnerId: learner.id, learnerName: learner.name })}
                       disabled={isPending}
-                      className="rounded-md border border-red-700 bg-red-800/50 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50"
+                      className="border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
                     >
                       Drop-off
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))
@@ -731,7 +735,8 @@ export function TrainingBatchManager({
         }}
         onCancel={() => setSelectedBatchForDelete(null)}
         confirmProps={{
-          className: "bg-red-600 hover:bg-red-700",
+          variant: "outline",
+          className: "border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200",
         }}
       />
 
@@ -770,7 +775,7 @@ export function TrainingBatchManager({
         }}
         onCancel={() => setDropOffLearnerConfirm(null)}
         confirmProps={{
-          className: "bg-red-600 hover:bg-red-700",
+          className: "bg-red-600 hover:bg-red-700 force-white-text",
           disabled: isPending,
         }}
         cancelProps={{

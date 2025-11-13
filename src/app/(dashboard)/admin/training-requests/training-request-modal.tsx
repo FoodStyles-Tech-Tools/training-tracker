@@ -680,7 +680,7 @@ export function TrainingRequestModal({
           <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} className="force-white-text">
             {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
