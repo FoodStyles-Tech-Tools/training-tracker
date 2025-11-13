@@ -181,7 +181,9 @@ export async function createCompetencyAction(input: CompetencyFormInput) {
     );
   }
 
-  // Create requirement associations (manually set requirements)
+  // Only store manually selected requirements from the form
+  // Default requirements (Competent requires Basic, Advanced requires Basic and Competent)
+  // are handled programmatically in the learner dashboard, not stored in the database
   if (parsed.requirementLevelIds && parsed.requirementLevelIds.length > 0) {
     await db.insert(schema.competencyRequirements).values(
       parsed.requirementLevelIds.map((levelId) => ({
@@ -189,51 +191,6 @@ export async function createCompetencyAction(input: CompetencyFormInput) {
         requiredCompetencyLevelId: levelId,
       })),
     );
-  }
-
-  // Add default requirements automatically:
-  // - Competent level requires Basic level (of the same competency)
-  // - Advanced level requires Competent level (of the same competency)
-  const basicLevelId = levelMap.get("Basic");
-  const competentLevelId = levelMap.get("Competent");
-  const advancedLevelId = levelMap.get("Advanced");
-
-  const defaultRequirements: Array<{ competencyId: string; requiredCompetencyLevelId: string }> = [];
-
-  // If Competent level exists and Basic level exists, add requirement: Competent requires Basic
-  if (competentLevelId && basicLevelId) {
-    defaultRequirements.push({
-      competencyId: competency.id,
-      requiredCompetencyLevelId: basicLevelId,
-    });
-  }
-
-  // If Advanced level exists and Competent level exists, add requirement: Advanced requires Competent
-  if (advancedLevelId && competentLevelId) {
-    defaultRequirements.push({
-      competencyId: competency.id,
-      requiredCompetencyLevelId: competentLevelId,
-    });
-  }
-
-  // Insert default requirements (using insert ignore pattern to avoid duplicates)
-  if (defaultRequirements.length > 0) {
-    // Get existing requirements to avoid duplicates
-    const existingRequirements = await db.query.competencyRequirements.findMany({
-      where: eq(schema.competencyRequirements.competencyId, competency.id),
-    });
-    const existingRequirementLevelIds = new Set(
-      existingRequirements.map((r) => r.requiredCompetencyLevelId),
-    );
-
-    // Only insert requirements that don't already exist
-    const newDefaultRequirements = defaultRequirements.filter(
-      (req) => !existingRequirementLevelIds.has(req.requiredCompetencyLevelId),
-    );
-
-    if (newDefaultRequirements.length > 0) {
-      await db.insert(schema.competencyRequirements).values(newDefaultRequirements);
-    }
   }
 
     // Log activity
@@ -283,23 +240,16 @@ export async function updateCompetencyAction(id: string, input: CompetencyFormIn
   // Delete existing levels
   await db.delete(schema.competencyLevels).where(eq(schema.competencyLevels.competencyId, id));
 
-  // Create new levels and track their IDs
-  const levelMap = new Map<string, string>(); // Map level name to level ID
+  // Create new levels
   for (const level of parsed.levels) {
-    const [levelRecord] = await db
-      .insert(schema.competencyLevels)
-      .values({
-        competencyId: id,
-        name: level.name,
-        trainingPlanDocument: level.trainingPlanDocument.trim(),
-        teamKnowledge: cleanHtmlContent(level.teamKnowledge) || "",
-        eligibilityCriteria: cleanHtmlContent(level.eligibilityCriteria) || "",
-        verification: cleanHtmlContent(level.verification) || "",
-      })
-      .returning();
-    if (levelRecord) {
-      levelMap.set(level.name, levelRecord.id);
-    }
+    await db.insert(schema.competencyLevels).values({
+      competencyId: id,
+      name: level.name,
+      trainingPlanDocument: level.trainingPlanDocument.trim(),
+      teamKnowledge: cleanHtmlContent(level.teamKnowledge) || "",
+      eligibilityCriteria: cleanHtmlContent(level.eligibilityCriteria) || "",
+      verification: cleanHtmlContent(level.verification) || "",
+    });
   }
 
   // Delete existing trainer associations
@@ -320,58 +270,22 @@ export async function updateCompetencyAction(id: string, input: CompetencyFormIn
     .delete(schema.competencyRequirements)
     .where(eq(schema.competencyRequirements.competencyId, id));
 
-  // Create new requirement associations (manually set requirements)
+  // Only store manually selected requirements from the form
+  // These are from different competencies, so their level IDs don't change
+  // Default requirements (Competent requires Basic, Advanced requires Basic and Competent)
+  // are handled programmatically in the learner dashboard, not stored in the database
   if (parsed.requirementLevelIds && parsed.requirementLevelIds.length > 0) {
-    await db.insert(schema.competencyRequirements).values(
-      parsed.requirementLevelIds.map((levelId) => ({
-        competencyId: id,
-        requiredCompetencyLevelId: levelId,
-      })),
-    );
-  }
-
-  // Add default requirements automatically:
-  // - Competent level requires Basic level (of the same competency)
-  // - Advanced level requires Competent level (of the same competency)
-  const basicLevelId = levelMap.get("Basic");
-  const competentLevelId = levelMap.get("Competent");
-  const advancedLevelId = levelMap.get("Advanced");
-
-  const defaultRequirements: Array<{ competencyId: string; requiredCompetencyLevelId: string }> = [];
-
-  // If Competent level exists and Basic level exists, add requirement: Competent requires Basic
-  if (competentLevelId && basicLevelId) {
-    defaultRequirements.push({
-      competencyId: id,
-      requiredCompetencyLevelId: basicLevelId,
-    });
-  }
-
-  // If Advanced level exists and Competent level exists, add requirement: Advanced requires Competent
-  if (advancedLevelId && competentLevelId) {
-    defaultRequirements.push({
-      competencyId: id,
-      requiredCompetencyLevelId: competentLevelId,
-    });
-  }
-
-  // Insert default requirements (using insert ignore pattern to avoid duplicates)
-  if (defaultRequirements.length > 0) {
-    // Get existing requirements to avoid duplicates
-    const existingRequirements = await db.query.competencyRequirements.findMany({
-      where: eq(schema.competencyRequirements.competencyId, id),
-    });
-    const existingRequirementLevelIds = new Set(
-      existingRequirements.map((r) => r.requiredCompetencyLevelId),
-    );
-
-    // Only insert requirements that don't already exist
-    const newDefaultRequirements = defaultRequirements.filter(
-      (req) => !existingRequirementLevelIds.has(req.requiredCompetencyLevelId),
-    );
-
-    if (newDefaultRequirements.length > 0) {
-      await db.insert(schema.competencyRequirements).values(newDefaultRequirements);
+    try {
+      await db.insert(schema.competencyRequirements).values(
+        parsed.requirementLevelIds.map((levelId) => ({
+          competencyId: id,
+          requiredCompetencyLevelId: levelId,
+        })),
+      );
+    } catch (error) {
+      console.error("Error inserting requirements:", error);
+      console.error("Requirement level IDs:", parsed.requirementLevelIds);
+      throw error;
     }
   }
 

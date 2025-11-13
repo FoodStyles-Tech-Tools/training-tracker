@@ -172,13 +172,14 @@ export async function submitHomeworkAction(
     }
 
     // Upsert homework submission
+    // Set completed to false - trainer will mark it as completed after checking
     await db
       .insert(schema.trainingBatchHomeworkSessions)
       .values({
         trainingBatchId,
         learnerUserId: session.user.id,
         sessionId,
-        completed: true,
+        completed: false,
         homeworkUrl,
       })
       .onConflictDoUpdate({
@@ -188,7 +189,8 @@ export async function submitHomeworkAction(
           schema.trainingBatchHomeworkSessions.sessionId,
         ],
         set: {
-          completed: true,
+          // Don't change completed status - only update the URL
+          // Trainer will mark it as completed after checking
           homeworkUrl,
         },
       });

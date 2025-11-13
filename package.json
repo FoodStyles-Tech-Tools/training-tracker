@@ -16,7 +16,9 @@
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset-tr": "tsx scripts/reset-training-requests.ts",
     "db:generate-test-tr": "tsx scripts/generate-test-training-requests.ts",
-    "db:apply-default-requirements": "tsx scripts/apply-default-requirements.ts"
+    "db:apply-default-requirements": "tsx scripts/apply-default-requirements.ts",
+    "db:inject-competency-requirements": "tsx src/scripts/inject-competency-requirements.ts",
+    "db:clear-competency-requirements": "tsx src/scripts/clear-competency-requirements.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
