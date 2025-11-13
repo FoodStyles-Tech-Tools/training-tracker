@@ -9,6 +9,11 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ValidationScheduleRequest, User } from "@/db/schema";
+import type { rolesList } from "@/db/schema";
+
+type UserWithRole = User & {
+  role: typeof rolesList.$inferSelect | null;
+};
 
 // Helper functions to convert dates to/from UK timezone for display
 // Converts a date to UK timezone representation for display in flatpickr
@@ -127,7 +132,7 @@ interface VSRModalProps {
   open: boolean;
   onClose: () => void;
   vsr: VSRWithRelations;
-  users: User[];
+  users: UserWithRole[];
   statusLabels: string[];
   onSave: (data: Partial<ValidationScheduleRequest>) => Promise<void>;
   isPending: boolean;
@@ -432,7 +437,7 @@ export function VSRModal({
     const timeoutId = setTimeout(() => {
       // Initialize flatpickr for each date input
       const initFlatpickr = (
-        ref: React.RefObject<HTMLInputElement>,
+        ref: React.RefObject<HTMLInputElement | null>,
         fpRef: React.RefObject<flatpickr.Instance | null>,
         initialValue: Date | null,
         readOnly = false,
@@ -458,7 +463,7 @@ export function VSRModal({
         }
 
         try {
-          const fp = flatpickr(ref.current, {
+          const fp = flatpickr(ref.current as any, {
             dateFormat: enableTime ? "d M Y h:i K" : "d M Y",
             enableTime: enableTime,
             time_24hr: false,
@@ -467,12 +472,12 @@ export function VSRModal({
             appendTo: document.body, // Append to body to avoid z-index issues
             defaultDate: initialValue || undefined,
             // Force formatting on ready
-            onReady: function(selectedDates, dateStr, instance) {
+            onReady: function(selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) {
               if (selectedDates.length > 0) {
                 instance.setDate(selectedDates[0], false);
               }
             },
-          });
+          } as any);
           ref.current.dataset.flatpickr = "true";
           flatpickrInstances.push(fp);
           fpRef.current = fp; // Store instance for date retrieval

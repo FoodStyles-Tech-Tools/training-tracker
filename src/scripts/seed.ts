@@ -69,12 +69,14 @@ async function ensureUser({
   name,
   discordId,
   roleId,
+  department = "curator",
 }: {
   email: string;
   password: string;
   name: string;
   discordId?: string;
   roleId: string;
+  department?: "curator" | "scraping";
 }) {
   const existing = await db.query.users.findFirst({
     where: eq(schema.users.email, email),
@@ -130,6 +132,7 @@ async function ensureUser({
       email,
       discordId,
       roleId,
+      department,
       emailVerified: true,
     })
     .returning();

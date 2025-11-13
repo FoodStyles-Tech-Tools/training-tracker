@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and, gte, lte, desc, count } from "drizzle-orm";
+import { getTableColumns } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
   const [results, [{ value: countVal } = { value: 0 }]] = await Promise.all([
     db
       .select({
-        ...schema.activityLog,
+        ...getTableColumns(schema.activityLog),
         userName: schema.users.name,
         userEmail: schema.users.email,
       })

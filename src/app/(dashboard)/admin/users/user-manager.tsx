@@ -28,7 +28,7 @@ const formSchema = z.object({
   discordId: z.string().optional(),
   roleId: z.string().min(1, "Select a role"),
   status: z.enum(["active", "inactive"]).optional(),
-  department: z.enum(["curator", "scraping"], { required_error: "Select a department" }),
+  department: z.enum(["curator", "scraping"], { error: "Select a department" }),
   googleCalendarTag: z.string().optional(),
   password: z.string().optional(),
 });
@@ -579,7 +579,12 @@ export function UserManager({ users = [], roles = [], ability }: UserManagerProp
               <Select
                 id="department"
                 value={form.watch("department") ?? ""}
-                onChange={(event) => form.setValue("department", event.target.value as "curator" | "scraping" | undefined, { shouldDirty: true })}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "curator" || value === "scraping") {
+                    form.setValue("department", value, { shouldDirty: true });
+                  }
+                }}
                 disabled={(editingUserId ? !ability.canEdit : !ability.canAdd) || isPending}
               >
                 <option value="">Select a department</option>

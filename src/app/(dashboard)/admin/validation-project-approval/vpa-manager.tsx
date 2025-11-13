@@ -212,8 +212,16 @@ export function VPAManager({
             bValue = b.vpaId;
             break;
           case "submittedDate":
-            aValue = a.requestedDate instanceof Date ? a.requestedDate : new Date(a.requestedDate);
-            bValue = b.requestedDate instanceof Date ? b.requestedDate : new Date(b.requestedDate);
+            aValue = a.requestedDate instanceof Date 
+              ? a.requestedDate 
+              : a.requestedDate 
+                ? new Date(a.requestedDate) 
+                : null;
+            bValue = b.requestedDate instanceof Date 
+              ? b.requestedDate 
+              : b.requestedDate 
+                ? new Date(b.requestedDate) 
+                : null;
             break;
           case "name":
             aValue = a.learner.name.toLowerCase();

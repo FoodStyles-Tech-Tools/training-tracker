@@ -76,7 +76,8 @@ export const QuillEditor = React.forwardRef<HTMLDivElement, QuillEditorProps>(
       
       // If it has block elements but might have <br> tags that should be converted
       // Replace <br> tags with proper spacing in paragraphs
-      return html.replace(/(<p[^>]*>)(.*?)(<\/p>)/gis, (match, openTag, content, closeTag) => {
+      // Use [\s\S] instead of . with s flag for ES2017 compatibility
+      return html.replace(/(<p[^>]*>)([\s\S]*?)(<\/p>)/gi, (match, openTag, content, closeTag) => {
         // Replace <br> with closing and opening paragraph tags for better spacing
         const processedContent = content.replace(/<br\s*\/?>/gi, "</p><p>");
         return `${openTag}${processedContent}${closeTag}`;
@@ -217,12 +218,12 @@ export const QuillEditor = React.forwardRef<HTMLDivElement, QuillEditorProps>(
       if (quillInstanceRef.current && isInitializedRef.current) {
         quillInstanceRef.current.enable(!disabled);
         // Hide/show toolbar based on disabled state
-        const toolbar = editorRef.current?.querySelector(".ql-toolbar");
-        if (toolbar) {
+        const toolbarElement = editorRef.current?.querySelector(".ql-toolbar");
+        if (toolbarElement && toolbarElement instanceof HTMLElement) {
           if (disabled) {
-            toolbar.style.display = "none";
+            toolbarElement.style.display = "none";
           } else {
-            toolbar.style.display = "";
+            toolbarElement.style.display = "";
           }
         }
       }
