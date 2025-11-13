@@ -216,7 +216,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
 
       {message ? <Alert variant={message.tone}>{message.text}</Alert> : null}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => onSubmit(values, false))} className="space-y-6">
         <Card>
           <CardContent className="space-y-6 p-6">
             <div className="space-y-2">
