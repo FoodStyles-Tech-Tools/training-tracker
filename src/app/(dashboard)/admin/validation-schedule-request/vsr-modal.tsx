@@ -194,15 +194,8 @@ export function VSRModal({
     }
     const selectedUser = users.find((u) => u.id === validatorOpsId);
     if (selectedUser?.googleCalendarTag) {
-      // Use Google Calendar Appointment Scheduling format with UK timezone
-      // Note: Google Calendar Appointment Scheduling may show times based on:
-      // 1. The schedule owner's timezone (set when creating the schedule)
-      // 2. The viewer's Google account timezone settings
-      // The ctz parameter may not always override these settings
-      const timezone = encodeURIComponent("Europe/London");
-      // Use ctz parameter (standard Google Calendar timezone parameter)
-      // Format: ctz=Europe%2FLondon (URL encoded)
-      return `https://calendar.google.com/calendar/appointments/schedules/${selectedUser.googleCalendarTag}?gv=true&ctz=${timezone}`;
+      // Use exact Google Calendar Appointment Scheduling embed format
+      return `https://calendar.google.com/calendar/appointments/schedules/${selectedUser.googleCalendarTag}?gv=true`;
     }
     return null;
   };
@@ -780,15 +773,29 @@ export function VSRModal({
               {showCalendarSection && calendarUrl && (
                 <div className="space-y-2">
                   <Label>Calendar</Label>
-                  <iframe
-                    key={calendarUrl}
-                    src={calendarUrl}
-                    style={{ border: 0 }}
-                    width="100%"
-                    height="600"
-                    frameBorder="0"
-                    className="rounded-md"
-                  />
+                  <div className="calendar-iframe-wrapper">
+                    <iframe
+                      key={calendarUrl}
+                      src={calendarUrl}
+                      style={{
+                        border: 0,
+                        borderWidth: 0,
+                        borderStyle: 'none',
+                        borderColor: 'transparent',
+                        margin: 0,
+                        padding: 0,
+                        display: 'block',
+                        width: '100%',
+                        height: '600px',
+                        background: '#ffffff',
+                        backgroundColor: '#ffffff',
+                      }}
+                      width="100%"
+                      height="600"
+                      frameBorder="0"
+                      allow="calendar"
+                    />
+                  </div>
                 </div>
               )}
             </div>

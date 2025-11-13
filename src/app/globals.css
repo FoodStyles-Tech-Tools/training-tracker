@@ -24,7 +24,7 @@ a {
   text-decoration: none;
 }
 
-* {
+*:not(iframe) {
   border-color: #1e293b;
 }
 
@@ -394,4 +394,71 @@ a {
 .flatpickr-time input[readonly] {
   cursor: default !important;
   opacity: 0.6 !important;
+}
+
+/* Isolate Google Calendar iframe from parent CSS */
+/* First, exclude iframes from universal selector */
+iframe {
+  border-color: transparent !important;
+}
+
+/* Specific isolation for calendar iframe container */
+.calendar-iframe-wrapper {
+  /* Create isolation context */
+  isolation: isolate;
+  contain: layout style paint;
+  /* Reset any inherited styles */
+  all: unset;
+  display: block;
+  width: 100%;
+  /* White background fill */
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  /* Prevent any CSS variables from leaking */
+  --background: initial;
+  --foreground: initial;
+  --color-background: initial;
+  --color-foreground: initial;
+}
+
+.calendar-iframe-wrapper iframe {
+  /* Complete style reset - override everything */
+  /* Use unset instead of initial to avoid breaking iframe functionality */
+  border: 0 !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: initial !important;
+  font-family: initial !important;
+  font-size: initial !important;
+  font-weight: initial !important;
+  line-height: initial !important;
+  letter-spacing: initial !important;
+  text-decoration: none !important;
+  text-transform: initial !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  /* Ensure display properties */
+  display: block !important;
+  width: 100% !important;
+  height: 600px !important;
+  /* Override any Tailwind or global styles */
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: auto !important;
+  /* Reset any transform or filter */
+  transform: none !important;
+  filter: none !important;
+  /* Reset any transition or animation */
+  transition: none !important;
+  animation: none !important;
 }
