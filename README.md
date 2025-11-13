@@ -2,7 +2,7 @@
 
 ## Tech Stack
 
-- Next.js 16 (App Router) + React 25.1.0
+- Next.js 16 (App Router) + React 25.1.0+
 - TypeScript 5 and ESLint for type safety and linting
 - Tailwind CSS 4 with `@tailwindcss/postcss` for styling
 - Drizzle ORM with PostgreSQL for data access
@@ -31,10 +31,17 @@
    ```bash
    npm install
    ```
-5. Apply the database schema using Drizzle:
+5. Apply the database migrations (recommended for new installations):
    ```bash
-   npm run db:push
+   npm run db:migrate
    ```
+   
+   **Note:** 
+   - For new server installations, use `db:migrate` instead of `db:push`
+   - Works perfectly on empty databases - Drizzle automatically creates the migration tracking table
+   - The `db:migrate` command applies all migrations in order and tracks which ones 
+     have been applied, making it safe to run multiple times
+   - Use `db:push` only for development when you want to sync schema changes directly
 6. (Optional) Seed development data once the schema is in place:
    ```bash
    npm run db:seed
@@ -68,7 +75,8 @@ Run these through `npm run <script>`:
 - `start` – run the production build locally.
 - `lint` – lint the project with ESLint.
 - `db:generate` – regenerate Drizzle schema types (after modifying `drizzle` migrations).
-- `db:push` – sync the local database schema.
+- `db:migrate` – apply all database migrations in order (recommended for new installations).
+- `db:push` – sync the local database schema directly (use only for development).
 - `db:studio` – open the Drizzle Studio web UI.
 - `db:seed` – populate the database with development fixtures.
 
@@ -78,8 +86,30 @@ Drizzle migrations live under `drizzle/`. Whenever you make schema changes:
 
 1. Update the schema definitions in `src/db` (or the relevant directory).
 2. Generate SQL migrations with `npm run db:generate`.
-3. Apply them using `npm run db:push` and verify in Drizzle Studio (`npm run db:studio`).
+3. Apply them using `npm run db:migrate` (for production/new installations) or `npm run db:push` (for development only).
+4. Verify in Drizzle Studio (`npm run db:studio`).
+
+### Migration vs Push
+
+- **`db:migrate`** - Applies migrations in order, tracks which ones have been applied, and is safe to run multiple times. **Use this for new server installations and production deployments.**
+- **`db:push`** - Directly syncs the schema without tracking migrations. Can cause errors if the database already has constraints. **Use this only for local development when you want to quickly sync schema changes.**
 
 ## Deployment
 
 The app can be deployed to any platform that supports Node.js. Vercel is the default target for Next.js projects, but ensure environment variables and your PostgreSQL connection are configured for the target environment.
+
+### Vercel Deployment
+
+When deploying to Vercel, database migrations run automatically during the build process. The `build` script includes `db:migrate`, which ensures your database schema is always up-to-date with your code.
+
+**Important:** 
+- Make sure `DATABASE_URL` is set in your Vercel environment variables
+- Migrations run before the Next.js build, so any schema changes will be applied automatically
+- If migrations fail, the build will fail, preventing deployment with an out-of-sync database
+- The migration system tracks which migrations have been applied, so it's safe to run multiple times
+
+**For future database changes:**
+1. Update your schema in `src/db/schema.ts`
+2. Generate migrations: `npm run db:generate`
+3. Commit the migration files in `drizzle/`
+4. Push to your repository - Vercel will automatically run migrations during deployment

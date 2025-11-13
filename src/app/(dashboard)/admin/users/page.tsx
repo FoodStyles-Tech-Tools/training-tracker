@@ -30,17 +30,5 @@ export default async function UsersPage() {
       canDelete: false,
     };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Users</h1>
-          <p className="text-sm text-slate-400">
-            Invite teammates and manage their access levels across modules.
-          </p>
-        </div>
-      </div>
-      <UserManager users={users} roles={roles} ability={ability} />
-    </div>
-  );
+  return <UserManager users={users} roles={roles} ability={ability} />;
 }

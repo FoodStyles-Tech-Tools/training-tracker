@@ -1,0 +1,1 @@
+ALTER TABLE "competencies" ADD COLUMN IF NOT EXISTS "description" text;
