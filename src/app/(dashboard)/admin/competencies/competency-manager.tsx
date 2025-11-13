@@ -4,7 +4,6 @@ import { useMemo, useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 
-import type { Competency } from "@/db/schema";
 import { TableControls, SortOption } from "@/components/admin/table-controls";
 import { Pagination } from "@/components/admin/pagination";
 import { Alert } from "@/components/ui/alert";
@@ -16,7 +15,11 @@ import { Select } from "@/components/ui/select";
 
 import { deleteCompetencyAction } from "./actions";
 
-type CompetencyWithTrainers = Competency & {
+type CompetencySummary = {
+  id: string;
+  name: string;
+  status: number;
+  updatedAt: Date;
   trainers: Array<{ id: string; name: string }>;
 };
 
@@ -28,7 +31,7 @@ type PermissionAbility = {
 };
 
 interface CompetencyManagerProps {
-  competencies: CompetencyWithTrainers[];
+  competencies: CompetencySummary[];
   users: Array<{ id: string; name: string }>;
   competencyLevels: Array<{
     id: string;
@@ -57,7 +60,7 @@ export function CompetencyManager({
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   const [isPending, startTransition] = useTransition();
   const [pendingDeleteCompetency, setPendingDeleteCompetency] =
-    useState<CompetencyWithTrainers | null>(null);
+    useState<CompetencySummary | null>(null);
   const [searchName, setSearchName] = useState("");
   const [searchTrainer, setSearchTrainer] = useState("");
   const [searchStatus, setSearchStatus] = useState<string>("");
@@ -89,7 +92,7 @@ export function CompetencyManager({
     }
   }, [searchParams, router]);
 
-  const requestDeleteCompetency = (competency: CompetencyWithTrainers) => {
+  const requestDeleteCompetency = (competency: CompetencySummary) => {
     setMessage(null);
     setPendingDeleteCompetency(competency);
   };
