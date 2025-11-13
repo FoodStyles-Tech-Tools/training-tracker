@@ -226,7 +226,7 @@ export function VPAModal({
     const timeoutId = setTimeout(() => {
       // Initialize flatpickr for each date input
       const initFlatpickr = (
-        ref: React.RefObject<HTMLInputElement>,
+        ref: React.RefObject<HTMLInputElement | null>,
         fpRef: React.RefObject<flatpickr.Instance | null>,
         initialValue: Date | null,
         readOnly = false,
@@ -240,19 +240,19 @@ export function VPAModal({
         }
 
         try {
-          const fp = flatpickr(ref.current, {
+          const fp = flatpickr(ref.current as any, {
             dateFormat: "d M Y", // Format: "20 Nov 2025"
             allowInput: !readOnly,
             clickOpens: !readOnly,
             appendTo: document.body, // Append to body to avoid z-index issues
             defaultDate: initialValue || undefined,
             // Force formatting on ready
-            onReady: function(selectedDates, dateStr, instance) {
+            onReady: function(selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) {
               if (selectedDates.length > 0) {
                 instance.setDate(selectedDates[0], false);
               }
             },
-          });
+          } as any);
           ref.current.dataset.flatpickr = "true";
           flatpickrInstances.push(fp);
           fpRef.current = fp; // Store instance for date retrieval

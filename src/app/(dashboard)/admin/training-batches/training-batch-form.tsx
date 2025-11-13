@@ -68,8 +68,8 @@ const trainingBatchSchema = z
     estimatedStart: z.date().optional().nullable(),
     batchStartDate: z.date().optional().nullable(),
     capacity: z.number().int().min(1, "Capacity must be at least 1"),
-    learnerIds: z.array(z.string().uuid()).optional().default([]),
-    sessionDates: z.array(z.date().optional().nullable()).optional().default([]),
+    learnerIds: z.array(z.string().uuid()),
+    sessionDates: z.array(z.date().optional().nullable()),
   })
   .refine(
     (data) => {
@@ -263,7 +263,7 @@ export function TrainingBatchForm({
     const flatpickrInstances: flatpickr.Instance[] = [];
 
     const initFlatpickr = (
-      ref: React.RefObject<HTMLInputElement>,
+      ref: React.RefObject<HTMLInputElement | null>,
       fpRef: React.RefObject<flatpickr.Instance | null>,
       initialValue: Date | null,
       onChange: (date: Date) => void,
@@ -284,7 +284,7 @@ export function TrainingBatchForm({
       }
 
       try {
-        const fp = flatpickr(ref.current, {
+        const fp = flatpickr(ref.current as any, {
           dateFormat: "d M Y",
           theme: "dark",
           disableMobile: false,
@@ -292,19 +292,19 @@ export function TrainingBatchForm({
           allowInput: false,
           clickOpens: true,
           defaultDate: initialValue || undefined,
-          onChange: (selectedDates) => {
+          onChange: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
             if (selectedDates.length > 0) {
               onChange(selectedDates[0]);
             }
           },
-          onReady: (selectedDates, dateStr, instance) => {
+          onReady: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
             instance.input.addEventListener("mousedown", (e) => {
               if (document.activeElement === instance.input) {
                 e.preventDefault();
               }
             });
           },
-        });
+        } as any);
         ref.current.dataset.flatpickr = "true";
         flatpickrInstances.push(fp);
         fpRef.current = fp;
@@ -321,7 +321,7 @@ export function TrainingBatchForm({
         initFlatpickr(
           estimatedStartRef,
           estimatedStartFpRef,
-          estimatedStartValue,
+          estimatedStartValue ?? null,
           (date) => form.setValue("estimatedStart", date),
         );
       }
@@ -332,7 +332,7 @@ export function TrainingBatchForm({
         initFlatpickr(
           batchStartDateRef,
           batchStartDateFpRef,
-          batchStartDateValue,
+          batchStartDateValue ?? null,
           (date) => form.setValue("batchStartDate", date),
         );
       }
@@ -389,7 +389,7 @@ export function TrainingBatchForm({
 
             const initialDate = sessionDates[i - 1] || null;
             try {
-              const fp = flatpickr(sessionDateRef, {
+              const fp = flatpickr(sessionDateRef as any, {
                 dateFormat: "d M Y",
                 theme: "dark",
                 disableMobile: false,
@@ -397,7 +397,7 @@ export function TrainingBatchForm({
                 allowInput: false,
                 clickOpens: true,
                 defaultDate: initialDate || undefined,
-                onChange: (selectedDates) => {
+                onChange: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
                   if (selectedDates.length > 0) {
                     const date = selectedDates[0];
                     const currentSessionDates = form.getValues("sessionDates") || [];
@@ -410,14 +410,14 @@ export function TrainingBatchForm({
                     form.setValue("sessionDates", newSessionDates);
                   }
                 },
-                onReady: (selectedDates, dateStr, instance) => {
+                onReady: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
                   instance.input.addEventListener("mousedown", (e) => {
                     if (document.activeElement === instance.input) {
                       e.preventDefault();
                     }
                   });
                 },
-              });
+              } as any);
               sessionDateRef.dataset.flatpickr = "true";
               sessionDateFpRefs.current.set(i, fp);
             } catch (error) {

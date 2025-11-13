@@ -50,7 +50,7 @@ const competencyLevelSchema = z
 const formSchema = z.object({
   name: z.string().min(1, "Competency name is required"),
   description: z.string().optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "published"]),
   relevantLinks: z.string().optional(),
   levels: z
     .array(competencyLevelSchema)
@@ -79,7 +79,7 @@ const formSchema = z.object({
       },
     ),
   trainerIds: z.array(z.string()).min(1, "At least one trainer is required"),
-  requirementLevelIds: z.array(z.string()).optional().default([]),
+  requirementLevelIds: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -216,7 +216,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
 
       {message ? <Alert variant={message.tone}>{message.text}</Alert> : null}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((values) => onSubmit(values, false))} className="space-y-6">
         <Card>
           <CardContent className="space-y-6 p-6">
             <div className="space-y-2">

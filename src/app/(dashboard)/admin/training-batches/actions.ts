@@ -26,8 +26,8 @@ const trainingBatchSchema = z.object({
   estimatedStart: z.date().optional().nullable(),
   batchStartDate: z.date().optional().nullable(),
   capacity: z.number().int().min(1, "Capacity must be at least 1"),
-  learnerIds: z.array(z.string().uuid()).optional().default([]),
-  sessionDates: z.array(z.date().optional().nullable()).optional().default([]),
+  learnerIds: z.array(z.string().uuid()),
+  sessionDates: z.array(z.date().optional().nullable()),
 });
 
 const trainingBatchUpdateSchema = trainingBatchSchema.extend({
@@ -232,6 +232,7 @@ export async function updateTrainingBatchAction(
 
       // Update sessions if sessionCount changed
       if (parsed.sessionCount !== undefined && parsed.sessionCount !== currentBatch.sessionCount) {
+        const newSessionCount = parsed.sessionCount;
         // Get current sessions
         const currentSessions = await tx
           .select()
@@ -239,10 +240,10 @@ export async function updateTrainingBatchAction(
           .where(eq(schema.trainingBatchSessions.trainingBatchId, parsed.id))
           .orderBy(schema.trainingBatchSessions.sessionNumber);
 
-        if (parsed.sessionCount > currentSessions.length) {
+        if (newSessionCount > currentSessions.length) {
           // Add new sessions
           const newSessions = [];
-          for (let i = currentSessions.length + 1; i <= parsed.sessionCount; i++) {
+          for (let i = currentSessions.length + 1; i <= newSessionCount; i++) {
             newSessions.push({
               trainingBatchId: parsed.id,
               sessionNumber: i,
@@ -253,10 +254,10 @@ export async function updateTrainingBatchAction(
             });
           }
           await tx.insert(schema.trainingBatchSessions).values(newSessions);
-        } else if (parsed.sessionCount < currentSessions.length) {
+        } else if (newSessionCount < currentSessions.length) {
           // Remove extra sessions (delete from highest session number down)
           const sessionsToRemove = currentSessions
-            .filter((s) => s.sessionNumber > parsed.sessionCount)
+            .filter((s) => s.sessionNumber > newSessionCount)
             .map((s) => s.id);
 
           for (const sessionId of sessionsToRemove) {

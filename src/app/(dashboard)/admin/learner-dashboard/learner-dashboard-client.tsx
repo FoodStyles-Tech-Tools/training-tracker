@@ -18,8 +18,7 @@ import { X } from "lucide-react";
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
   requirements: Array<{
-    requiredLevel: {
-      id: string;
+    requiredLevel: CompetencyLevel & {
       competency: Competency;
     };
   }>;
@@ -325,10 +324,10 @@ export function LearnerDashboardClient({
   const hasLevelContent = (level: CompetencyLevel | undefined): boolean => {
     if (!level) return false;
     
-    const hasTrainingPlan = level.trainingPlanDocument && level.trainingPlanDocument.trim() !== "";
-    const hasTeamKnowledge = level.teamKnowledge && level.teamKnowledge.trim() !== "";
-    const hasEligibilityCriteria = level.eligibilityCriteria && level.eligibilityCriteria.trim() !== "";
-    const hasVerification = level.verification && level.verification.trim() !== "";
+    const hasTrainingPlan = !!level.trainingPlanDocument?.trim();
+    const hasTeamKnowledge = !!level.teamKnowledge?.trim();
+    const hasEligibilityCriteria = !!level.eligibilityCriteria?.trim();
+    const hasVerification = !!level.verification?.trim();
     
     return hasTrainingPlan || hasTeamKnowledge || hasEligibilityCriteria || hasVerification;
   };
