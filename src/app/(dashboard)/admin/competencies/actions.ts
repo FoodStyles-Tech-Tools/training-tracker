@@ -40,7 +40,7 @@ const competencyLevelSchema = z
 const competencySchema = z.object({
   name: z.string().min(1, "Competency name is required"),
   description: z.string().optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "published"]),
   relevantLinks: z.string().optional(),
   levels: z
     .array(competencyLevelSchema)
@@ -69,7 +69,7 @@ const competencySchema = z.object({
       },
     ),
   trainerIds: z.array(z.string().uuid()).min(1, "At least one trainer is required"),
-  requirementLevelIds: z.array(z.string().uuid()).optional().default([]),
+  requirementLevelIds: z.array(z.string().uuid()).default([]),
 });
 
 export type CompetencyFormInput = z.infer<typeof competencySchema>;

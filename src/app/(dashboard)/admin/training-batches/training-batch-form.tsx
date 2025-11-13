@@ -68,8 +68,8 @@ const trainingBatchSchema = z
     estimatedStart: z.date().optional().nullable(),
     batchStartDate: z.date().optional().nullable(),
     capacity: z.number().int().min(1, "Capacity must be at least 1"),
-    learnerIds: z.array(z.string().uuid()).optional().default([]),
-    sessionDates: z.array(z.date().optional().nullable()).optional().default([]),
+    learnerIds: z.array(z.string().uuid()).default([]),
+    sessionDates: z.array(z.date().optional().nullable()).default([]),
   })
   .refine(
     (data) => {
