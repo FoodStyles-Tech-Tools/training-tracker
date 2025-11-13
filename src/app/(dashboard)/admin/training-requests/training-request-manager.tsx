@@ -68,6 +68,7 @@ interface TrainingRequestManagerProps {
   competencies: Competency[];
   users: User[];
   statusLabels: string[];
+  canEdit: boolean;
 }
 
 export function TrainingRequestManager({
@@ -75,6 +76,7 @@ export function TrainingRequestManager({
   competencies,
   users,
   statusLabels,
+  canEdit,
 }: TrainingRequestManagerProps) {
   const [trainingRequests, setTrainingRequests] = useState<TrainingRequestWithRelations[]>(initialTrainingRequests);
   const [selectedRequest, setSelectedRequest] = useState<TrainingRequestWithRelations | null>(null);
@@ -707,13 +709,17 @@ export function TrainingRequestManager({
                       {formatDate(tr.requestedDate)}
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenModal(tr)}
-                        className="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                      >
-                        {tr.learner.name}
-                      </button>
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenModal(tr)}
+                          className="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                        >
+                          {tr.learner.name}
+                        </button>
+                      ) : (
+                        <span className="text-slate-100">{tr.learner.name}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-300">{tr.competencyLevel.competency.name}</td>
                     <td className="px-4 py-3">

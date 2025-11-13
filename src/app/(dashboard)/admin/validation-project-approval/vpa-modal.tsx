@@ -469,6 +469,7 @@ export function VPAModal({
           <div className="space-y-2 border-t border-slate-800/80 pt-4">
             <Label htmlFor="vpa-project-details">Project Details</Label>
             <QuillEditor
+              key={`vpa-editor-${vpa.id}-${open}`}
               id="vpa-project-details"
               value={formData.projectDetails}
               onChange={(value) => setFormData({ ...formData, projectDetails: value })}

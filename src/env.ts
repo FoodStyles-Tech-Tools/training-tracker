@@ -9,7 +9,6 @@ const serverSchema = z.object({
   ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
-  PASSWORD_LOGIN_DISABLED: z.string().optional(),
   NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED: z.string().optional(),
   TRAINING_REQUEST_STATUS: z
     .string()
@@ -43,10 +42,6 @@ const serverSchema = z.object({
     ].join(",")),
 });
 
-// Support both PASSWORD_LOGIN_DISABLED and NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED
-// If PASSWORD_LOGIN_DISABLED is set, use it for NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED
-const passwordLoginDisabled = process.env.PASSWORD_LOGIN_DISABLED || process.env.NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED;
-
 const parsed = serverSchema.safeParse({
   DATABASE_URL: process.env.DATABASE_URL,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
@@ -55,8 +50,7 @@ const parsed = serverSchema.safeParse({
   ADMIN_SEED_PASSWORD: process.env.ADMIN_SEED_PASSWORD,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  PASSWORD_LOGIN_DISABLED: process.env.PASSWORD_LOGIN_DISABLED,
-  NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED: passwordLoginDisabled,
+  NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED: process.env.NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED,
   TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS,
   VPA_STATUS: process.env.VPA_STATUS,
   VSR_STATUS: process.env.VSR_STATUS,

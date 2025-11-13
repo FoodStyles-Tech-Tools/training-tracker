@@ -97,6 +97,20 @@ export const QuillEditor = React.forwardRef<HTMLDivElement, QuillEditorProps>(
           const QuillClass = (await import("quill")).default;
           if (!QuillClass || !editorRef.current || isInitializedRef.current) return;
 
+          // Check if Quill has already been initialized on this element
+          // Quill stores its instance in the element's __quill property
+          if ((editorRef.current as any).__quill) {
+            // Clean up existing instance first
+            try {
+              (editorRef.current as any).__quill = null;
+            } catch (e) {
+              // Ignore cleanup errors
+            }
+          }
+
+          // Clear any existing content to prevent duplication
+          editorRef.current.innerHTML = "";
+
           quillInstanceRef.current = new QuillClass(editorRef.current, {
             theme: "snow",
             placeholder: placeholder || "",
@@ -150,8 +164,23 @@ export const QuillEditor = React.forwardRef<HTMLDivElement, QuillEditorProps>(
 
       return () => {
         if (quillInstanceRef.current) {
+          try {
+            // Properly destroy Quill instance
+            const quillInstance = quillInstanceRef.current as any;
+            if (quillInstance && typeof quillInstance.destroy === "function") {
+              quillInstance.destroy();
+            }
+          } catch (e) {
+            // Ignore destroy errors
+          }
           quillInstanceRef.current = null;
           isInitializedRef.current = false;
+          
+          // Clear the element's Quill reference
+          if (editorRef.current) {
+            (editorRef.current as any).__quill = null;
+            editorRef.current.innerHTML = "";
+          }
         }
       };
     }, [isClient, disabled, normalizeContent, placeholder]); // Only run once on mount - value is handled separately

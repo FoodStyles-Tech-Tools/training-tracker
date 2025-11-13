@@ -85,7 +85,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/admin");
+      router.replace("/admin/learner-dashboard");
       router.refresh();
     } catch (err) {
       console.error(err);

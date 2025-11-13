@@ -31,7 +31,7 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
     () =>
       navItems.map((item) => ({
         ...item,
-        active: pathname === item.href,
+        active: pathname === item.href || (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")),
       })),
     [navItems, pathname],
   );
@@ -57,23 +57,12 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
                       "block rounded-md px-3 py-2 text-sm font-medium transition",
                       item.active
                         ? "bg-slate-800 text-slate-50"
-                        : "hover:bg-slate-800 hover:text-slate-50",
+                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
                     )}
                   >
                     {item.label}
                   </Link>
                 ))}
-                <Link
-                  href="/admin/learner-dashboard"
-                  className={cn(
-                    "block rounded-md px-3 py-2 text-sm font-medium transition",
-                    pathname.startsWith("/admin/learner-dashboard")
-                      ? "bg-slate-800 text-slate-50"
-                      : "hover:bg-slate-800 hover:text-slate-50",
-                  )}
-                >
-                  Learner Dashboard
-                </Link>
               </>
             ) : (
               <p className="text-sm text-slate-500">No modules available.</p>
@@ -143,24 +132,12 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
                     "block rounded-md px-3 py-2 text-sm font-medium transition",
                     item.active
                       ? "bg-slate-800 text-slate-50"
-                      : "hover:bg-slate-800 hover:text-slate-50",
+                      : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
                   )}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href="/admin/learner-dashboard"
-                onClick={closeNav}
-                className={cn(
-                  "block rounded-md px-3 py-2 text-sm font-medium transition",
-                  pathname.startsWith("/admin/learner-dashboard")
-                    ? "bg-slate-800 text-slate-50"
-                    : "hover:bg-slate-800 hover:text-slate-50",
-                )}
-              >
-                Learner Dashboard
-              </Link>
             </>
           ) : (
             <p className="text-sm text-slate-500">No modules available.</p>

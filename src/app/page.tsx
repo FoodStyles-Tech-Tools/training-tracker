@@ -6,7 +6,7 @@ export default async function IndexPage() {
   const session = await getCurrentSession();
 
   if (session) {
-    redirect("/admin");
+    redirect("/admin/learner-dashboard");
   }
 
   redirect("/login");

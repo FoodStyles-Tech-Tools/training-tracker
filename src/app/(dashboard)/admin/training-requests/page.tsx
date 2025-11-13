@@ -3,13 +3,16 @@ import { desc, eq, and } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
-import { ensurePermission } from "@/lib/permissions";
+import { ensurePermission, getUserPermissions } from "@/lib/permissions";
 import { env } from "@/env";
 import { TrainingRequestManager } from "./training-request-manager";
 
 export default async function TrainingRequestsPage() {
   const session = await requireSession();
   await ensurePermission(session.user.id, "training_request", "list");
+  
+  const permissions = await getUserPermissions(session.user.id);
+  const canEdit = permissions.get("training_request")?.canEdit ?? false;
 
   // Get all training requests with related data
   const trainingRequestsData = await db.query.trainingRequest.findMany({
@@ -59,6 +62,7 @@ export default async function TrainingRequestsPage() {
         competencies={competencies}
         users={users}
         statusLabels={statusLabels}
+        canEdit={canEdit}
       />
     </Suspense>
   );

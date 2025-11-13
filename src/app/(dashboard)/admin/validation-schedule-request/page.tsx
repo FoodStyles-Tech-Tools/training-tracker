@@ -3,13 +3,16 @@ import { desc, eq, and } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
-import { ensurePermission } from "@/lib/permissions";
+import { ensurePermission, getUserPermissions } from "@/lib/permissions";
 import { env } from "@/env";
 import { VSRManager } from "./vsr-manager";
 
 export default async function ValidationScheduleRequestPage() {
   const session = await requireSession();
   await ensurePermission(session.user.id, "validation_schedule_request", "list");
+  
+  const permissions = await getUserPermissions(session.user.id);
+  const canEdit = permissions.get("validation_schedule_request")?.canEdit ?? false;
 
   // Get all validation schedule requests with related data
   const vsrsData = await db.query.validationScheduleRequest.findMany({
@@ -52,6 +55,7 @@ export default async function ValidationScheduleRequestPage() {
         users={users}
         statusLabels={statusLabels}
         currentUserId={session.user.id}
+        canEdit={canEdit}
       />
     </Suspense>
   );
