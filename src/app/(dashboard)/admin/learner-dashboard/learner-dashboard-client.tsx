@@ -18,8 +18,7 @@ import { X } from "lucide-react";
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
   requirements: Array<{
-    requiredLevel: {
-      id: string;
+    requiredLevel: CompetencyLevel & {
       competency: Competency;
     };
   }>;
