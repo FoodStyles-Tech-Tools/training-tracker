@@ -10,6 +10,10 @@ const pool = new Pool({
   max: 1, // Use single connection for migrations
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
+  // SSL configuration for self-signed certificates
+  ssl: process.env.VERCEL || process.env.NODE_ENV === "production" 
+    ? { rejectUnauthorized: false }
+    : undefined,
 });
 
 const db = drizzle(pool);
