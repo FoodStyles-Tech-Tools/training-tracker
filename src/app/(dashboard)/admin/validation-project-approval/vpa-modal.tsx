@@ -488,7 +488,6 @@ export function VPAModal({
                 value={formData.rejectionReason}
                 onChange={(e) => setFormData({ ...formData, rejectionReason: e.target.value })}
                 placeholder="Enter the reason for rejecting this validation project..."
-                className="focus-visible:ring-red-500 focus-visible:border-red-500"
               />
             </div>
           )}
@@ -502,7 +501,7 @@ export function VPAModal({
           <Button
             type="button"
             onClick={handleReject}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             disabled={isPending}
           >
             Reject
@@ -515,7 +514,7 @@ export function VPAModal({
           >
             Approve
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} className="force-white-text">
             {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
@@ -571,7 +570,6 @@ export function VPAModal({
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Enter the reason for rejecting this validation project..."
               required
-              className="focus-visible:ring-red-500 focus-visible:border-red-500"
             />
           </div>
           <div className="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
@@ -585,7 +583,7 @@ export function VPAModal({
             </Button>
             <Button
               type="submit"
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               disabled={isPending || !rejectionReason.trim()}
             >
               {isPending ? "Processing..." : "Confirm Rejection"}
@@ -654,7 +652,7 @@ export function VPAModal({
           <Button
             type="button"
             onClick={handleConfirmApprove}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="force-white-text rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             disabled={isPending}
           >
             {isPending ? "Processing..." : "Confirm Approval"}

@@ -120,6 +120,12 @@ body[data-admin-theme="dark"] .tr-status-badge {
   --tr-status-border-light: #4ade80;
 }
 
+/* Utility to preserve white text in light mode */
+.force-white-text,
+body[data-admin-theme="light"] .force-white-text {
+  color: #ffffff !important;
+}
+
 /* Training request filter buttons */
 .tr-filter-btn {
   border-radius: 0.375rem !important;
@@ -525,6 +531,10 @@ a {
 
 .admin-theme[data-theme="light"] .hover\:text-white:hover {
   color: #0f172a !important;
+}
+
+.admin-theme[data-theme="light"] .force-white-text {
+  color: #ffffff !important;
 }
 
 .admin-theme[data-theme="light"] .border-slate-800,
