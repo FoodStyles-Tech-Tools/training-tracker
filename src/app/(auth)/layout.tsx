@@ -7,7 +7,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
   const session = await getCurrentSession();
 
   if (session) {
-    redirect("/admin");
+    redirect("/admin/learner-dashboard");
   }
 
   return <>{children}</>;

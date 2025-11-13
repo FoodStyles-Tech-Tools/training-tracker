@@ -3,13 +3,16 @@ import { desc, eq, and } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
-import { ensurePermission } from "@/lib/permissions";
+import { ensurePermission, getUserPermissions } from "@/lib/permissions";
 import { env } from "@/env";
 import { VPAManager } from "./vpa-manager";
 
 export default async function ValidationProjectApprovalPage() {
   const session = await requireSession();
   await ensurePermission(session.user.id, "validation_project_approval", "list");
+  
+  const permissions = await getUserPermissions(session.user.id);
+  const canEdit = permissions.get("validation_project_approval")?.canEdit ?? false;
 
   // Get all validation project approvals with related data
   const vpasData = await db.query.validationProjectApproval.findMany({
@@ -46,6 +49,7 @@ export default async function ValidationProjectApprovalPage() {
         competencies={competencies}
         users={users}
         statusLabels={statusLabels}
+        canEdit={canEdit}
       />
     </Suspense>
   );

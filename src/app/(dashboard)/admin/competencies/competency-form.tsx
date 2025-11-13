@@ -279,6 +279,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
                           control={form.control}
                           render={({ field }) => (
                             <QuillEditor
+                              key={`${competency?.id || 'new'}-${levelName.toLowerCase()}-knowledge`}
                               id={`${levelName.toLowerCase()}-knowledge`}
                               value={field.value}
                               onChange={field.onChange}
@@ -309,6 +310,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
                           control={form.control}
                           render={({ field }) => (
                             <QuillEditor
+                              key={`${competency?.id || 'new'}-${levelName.toLowerCase()}-eligibility`}
                               id={`${levelName.toLowerCase()}-eligibility`}
                               value={field.value}
                               onChange={field.onChange}
@@ -339,6 +341,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
                           control={form.control}
                           render={({ field }) => (
                             <QuillEditor
+                              key={`${competency?.id || 'new'}-${levelName.toLowerCase()}-verification`}
                               id={`${levelName.toLowerCase()}-verification`}
                               value={field.value}
                               onChange={field.onChange}
@@ -418,6 +421,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
                 control={form.control}
                 render={({ field }) => (
                   <QuillEditor
+                    key={`${competency?.id || 'new'}-relevant-links`}
                     value={field.value || ""}
                     onChange={field.onChange}
                     placeholder="Add relevant links and resources."

@@ -834,6 +834,7 @@ export function LearnerDashboardClient({
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-slate-200">Project details</label>
                       <QuillEditor
+                        key={`project-details-${selectedLevelData?.id || 'none'}-${currentProjectApproval?.id || 'new'}-${isProjectEditable}`}
                         value={projectDetails}
                         onChange={(value) => setProjectDetails(value)}
                         placeholder={isProjectDetailsEmpty ? "Enter project details..." : undefined}

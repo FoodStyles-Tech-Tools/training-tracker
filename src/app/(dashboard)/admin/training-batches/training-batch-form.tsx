@@ -445,6 +445,45 @@ export function TrainingBatchForm({
     };
   }, [watchedSessionCount, form]);
 
+  // Close flatpickr calendars and learner dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Check if click is outside any flatpickr calendar
+      const isFlatpickrCalendar = target.closest('.flatpickr-calendar');
+      const isFlatpickrInput = target.closest('input[data-flatpickr]');
+      
+      // Check if click is outside learner dropdown
+      const isLearnerDropdown = target.closest('[data-learner-dropdown]');
+      
+      if (!isFlatpickrCalendar && !isFlatpickrInput) {
+        // Close all flatpickr instances
+        if (estimatedStartFpRef.current) {
+          estimatedStartFpRef.current.close();
+        }
+        if (batchStartDateFpRef.current) {
+          batchStartDateFpRef.current.close();
+        }
+        sessionDateFpRefs.current.forEach((fp) => {
+          if (fp) {
+            fp.close();
+          }
+        });
+      }
+      
+      if (!isLearnerDropdown) {
+        // Close learner dropdown
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const fetchAvailableLearners = async (competencyLevelId: string) => {
     try {
       const response = await fetch(
@@ -826,7 +865,7 @@ export function TrainingBatchForm({
 
           {/* Search and selection dropdown */}
           {watchedCompetencyLevelId ? (
-            <div className="relative">
+            <div className="relative" data-learner-dropdown>
               <div className="relative">
                 <Input
                   type="text"

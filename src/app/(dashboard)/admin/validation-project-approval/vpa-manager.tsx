@@ -71,6 +71,7 @@ interface VPAManagerProps {
   competencies: Competency[];
   users: User[];
   statusLabels: string[];
+  canEdit: boolean;
 }
 
 export function VPAManager({
@@ -78,6 +79,7 @@ export function VPAManager({
   competencies,
   users,
   statusLabels,
+  canEdit,
 }: VPAManagerProps) {
   const [vpas, setVPAs] = useState<VPAWithRelations[]>(initialVPAs);
   const [selectedVPA, setSelectedVPA] = useState<VPAWithRelations | null>(null);
@@ -91,7 +93,7 @@ export function VPAManager({
   }, [initialVPAs]);
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(25);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -635,13 +637,17 @@ export function VPAManager({
                     <tr key={vpa.id} className={`hover:bg-slate-900/60 ${rowColorClass}`}>
                       <td className="px-4 py-3 text-slate-400">{vpa.vpaId}</td>
                       <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenModal(vpa)}
-                          className="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
-                        >
-                          {vpa.learner.name}
-                        </button>
+                        {canEdit ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenModal(vpa)}
+                            className="bg-transparent border-0 p-0 text-left text-slate-100 hover:text-blue-400 transition cursor-pointer"
+                          >
+                            {vpa.learner.name}
+                          </button>
+                        ) : (
+                          <span className="text-slate-100">{vpa.learner.name}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-slate-300">
                         {formatDate(vpa.requestedDate)}
