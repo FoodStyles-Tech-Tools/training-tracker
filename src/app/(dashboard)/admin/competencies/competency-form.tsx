@@ -50,7 +50,7 @@ const competencyLevelSchema = z
 const formSchema = z.object({
   name: z.string().min(1, "Competency name is required"),
   description: z.string().optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "published"]),
   relevantLinks: z.string().optional(),
   levels: z
     .array(competencyLevelSchema)
