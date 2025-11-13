@@ -237,19 +237,67 @@ export async function updateCompetencyAction(id: string, input: CompetencyFormIn
     })
     .where(eq(schema.competencies.id, id));
 
-  // Delete existing levels
-  await db.delete(schema.competencyLevels).where(eq(schema.competencyLevels.competencyId, id));
+  // Fetch ALL existing levels (including soft-deleted) to preserve IDs and avoid cascade deletes
+  const existingLevels = await db.query.competencyLevels.findMany({
+    where: eq(schema.competencyLevels.competencyId, id),
+  });
 
-  // Create new levels
-  for (const level of parsed.levels) {
-    await db.insert(schema.competencyLevels).values({
-      competencyId: id,
-      name: level.name,
-      trainingPlanDocument: level.trainingPlanDocument.trim(),
-      teamKnowledge: cleanHtmlContent(level.teamKnowledge) || "",
-      eligibilityCriteria: cleanHtmlContent(level.eligibilityCriteria) || "",
-      verification: cleanHtmlContent(level.verification) || "",
+  // Create a map of level name to existing level (including soft-deleted ones)
+  const existingLevelMap = new Map<string, { id: string; isDeleted: boolean }>();
+  for (const existingLevel of existingLevels) {
+    existingLevelMap.set(existingLevel.name, {
+      id: existingLevel.id,
+      isDeleted: existingLevel.isDeleted,
     });
+  }
+
+  // Track which levels from the form we've processed
+  const processedLevelNames = new Set<string>();
+
+  // Update or create levels
+  for (const level of parsed.levels) {
+    const existingLevel = existingLevelMap.get(level.name);
+    
+    if (existingLevel) {
+      // Update existing level in place (preserves ID, so foreign keys remain intact)
+      // If it was soft-deleted, restore it
+      await db
+        .update(schema.competencyLevels)
+        .set({
+          name: level.name,
+          trainingPlanDocument: level.trainingPlanDocument.trim(),
+          teamKnowledge: cleanHtmlContent(level.teamKnowledge) || "",
+          eligibilityCriteria: cleanHtmlContent(level.eligibilityCriteria) || "",
+          verification: cleanHtmlContent(level.verification) || "",
+          isDeleted: false, // Restore if it was soft-deleted
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.competencyLevels.id, existingLevel.id));
+    } else {
+      // Create new level
+      await db.insert(schema.competencyLevels).values({
+        competencyId: id,
+        name: level.name,
+        trainingPlanDocument: level.trainingPlanDocument.trim(),
+        teamKnowledge: cleanHtmlContent(level.teamKnowledge) || "",
+        eligibilityCriteria: cleanHtmlContent(level.eligibilityCriteria) || "",
+        verification: cleanHtmlContent(level.verification) || "",
+      });
+    }
+    
+    processedLevelNames.add(level.name);
+  }
+
+  // Soft delete levels that are no longer in the form (only non-deleted ones)
+  // This preserves data integrity - foreign keys remain intact
+  for (const existingLevel of existingLevels) {
+    if (!processedLevelNames.has(existingLevel.name) && !existingLevel.isDeleted) {
+      // Soft delete the level to preserve data integrity
+      await db
+        .update(schema.competencyLevels)
+        .set({ isDeleted: true, updatedAt: new Date() })
+        .where(eq(schema.competencyLevels.id, existingLevel.id));
+    }
   }
 
   // Delete existing trainer associations
