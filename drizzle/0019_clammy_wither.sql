@@ -1,0 +1,1 @@
+ALTER TABLE "training_request" ADD COLUMN "in_queue_date" timestamp;
