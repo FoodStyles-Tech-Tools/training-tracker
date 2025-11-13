@@ -478,34 +478,25 @@ export function VPAManager({
           <div className="flex gap-2 flex-wrap items-center">
             <Button
               type="button"
+              variant="ghost"
               onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "dueIn24h" ? "" : "dueIn24h" })}
-              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
-                filters.customFilter === "dueIn24h"
-                  ? "bg-orange-600 hover:bg-orange-700 focus-visible:ring-orange-400"
-                  : "bg-orange-500 hover:bg-orange-600 focus-visible:ring-orange-400"
-              }`}
+              className={`tr-filter-btn tr-filter-btn--due-24h ${filters.customFilter === "dueIn24h" ? "active" : ""}`}
             >
               Due in 24h ({filterCounts.dueIn24h})
             </Button>
             <Button
               type="button"
+              variant="ghost"
               onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "dueIn3d" ? "" : "dueIn3d" })}
-              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
-                filters.customFilter === "dueIn3d"
-                  ? "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-400"
-                  : "bg-amber-500 hover:bg-amber-600 focus-visible:ring-amber-400"
-              }`}
+              className={`tr-filter-btn tr-filter-btn--due-3d ${filters.customFilter === "dueIn3d" ? "active" : ""}`}
             >
               Due in 3d ({filterCounts.dueIn3d})
             </Button>
             <Button
               type="button"
+              variant="ghost"
               onClick={() => setFilters({ ...filters, customFilter: filters.customFilter === "overdue" ? "" : "overdue" })}
-              className={`rounded-md px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 ${
-                filters.customFilter === "overdue"
-                  ? "bg-red-700 hover:bg-red-800 focus-visible:ring-red-400"
-                  : "bg-red-600 hover:bg-red-700 focus-visible:ring-red-400"
-              }`}
+              className={`tr-filter-btn tr-filter-btn--overdue ${filters.customFilter === "overdue" ? "active" : ""}`}
             >
               Overdue ({filterCounts.overdue})
             </Button>

@@ -22,27 +22,29 @@ export function getTrainingRequestStatusNumber(label: string, statuses: string[]
  * Status values are defined in env.TRAINING_REQUEST_STATUS
  */
 export function getStatusBadgeClass(status: number): string {
+  const baseClass = "tr-status-badge";
+
   switch (status) {
     case 0:
-      return "bg-slate-500/20 text-slate-200";
+      return `${baseClass} ${baseClass}--not-started`;
     case 1:
-      return "bg-blue-500/20 text-blue-200";
+      return `${baseClass} ${baseClass}--looking-for-trainer`;
     case 2:
-      return "bg-blue-500/20 text-blue-200";
+      return `${baseClass} ${baseClass}--in-queue`;
     case 3:
-      return "bg-amber-500/20 text-amber-200";
+      return `${baseClass} ${baseClass}--no-batch-match`;
     case 4:
-      return "bg-indigo-500/20 text-indigo-200";
+      return `${baseClass} ${baseClass}--in-progress`;
     case 5:
-      return "bg-emerald-500/20 text-emerald-200";
+      return `${baseClass} ${baseClass}--sessions-completed`;
     case 6:
-      return "bg-orange-500/20 text-orange-200";
+      return `${baseClass} ${baseClass}--on-hold`;
     case 7:
-      return "bg-red-500/20 text-red-200";
+      return `${baseClass} ${baseClass}--drop-off`;
     case 8:
-      return "bg-green-500/20 text-green-200";
+      return `${baseClass} ${baseClass}--training-completed`;
     default:
-      return "bg-slate-500/20 text-slate-200";
+      return `${baseClass} ${baseClass}--not-started`;
   }
 }
 
