@@ -11,7 +11,10 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
   // SSL configuration for self-signed certificates
-  ssl: process.env.VERCEL || process.env.NODE_ENV === "production" 
+  // Always enable SSL in Vercel builds or when DATABASE_URL contains sslmode
+  ssl: process.env.VERCEL || 
+       process.env.NODE_ENV === "production" || 
+       env.DATABASE_URL.includes("sslmode")
     ? { rejectUnauthorized: false }
     : undefined,
 });
