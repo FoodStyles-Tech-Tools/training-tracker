@@ -6,11 +6,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+
+const isPasswordLoginDisabled = process.env.NEXT_PUBLIC_PASSWORD_LOGIN_DISABLED === "1";
 
 const schema = z.object({
   email: z.string().email({ message: "Enter a valid email" }),
@@ -52,6 +55,7 @@ export default function LoginPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
         },
         body: JSON.stringify({
           email: values.email,
@@ -60,9 +64,24 @@ export default function LoginPage() {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const message = data?.error ?? "Unable to sign in with those credentials";
+        let message = "Unable to sign in with those credentials";
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType?.includes("application/json")) {
+            const data = await response.json();
+            message = data?.error || data?.message || message;
+          } else {
+            const text = await response.text();
+            if (text) {
+              message = text;
+            }
+          }
+        } catch (err) {
+          // If parsing fails, use default message
+          console.error("Error parsing response:", err);
+        }
         setError(message);
+        setIsSubmitting(false);
         return;
       }
 
@@ -81,55 +100,62 @@ export default function LoginPage() {
       <Card className="w-full max-w-md border-slate-800 bg-slate-900 text-slate-100">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold">Competency Training Tracker</CardTitle>
-          <CardDescription className="text-slate-400">
-            Sign in with your administrator account to manage users and roles.
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                disabled={isSubmitting}
-                {...form.register("email")}
-              />
-              {form.formState.errors.email ? (
-                <p className="text-sm text-red-400">{form.formState.errors.email.message}</p>
-              ) : null}
-            </div>
+          {!isPasswordLoginDisabled && (
+            <>
+              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isSubmitting}
+                    {...form.register("email")}
+                  />
+                  {form.formState.errors.email ? (
+                    <p className="text-sm text-red-400">{form.formState.errors.email.message}</p>
+                  ) : null}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                disabled={isSubmitting}
-                {...form.register("password")}
-              />
-              {form.formState.errors.password ? (
-                <p className="text-sm text-red-400">{form.formState.errors.password.message}</p>
-              ) : null}
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    disabled={isSubmitting}
+                    {...form.register("password")}
+                  />
+                  {form.formState.errors.password ? (
+                    <p className="text-sm text-red-400">{form.formState.errors.password.message}</p>
+                  ) : null}
+                </div>
 
-            {error ? <p className="text-sm text-red-400">{error}</p> : null}
+                {error && (
+                  <Alert variant="error">{error}</Alert>
+                )}
 
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
+                <Button className="w-full" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Signing in..." : "Sign in"}
+                </Button>
+              </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-slate-900 text-slate-400">Or continue with</span>
-            </div>
-          </div>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-slate-900 text-slate-400">Or continue with</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {isPasswordLoginDisabled && error && (
+            <Alert variant="error" className="mb-4">{error}</Alert>
+          )}
 
           <Button
             type="button"
