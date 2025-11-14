@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { logActivity } from "@/lib/utils-server";
+import { ALLOWED_TRAINING_REQUEST_STATUSES } from "./constants";
 
 // Helper function to convert Date to DATE only (no timezone, no time)
 function toDateOnly(date: Date | null | undefined): Date | null | undefined {
@@ -97,13 +98,14 @@ export async function createTrainingBatchAction(
       // Add learners
       if (parsed.learnerIds && parsed.learnerIds.length > 0) {
         // Get training requests for these learners and competency level
+        // Only allow learners with status: In Queue (2), No batch match (3), or Drop off (7)
         const trainingRequests = await tx
           .select()
           .from(schema.trainingRequest)
           .where(
             and(
               eq(schema.trainingRequest.competencyLevelId, parsed.competencyLevelId),
-              eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
+              inArray(schema.trainingRequest.status, ALLOWED_TRAINING_REQUEST_STATUSES),
               inArray(schema.trainingRequest.learnerUserId, parsed.learnerIds),
             ),
           );
@@ -331,6 +333,7 @@ export async function updateTrainingBatchAction(
 
         // Add learners
         if (toAdd.length > 0) {
+          // Only allow learners with status: In Queue (2), No batch match (3), or Drop off (7)
           const trainingRequests = await tx
             .select()
             .from(schema.trainingRequest)
@@ -340,7 +343,7 @@ export async function updateTrainingBatchAction(
                   schema.trainingRequest.competencyLevelId,
                   updatedBatch.competencyLevelId,
                 ),
-                eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
+                inArray(schema.trainingRequest.status, ALLOWED_TRAINING_REQUEST_STATUSES),
                 inArray(schema.trainingRequest.learnerUserId, toAdd),
               ),
             );
@@ -403,7 +406,7 @@ export async function updateTrainingBatchAction(
       return updatedBatch;
     });
 
-    // Log activity
+    // Log activity - capture all submitted data
     await logActivity({
       userId: session.user.id,
       module: "training_batch",
@@ -411,7 +414,7 @@ export async function updateTrainingBatchAction(
       data: {
         batchId: result.id,
         batchName: result.batchName,
-        updatedFields: Object.keys(parsed).filter((key) => key !== "id" && parsed[key as keyof typeof parsed] !== undefined),
+        ...parsed, // Include all submitted fields
       },
     });
 
@@ -864,6 +867,69 @@ export async function updateHomeworkAction(
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to update homework" };
+  }
+}
+
+export async function finishBatchAction(batchId: string) {
+  const session = await requireSession();
+
+  try {
+    // Get all learners in the batch with their training request IDs
+    const batchLearners = await db.query.trainingBatchLearners.findMany({
+      where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
+      columns: {
+        trainingRequestId: true,
+      },
+    });
+
+    if (batchLearners.length === 0) {
+      return { success: false, error: "No learners found in this batch" };
+    }
+
+    const trainingRequestIds = batchLearners
+      .map((bl) => bl.trainingRequestId)
+      .filter((id): id is string => id !== null);
+
+    if (trainingRequestIds.length === 0) {
+      return { success: false, error: "No training requests found for learners in this batch" };
+    }
+
+    // Update all training request statuses to 5 (Sessions Completed)
+    await db
+      .update(schema.trainingRequest)
+      .set({
+        status: 5, // Sessions Completed
+        updatedAt: new Date(),
+      })
+      .where(inArray(schema.trainingRequest.id, trainingRequestIds));
+
+    // Get batch info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+
+    // Log activity
+    if (batch) {
+      await logActivity({
+        userId: session.user.id,
+        action: "finish_batch",
+        module: "training_batch",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          learnersCount: trainingRequestIds.length,
+        },
+      });
+    }
+
+    revalidatePath(`/admin/training-batches/${batchId}/edit`);
+    revalidatePath("/admin/training-batches");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to finish batch" };
   }
 }
 

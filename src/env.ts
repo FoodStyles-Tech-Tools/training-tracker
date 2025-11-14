@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   DATABASE_URL: z.string().url(),
+  DATABASE_URL_PROD: z.string().url().optional(),
   BETTER_AUTH_SECRET: z.string().min(32),
   NEXT_PUBLIC_APP_URL: z.string().url(),
   ADMIN_SEED_EMAIL: z.string().email().optional(),
@@ -44,6 +45,7 @@ const serverSchema = z.object({
 
 const parsed = serverSchema.safeParse({
   DATABASE_URL: process.env.DATABASE_URL,
+  DATABASE_URL_PROD: process.env.DATABASE_URL_PROD,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   ADMIN_SEED_EMAIL: process.env.ADMIN_SEED_EMAIL,

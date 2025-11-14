@@ -554,6 +554,22 @@ a {
   border-color: #d6dee8 !important;
 }
 
+/* Form component light theme styles */
+.admin-theme[data-theme="light"] input.bg-slate-900:not([readonly]),
+.admin-theme[data-theme="light"] textarea.bg-slate-900:not([readonly]),
+.admin-theme[data-theme="light"] select.bg-slate-900:not([disabled]) {
+  background-color: #ffffff !important;
+}
+
+.admin-theme[data-theme="light"] input[readonly],
+.admin-theme[data-theme="light"] input.bg-slate-800,
+.admin-theme[data-theme="light"] textarea[readonly],
+.admin-theme[data-theme="light"] textarea.bg-slate-800,
+.admin-theme[data-theme="light"] select[disabled],
+.admin-theme[data-theme="light"] select.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
 .admin-theme[data-theme="light"] .hover\:bg-slate-900:hover,
 .admin-theme[data-theme="light"] .hover\:bg-slate-900\/70:hover,
 .admin-theme[data-theme="light"] .hover\:bg-slate-900\/60:hover,
@@ -678,12 +694,25 @@ a {
   color: #6d28d9 !important;
 }
 
+.admin-theme[data-theme="light"] .bg-amber-500\/20 {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #d97706 !important;
+}
+
 .admin-theme[data-theme="light"] .text-blue-200 {
   color: #1d4ed8 !important;
 }
 
 .admin-theme[data-theme="light"] .text-emerald-200 {
   color: #047857 !important;
+}
+
+.admin-theme[data-theme="light"] .text-amber-200 {
+  color: #d97706 !important;
+}
+
+.admin-theme[data-theme="light"] .text-amber-400 {
+  color: #b45309 !important;
 }
 
 .admin-theme[data-theme="light"] .text-purple-200 {

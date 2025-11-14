@@ -154,14 +154,16 @@ export async function updateUserAction(id: string, input: UserFormInput) {
       });
     }
   }
-  // Log user update
+  // Log user update - exclude password from log
+  const { password, ...logData } = parsed;
   await logActivity({
     userId: session.user.id,
     module: "users",
     action: "edit",
     data: {
       updatedId: id,
-      ...parsed,
+      ...logData,
+      passwordChanged: !!password, // Indicate if password was changed without logging it
     },
   });
   revalidatePath("/admin/users");

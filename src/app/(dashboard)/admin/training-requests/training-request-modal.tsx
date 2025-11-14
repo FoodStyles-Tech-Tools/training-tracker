@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { TrainingRequest, User } from "@/db/schema";
+import type { TrainingRequest } from "@/db/schema";
+import { getEligibleUsersForAssignment } from "./actions";
 type TrainingRequestWithRelations = TrainingRequest & {
   learner: {
     id: string;
@@ -43,18 +44,30 @@ interface TrainingRequestModalProps {
   open: boolean;
   onClose: () => void;
   trainingRequest: TrainingRequestWithRelations;
-  users: User[];
+  users?: Array<{
+    id: string;
+    name: string;
+    role: string | null;
+    competencyIds: string[];
+  }>;
   statusLabels: string[];
   onSave: (data: Partial<TrainingRequest>) => Promise<void>;
   isPending: boolean;
   onFetch?: () => Promise<TrainingRequestWithRelations | null>;
 }
 
+type EligibleUser = {
+  id: string;
+  name: string;
+  role: string | null;
+  competencyIds: string[];
+};
+
 export function TrainingRequestModal({
   open,
   onClose,
   trainingRequest: initialTrainingRequest,
-  users,
+  users = [],
   statusLabels,
   onSave,
   isPending,
@@ -79,6 +92,10 @@ export function TrainingRequestModal({
   // State to hold the current training request (may be updated from fetch)
   const [trainingRequest, setTrainingRequest] = useState<TrainingRequestWithRelations>(initialTrainingRequest);
   
+  // State for eligible users (fetched when modal opens)
+  const [eligibleUsers, setEligibleUsers] = useState<EligibleUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     status: initialTrainingRequest.status,
     onHoldBy: initialTrainingRequest.onHoldBy,
@@ -91,46 +108,89 @@ export function TrainingRequestModal({
     definiteAnswer: initialTrainingRequest.definiteAnswer,
   });
 
+  const [validationErrors, setValidationErrors] = useState<{
+    onHoldBy?: string;
+    onHoldReason?: string;
+    dropOffReason?: string;
+    blockedReason?: string;
+    expectedUnblockedDate?: string;
+  }>({});
+
+  // Fetch eligible users when modal opens
+  useEffect(() => {
+    if (open) {
+      const competencyId = initialTrainingRequest.competencyLevel.competency.id;
+      setUsersLoading(true);
+      getEligibleUsersForAssignment(competencyId)
+        .then((result) => {
+          if (result.success && result.data) {
+            setEligibleUsers(result.data);
+          } else {
+            console.error("Failed to fetch eligible users:", result.error);
+            setEligibleUsers([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching eligible users:", error);
+          setEligibleUsers([]);
+        })
+        .finally(() => {
+          setUsersLoading(false);
+        });
+    } else {
+      // Clear users when modal closes
+      setEligibleUsers([]);
+    }
+  }, [open, initialTrainingRequest.competencyLevel.competency.id]);
+
   // Fetch fresh data when modal opens
   useEffect(() => {
-    if (open && onFetch) {
-      onFetch().then((freshData) => {
-        if (freshData) {
-          setTrainingRequest(freshData);
-          setFormData({
-            status: freshData.status,
-            onHoldBy: freshData.onHoldBy,
-            onHoldReason: freshData.onHoldReason || "",
-            dropOffReason: freshData.dropOffReason || "",
-            isBlocked: freshData.isBlocked,
-            blockedReason: freshData.blockedReason || "",
-            notes: freshData.notes || "",
-            assignedTo: freshData.assignedTo || "",
-            definiteAnswer: freshData.definiteAnswer,
-          });
-        }
-      }).catch((error) => {
-        console.error("Failed to fetch fresh training request data:", error);
-      });
-    } else if (open) {
-      // If no fetch function, use the prop data
-      setTrainingRequest(initialTrainingRequest);
-      setFormData({
-        status: initialTrainingRequest.status,
-        onHoldBy: initialTrainingRequest.onHoldBy,
-        onHoldReason: initialTrainingRequest.onHoldReason || "",
-        dropOffReason: initialTrainingRequest.dropOffReason || "",
-        isBlocked: initialTrainingRequest.isBlocked,
-        blockedReason: initialTrainingRequest.blockedReason || "",
-        notes: initialTrainingRequest.notes || "",
-        assignedTo: initialTrainingRequest.assignedTo || "",
-        definiteAnswer: initialTrainingRequest.definiteAnswer,
-      });
+    if (open) {
+      // Clear validation errors when modal opens
+      setValidationErrors({});
+      
+      if (onFetch) {
+        onFetch().then((freshData) => {
+          if (freshData) {
+            setTrainingRequest(freshData);
+            setFormData({
+              status: freshData.status,
+              onHoldBy: freshData.onHoldBy,
+              onHoldReason: freshData.onHoldReason || "",
+              dropOffReason: freshData.dropOffReason || "",
+              isBlocked: freshData.isBlocked,
+              blockedReason: freshData.blockedReason || "",
+              notes: freshData.notes || "",
+              assignedTo: freshData.assignedTo || "",
+              definiteAnswer: freshData.definiteAnswer,
+            });
+          }
+        }).catch((error) => {
+          console.error("Failed to fetch fresh training request data:", error);
+        });
+      } else {
+        // If no fetch function, use the prop data
+        setTrainingRequest(initialTrainingRequest);
+        setFormData({
+          status: initialTrainingRequest.status,
+          onHoldBy: initialTrainingRequest.onHoldBy,
+          onHoldReason: initialTrainingRequest.onHoldReason || "",
+          dropOffReason: initialTrainingRequest.dropOffReason || "",
+          isBlocked: initialTrainingRequest.isBlocked,
+          blockedReason: initialTrainingRequest.blockedReason || "",
+          notes: initialTrainingRequest.notes || "",
+          assignedTo: initialTrainingRequest.assignedTo || "",
+          definiteAnswer: initialTrainingRequest.definiteAnswer,
+        });
+      }
     }
   }, [open, onFetch, initialTrainingRequest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Reset validation errors
+    setValidationErrors({});
     
     // Get date values from flatpickr instances (returns Date objects)
     const getDateFromFp = (fpRef: React.RefObject<flatpickr.Instance | null>): Date | null => {
@@ -145,6 +205,48 @@ export function TrainingRequestModal({
     const expectedUnblockedDate = getDateFromFp(expectedUnblockedDateFpRef);
     const noFollowUpDate = getDateFromFp(noFollowUpDateFpRef);
     const followUpDate = getDateFromFp(followUpDateFpRef);
+    
+    // Validation
+    const errors: typeof validationErrors = {};
+    let hasErrors = false;
+    
+    // On Hold validation (status 6)
+    if (formData.status === 6) {
+      if (formData.onHoldBy === null || formData.onHoldBy === undefined) {
+        errors.onHoldBy = "On hold by is required";
+        hasErrors = true;
+      }
+      if (!formData.onHoldReason || formData.onHoldReason.trim() === "") {
+        errors.onHoldReason = "On hold reason is required";
+        hasErrors = true;
+      }
+    }
+    
+    // Drop Off validation (status 7)
+    if (formData.status === 7) {
+      if (!formData.dropOffReason || formData.dropOffReason.trim() === "") {
+        errors.dropOffReason = "Drop off reason is required";
+        hasErrors = true;
+      }
+    }
+    
+    // Blocked validation
+    if (formData.isBlocked) {
+      if (!formData.blockedReason || formData.blockedReason.trim() === "") {
+        errors.blockedReason = "Block reason is required";
+        hasErrors = true;
+      }
+      if (!expectedUnblockedDate) {
+        errors.expectedUnblockedDate = "Expected unblocked date is required";
+        hasErrors = true;
+      }
+    }
+    
+    // If there are validation errors, set them and prevent submission
+    if (hasErrors) {
+      setValidationErrors(errors);
+      return;
+    }
     
     await onSave({
       status: formData.status,
@@ -169,6 +271,27 @@ export function TrainingRequestModal({
   const showOnHoldFields = formData.status === 6;
   const showDropOffFields = formData.status === 7;
   const showDefiniteAnswerFields = formData.definiteAnswer === false;
+
+  // Clear validation errors when status changes away from On Hold or Drop Off
+  useEffect(() => {
+    if (formData.status !== 6) {
+      // Clear On Hold errors if status is not On Hold
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        if (newErrors.onHoldBy) delete newErrors.onHoldBy;
+        if (newErrors.onHoldReason) delete newErrors.onHoldReason;
+        return newErrors;
+      });
+    }
+    if (formData.status !== 7) {
+      // Clear Drop Off errors if status is not Drop Off
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        if (newErrors.dropOffReason) delete newErrors.dropOffReason;
+        return newErrors;
+      });
+    }
+  }, [formData.status]);
 
   // Auto-calculate Response Due date when status changes
   // +1 day for "Looking for trainer" (1) and "In Queue" (2)
@@ -223,6 +346,7 @@ export function TrainingRequestModal({
         fpRef: React.RefObject<flatpickr.Instance | null>,
         initialValue: Date | null,
         readOnly = false,
+        onChange?: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => void,
       ) => {
         if (!ref.current) {
           return;
@@ -245,6 +369,7 @@ export function TrainingRequestModal({
                 instance.setDate(selectedDates[0], false);
               }
             },
+            onChange: onChange,
           } as any);
           ref.current.dataset.flatpickr = "true";
           flatpickrInstances.push(fp);
@@ -307,8 +432,24 @@ export function TrainingRequestModal({
       initFlatpickr(responseDueRef, responseDueFpRef, initialResponseDue, true); // Read-only
       initFlatpickr(responseDateRef, responseDateFpRef, initialResponseDate, false);
 
-      // Expected Unblocked Date
-      initFlatpickr(expectedUnblockedDateRef, expectedUnblockedDateFpRef, initialExpectedUnblockedDate, false);
+      // Expected Unblocked Date - with onChange to clear validation error
+      initFlatpickr(
+        expectedUnblockedDateRef, 
+        expectedUnblockedDateFpRef, 
+        initialExpectedUnblockedDate, 
+        false,
+        (selectedDates: Date[]) => {
+          // Clear validation error when a date is selected
+          if (selectedDates.length > 0) {
+            setValidationErrors((prev) => {
+              if (prev.expectedUnblockedDate) {
+                return { ...prev, expectedUnblockedDate: undefined };
+              }
+              return prev;
+            });
+          }
+        }
+      );
 
       // Follow up dates
       // Calculate +3 days from requested date for "If no, Follow date"
@@ -468,8 +609,9 @@ export function TrainingRequestModal({
                   // Hide "Not Started" (status 0)
                   if (index === 0) return null;
                   
-                  // When status is "Looking for trainer" (1), only show "Looking for trainer" (1) and "In Queue" (2)
-                  if (formData.status === 1 && index !== 1 && index !== 2) return null;
+                  // When database status is "Looking for trainer" (1), only show "Looking for trainer" (1) and "In Queue" (2)
+                  // When database status is "In Queue" (2), show all statuses
+                  if (trainingRequest.status === 1 && index !== 1 && index !== 2) return null;
                   
                   return (
                     <option key={index} value={index}>
@@ -513,13 +655,20 @@ export function TrainingRequestModal({
                 id="tr-assigned-to"
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                disabled={usersLoading}
               >
                 <option value="">Select...</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+                {usersLoading ? (
+                  <option value="" disabled>Loading users...</option>
+                ) : eligibleUsers.length === 0 ? (
+                  <option value="" disabled>No eligible users found</option>
+                ) : (
+                  eligibleUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))
+                )}
               </Select>
             </div>
           </div>
@@ -543,17 +692,25 @@ export function TrainingRequestModal({
               <Select
                 id="tr-on-hold-by"
                 value={formData.onHoldBy?.toString() || ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   setFormData({
                     ...formData,
                     onHoldBy: e.target.value ? parseInt(e.target.value) : null,
-                  })
-                }
+                  });
+                  // Clear error when user makes a selection
+                  if (validationErrors.onHoldBy) {
+                    setValidationErrors({ ...validationErrors, onHoldBy: undefined });
+                  }
+                }}
+                className={validationErrors.onHoldBy ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}
               >
                 <option value="">Select...</option>
                 <option value="0">Learner</option>
                 <option value="1">Trainer</option>
               </Select>
+              {validationErrors.onHoldBy && (
+                <p className="text-sm text-red-400">{validationErrors.onHoldBy}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="tr-on-hold-reason">On hold reason</Label>
@@ -561,9 +718,19 @@ export function TrainingRequestModal({
                 id="tr-on-hold-reason"
                 rows={3}
                 value={formData.onHoldReason}
-                onChange={(e) => setFormData({ ...formData, onHoldReason: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, onHoldReason: e.target.value });
+                  // Clear error when user types
+                  if (validationErrors.onHoldReason) {
+                    setValidationErrors({ ...validationErrors, onHoldReason: undefined });
+                  }
+                }}
                 placeholder="Enter reason for holding..."
+                className={validationErrors.onHoldReason ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}
               />
+              {validationErrors.onHoldReason && (
+                <p className="text-sm text-red-400">{validationErrors.onHoldReason}</p>
+              )}
             </div>
           </div>
         )}
@@ -577,9 +744,19 @@ export function TrainingRequestModal({
                 id="tr-drop-off-reason"
                 rows={3}
                 value={formData.dropOffReason}
-                onChange={(e) => setFormData({ ...formData, dropOffReason: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, dropOffReason: e.target.value });
+                  // Clear error when user types
+                  if (validationErrors.dropOffReason) {
+                    setValidationErrors({ ...validationErrors, dropOffReason: undefined });
+                  }
+                }}
                 placeholder="Enter reason for drop-off..."
+                className={validationErrors.dropOffReason ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}
               />
+              {validationErrors.dropOffReason && (
+                <p className="text-sm text-red-400">{validationErrors.dropOffReason}</p>
+              )}
             </div>
           </div>
         )}
@@ -590,7 +767,17 @@ export function TrainingRequestModal({
             <Checkbox
               id="tr-blocked"
               checked={formData.isBlocked}
-              onChange={(e) => setFormData({ ...formData, isBlocked: e.target.checked })}
+              onChange={(e) => {
+                setFormData({ ...formData, isBlocked: e.target.checked });
+                // Clear validation errors when unchecking blocked
+                if (!e.target.checked) {
+                  setValidationErrors({
+                    ...validationErrors,
+                    blockedReason: undefined,
+                    expectedUnblockedDate: undefined,
+                  });
+                }
+              }}
             />
             <Label htmlFor="tr-blocked">Blocked</Label>
           </div>
@@ -601,9 +788,19 @@ export function TrainingRequestModal({
                 id="tr-block-reason"
                 rows={3}
                 value={formData.blockedReason}
-                onChange={(e) => setFormData({ ...formData, blockedReason: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, blockedReason: e.target.value });
+                  // Clear error when user types
+                  if (validationErrors.blockedReason) {
+                    setValidationErrors({ ...validationErrors, blockedReason: undefined });
+                  }
+                }}
                 placeholder="Enter reason for blocking..."
+                className={validationErrors.blockedReason ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}
               />
+              {validationErrors.blockedReason && (
+                <p className="text-sm text-red-400">{validationErrors.blockedReason}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="tr-expected-unblock-date">Expected unblocked date</Label>
@@ -612,8 +809,11 @@ export function TrainingRequestModal({
                 ref={expectedUnblockedDateRef}
                 type="text"
                 placeholder="Select date"
-                className="cursor-pointer"
+                className={`cursor-pointer ${validationErrors.expectedUnblockedDate ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}`}
               />
+              {validationErrors.expectedUnblockedDate && (
+                <p className="text-sm text-red-400">{validationErrors.expectedUnblockedDate}</p>
+              )}
             </div>
           </div>
         </div>

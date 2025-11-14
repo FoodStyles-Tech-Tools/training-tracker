@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and, notInArray, isNull, ne } from "drizzle-orm";
+import { eq, and, notInArray, isNull, ne, inArray } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
 import { getCurrentSession } from "@/lib/session";
+import { ALLOWED_TRAINING_REQUEST_STATUSES } from "@/app/(dashboard)/admin/training-batches/constants";
 
 export async function GET(req: NextRequest) {
   const session = await getCurrentSession();
@@ -33,7 +34,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Get learners with training requests in "In Queue" status (status = 2)
+    // Get learners with training requests in allowed statuses:
+    // Status 2 = In Queue, 3 = No batch match, 7 = Drop off
     // for the specified competency level
     // Exclude learners already in batches for this competency level
     const trainingRequests = await db
@@ -54,7 +56,7 @@ export async function GET(req: NextRequest) {
       .where(
         and(
           eq(schema.trainingRequest.competencyLevelId, competencyLevelId),
-          eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
+          inArray(schema.trainingRequest.status, ALLOWED_TRAINING_REQUEST_STATUSES),
           isNull(schema.trainingRequest.trainingBatchId), // Not already in a batch
         ),
       );

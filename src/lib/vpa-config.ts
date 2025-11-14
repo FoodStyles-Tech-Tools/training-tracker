@@ -33,15 +33,15 @@ export function getVPAStatusNumber(label: string, statuses: string[]): number {
 export function getVPAStatusBadgeClass(status: number): string {
   switch (status) {
     case 0: // Pending Validation Project Approval
-      return "bg-amber-500/20 text-amber-200";
+      return "bg-amber-500 text-white dark:bg-amber-400/30 dark:text-amber-100";
     case 1: // Approved
-      return "bg-emerald-500/20 text-emerald-200";
+      return "bg-emerald-600 text-white dark:bg-emerald-400/30 dark:text-emerald-100";
     case 2: // Rejected
-      return "bg-red-500/20 text-red-200";
+      return "bg-red-600 text-white dark:bg-red-400/30 dark:text-red-100";
     case 3: // Resubmit for Re-validation
-      return "bg-blue-500/20 text-blue-200";
+      return "bg-blue-600 text-white dark:bg-blue-400/30 dark:text-blue-100";
     default:
-      return "bg-slate-500/20 text-slate-200";
+      return "bg-slate-500 text-white dark:bg-slate-400/30 dark:text-slate-100";
   }
 }
 

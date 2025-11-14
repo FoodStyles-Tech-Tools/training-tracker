@@ -10,9 +10,7 @@ const NAV_ITEMS: Array<{ label: string; href: string; module: ModuleName; requir
   { label: "Learner Dashboard", href: "/admin/learner-dashboard", module: "users", alwaysVisible: true },
   { label: "Competencies", href: "/admin/competencies", module: "competencies" },
   { label: "Training Batches", href: "/admin/training-batches", module: "training_batch" },
-  { label: "Training Requests", href: "/admin/training-requests", module: "training_request", requiresEdit: true },
-  { label: "Validation Project Approval", href: "/admin/validation-project-approval", module: "validation_project_approval", requiresEdit: true },
-  { label: "Validation Schedule Request", href: "/admin/validation-schedule-request", module: "validation_schedule_request", requiresEdit: true },
+  { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true },
   { label: "Users", href: "/admin/users", module: "users" },
   { label: "Roles", href: "/admin/roles", module: "roles" },
   { label: "Activity Log", href: "/admin/activity-log", module: "activity_log" },
@@ -60,6 +58,13 @@ export default async function AdminLayout({
     // Always show items marked as alwaysVisible (e.g., Learner Dashboard)
     if (item.alwaysVisible) {
       return true;
+    }
+    // Special handling for Request Log - show if user has permission to view any of the three request types
+    if (item.href === "/admin/request-log") {
+      const canListTR = permissionMap.get("training_request")?.canList ?? false;
+      const canListVPA = permissionMap.get("validation_project_approval")?.canList ?? false;
+      const canListVSR = permissionMap.get("validation_schedule_request")?.canList ?? false;
+      return canListTR || canListVPA || canListVSR;
     }
     // For other items, check canList permission
     return permissionMap.get(item.module)?.canList ?? false;

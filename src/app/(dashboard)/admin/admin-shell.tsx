@@ -62,10 +62,27 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
 
   const nav = useMemo(
     () =>
-      navItems.map((item) => ({
-        ...item,
-        active: pathname === item.href || (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")),
-      })),
+      navItems.map((item) => {
+        let active = pathname === item.href;
+        
+        // Special handling for Learner Dashboard
+        if (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")) {
+          active = true;
+        }
+        
+        // Special handling for Request Log - also active on old request routes
+        if (item.href === "/admin/request-log") {
+          active = pathname === "/admin/request-log" ||
+                   pathname === "/admin/training-requests" ||
+                   pathname === "/admin/validation-project-approval" ||
+                   pathname === "/admin/validation-schedule-request";
+        }
+        
+        return {
+          ...item,
+          active,
+        };
+      }),
     [navItems, pathname],
   );
 

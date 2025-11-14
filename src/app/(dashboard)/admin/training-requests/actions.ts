@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/utils-server";
 
 const trainingRequestUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -73,6 +74,54 @@ export async function getTrainingRequestById(id: string) {
   }
 }
 
+export async function getEligibleUsersForAssignment(competencyId?: string) {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "training_request", "list");
+
+  try {
+    // Get all users with role and trainer competencies
+    const allUsers = await db.query.users.findMany({
+      with: {
+        role: true,
+        trainerCompetencies: {
+          with: {
+            competency: true,
+          },
+        },
+      },
+      orderBy: schema.users.name,
+    });
+
+    // Map to simplified structure
+    const users = allUsers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      role: user.role?.roleName ?? null,
+      competencyIds:
+        user.trainerCompetencies?.map((tc) => tc.competencyId).filter(Boolean) ?? [],
+    }));
+
+    // Filter: Ops users + Trainers for the specific competency
+    const eligibleUsers = users.filter((user) => {
+      const roleLower = String(user.role ?? "").toLowerCase();
+      if (roleLower === "ops") {
+        return true;
+      }
+      if (roleLower === "trainer" && competencyId && user.competencyIds.includes(competencyId)) {
+        return true;
+      }
+      return false;
+    });
+
+    return { success: true, data: eligibleUsers };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to fetch eligible users" };
+  }
+}
+
 export async function updateTrainingRequestAction(
   input: z.infer<typeof trainingRequestUpdateSchema>,
 ) {
@@ -121,6 +170,48 @@ export async function updateTrainingRequestAction(
       .update(schema.trainingRequest)
       .set(updateData)
       .where(eq(schema.trainingRequest.id, parsed.id));
+
+    // Get training request info for logging
+    const trainingRequest = await db.query.trainingRequest.findFirst({
+      where: eq(schema.trainingRequest.id, parsed.id),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Log activity - capture all submitted data
+    if (trainingRequest) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_request",
+        action: "edit",
+        data: {
+          trainingRequestId: parsed.id,
+          trId: trainingRequest.trId,
+          learnerId: trainingRequest.learnerUserId,
+          learnerName: trainingRequest.learner?.name,
+          competencyLevelId: trainingRequest.competencyLevelId,
+          competencyName: trainingRequest.competencyLevel?.competency?.name,
+          levelName: trainingRequest.competencyLevel?.name,
+          ...parsed, // Include all submitted fields
+        },
+      });
+    }
 
     // Don't revalidate to avoid page refresh - state is updated locally
     // revalidatePath("/admin/training-requests");

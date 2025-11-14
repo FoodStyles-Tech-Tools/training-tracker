@@ -4,7 +4,7 @@ import { db, schema } from "@/db";
  * Logs an activity to the activity_log table
  * @param userId - UUID of the user performing the action
  * @param module - Module name
- * @param action - Action name (add/edit/delete)
+ * @param action - Action name (any string value)
  * @param data - Extra data to log (object/primitive, will be JSON.stringified)
  */
 export async function logActivity({
@@ -15,7 +15,7 @@ export async function logActivity({
 }: {
   userId: string;
   module: typeof schema.moduleNameEnum.enumValues[number];
-  action: typeof schema.actionEnum.enumValues[number];
+  action: string; // Changed to accept any string value
   data?: unknown;
 }) {
   try {

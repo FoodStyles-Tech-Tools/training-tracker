@@ -4,6 +4,7 @@ import { eq, and, or, like, desc, asc, inArray } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
 import { getCurrentSession } from "@/lib/session";
+import { ALLOWED_TRAINING_REQUEST_STATUSES } from "@/app/(dashboard)/admin/training-batches/constants";
 
 export async function GET(req: NextRequest) {
   const session = await getCurrentSession();
@@ -236,13 +237,14 @@ export async function POST(req: NextRequest) {
       // Add learners
       if (learnerIds && learnerIds.length > 0) {
         // Get training requests for these learners and competency level
+        // Only allow learners with status: In Queue (2), No batch match (3), or Drop off (7)
         const trainingRequests = await tx
           .select()
           .from(schema.trainingRequest)
           .where(
             and(
               eq(schema.trainingRequest.competencyLevelId, competencyLevelId),
-              eq(schema.trainingRequest.status, 2), // Status 2 (defined in env.TRAINING_REQUEST_STATUS)
+              inArray(schema.trainingRequest.status, ALLOWED_TRAINING_REQUEST_STATUSES),
               inArray(schema.trainingRequest.learnerUserId, learnerIds),
             ),
           );
