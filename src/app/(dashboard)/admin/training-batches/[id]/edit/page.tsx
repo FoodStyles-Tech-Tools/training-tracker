@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
@@ -8,6 +9,7 @@ import { ensurePermission } from "@/lib/permissions";
 import { TrainingBatchForm } from "../../training-batch-form";
 import { AttendanceTable } from "../../attendance-table";
 import { HomeworkTable } from "../../homework-table";
+import { Button } from "@/components/ui/button";
 
 export default async function EditTrainingBatchPage({
   params,
@@ -152,6 +154,19 @@ export default async function EditTrainingBatchPage({
           learners={batch.learners.map((l) => l.learner)}
           homework={homework}
         />
+
+        {/* Save button - below homework */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Link
+            href="/admin/training-batches"
+            className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200"
+          >
+            Cancel
+          </Link>
+          <Button type="submit" form="training-batch-edit-form">
+            Save
+          </Button>
+        </div>
       </div>
     </Suspense>
   );

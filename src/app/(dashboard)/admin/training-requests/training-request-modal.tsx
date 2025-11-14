@@ -468,8 +468,9 @@ export function TrainingRequestModal({
                   // Hide "Not Started" (status 0)
                   if (index === 0) return null;
                   
-                  // When status is "Looking for trainer" (1), only show "Looking for trainer" (1) and "In Queue" (2)
-                  if (formData.status === 1 && index !== 1 && index !== 2) return null;
+                  // When database status is "Looking for trainer" (1), only show "Looking for trainer" (1) and "In Queue" (2)
+                  // When database status is "In Queue" (2), show all statuses
+                  if (trainingRequest.status === 1 && index !== 1 && index !== 2) return null;
                   
                   return (
                     <option key={index} value={index}>

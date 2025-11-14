@@ -22,6 +22,7 @@ import { Search, X, Check } from "lucide-react";
 import {
   createTrainingBatchAction,
   updateTrainingBatchAction,
+  finishBatchAction,
   type TrainingBatchFormInput,
 } from "./actions";
 
@@ -138,6 +139,7 @@ export function TrainingBatchForm({
 }: TrainingBatchFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isFinishingBatch, setIsFinishingBatch] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   const [availableLearners, setAvailableLearners] = useState<
     Array<{ id: string; name: string; email: string; trainingRequestId: string }>
@@ -152,6 +154,7 @@ export function TrainingBatchForm({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [isLoadingLearners, setIsLoadingLearners] = useState(false);
 
   // Refs for flatpickr instances
   const estimatedStartRef = useRef<HTMLInputElement>(null);
@@ -222,6 +225,7 @@ export function TrainingBatchForm({
     } else {
       setAvailableLearners([]);
       setFilteredLearners([]);
+      setIsLoadingLearners(false);
     }
   }, [watchedCompetencyLevelId]);
 
@@ -485,15 +489,18 @@ export function TrainingBatchForm({
   }, []);
 
   const fetchAvailableLearners = async (competencyLevelId: string) => {
+    setIsLoadingLearners(true);
     try {
-      const response = await fetch(
-        `/api/training-batches/available-learners?competencyLevelId=${competencyLevelId}${isEditing && batch ? `&batchId=${batch.id}` : ""}`,
-      );
+      const url = `/api/training-batches/available-learners?competencyLevelId=${competencyLevelId}${isEditing && batch ? `&batchId=${batch.id}` : ""}`;
+      const response = await fetch(url);
+      
       if (response.ok) {
         const data = await response.json();
         setAvailableLearners(data.learners || []);
         setFilteredLearners(data.learners || []);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Error fetching available learners:", response.status, errorData);
         setAvailableLearners([]);
         setFilteredLearners([]);
       }
@@ -501,6 +508,8 @@ export function TrainingBatchForm({
       console.error("Error fetching available learners:", error);
       setAvailableLearners([]);
       setFilteredLearners([]);
+    } finally {
+      setIsLoadingLearners(false);
     }
   };
 
@@ -630,6 +639,48 @@ export function TrainingBatchForm({
   const currentParticipant = (form.getValues("learnerIds") || []).length;
   const spotLeft = Math.max(0, watchedCapacity - currentParticipant);
 
+  // Check if all session dates are filled
+  const watchedSessionDates = useWatch({
+    control: form.control,
+    name: "sessionDates",
+  });
+  const allSessionDatesFilled = useMemo(() => {
+    const sessionDates = watchedSessionDates || [];
+    const sessionCount = watchedSessionCount;
+    if (sessionDates.length !== sessionCount) return false;
+    return sessionDates.every((date) => date !== null && date !== undefined);
+  }, [watchedSessionDates, watchedSessionCount]);
+
+  // Handle finish batch
+  const handleFinishBatch = async () => {
+    if (!batch) return;
+    
+    setIsFinishingBatch(true);
+    setMessage(null);
+    
+    try {
+      const result = await finishBatchAction(batch.id);
+      if (result.success) {
+        setMessage({ text: "Batch finished successfully. All learners' statuses updated to 'Sessions Complete'.", tone: "success" });
+        setTimeout(() => {
+          router.refresh();
+        }, 1000);
+        setTimeout(() => setMessage(null), 5000);
+      } else {
+        setMessage({ text: result.error || "Failed to finish batch", tone: "error" });
+        setTimeout(() => setMessage(null), 5000);
+      }
+    } catch (error) {
+      setMessage({
+        text: error instanceof Error ? error.message : "Failed to finish batch",
+        tone: "error",
+      });
+      setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setIsFinishingBatch(false);
+    }
+  };
+
   // Get all levels from all competencies for the level dropdown
   // Only show levels that have both training plan document and team knowledge not empty
   // Exception: if editing a batch, always include the currently selected level
@@ -659,7 +710,7 @@ export function TrainingBatchForm({
   }, [competencies, batch]);
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form id={isEditing ? "training-batch-edit-form" : undefined} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       {message && (
         <Alert variant={message.tone === "success" ? "success" : "error"}>
           {message.text}
@@ -676,7 +727,7 @@ export function TrainingBatchForm({
               <Input
                 id="batch-name"
                 {...form.register("batchName")}
-                placeholder="e.g. Batch-2025-001"
+                placeholder="e.g. Batch 1"
               />
               {form.formState.errors.batchName && (
                 <p className="text-xs text-red-400">{form.formState.errors.batchName.message}</p>
@@ -904,7 +955,11 @@ export function TrainingBatchForm({
               {dropdownOpen && (
                 <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-slate-700 bg-slate-900 shadow-lg">
                   <div className="py-1">
-                    {filteredLearners.length === 0 ? (
+                    {isLoadingLearners ? (
+                      <div className="px-3 py-2 text-sm text-slate-400">
+                        Loading learners...
+                      </div>
+                    ) : filteredLearners.length === 0 ? (
                       <div className="px-3 py-2 text-sm text-slate-400">
                         No learners available
                       </div>
@@ -974,19 +1029,36 @@ export function TrainingBatchForm({
             />
           ))}
         </div>
+
+        {/* Finish Batch button - only show when editing and all session dates are filled */}
+        {isEditing && batch && allSessionDatesFilled && (
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={handleFinishBatch}
+              disabled={isFinishingBatch}
+              className="bg-green-600 hover:bg-green-700 !text-white text-white"
+            >
+              {isFinishingBatch ? "Finishing..." : "Finish Batch"}
+            </Button>
+          </div>
+        )}
       </Card>
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Link
-          href="/admin/training-batches"
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200"
-        >
-          Cancel
-        </Link>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving..." : "Save"}
-        </Button>
-      </div>
+      {/* Save button - only show when creating (not editing) */}
+      {!isEditing && (
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Link
+            href="/admin/training-batches"
+            className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200"
+          >
+            Cancel
+          </Link>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      )}
 
       {/* Alert Modal */}
       <Modal

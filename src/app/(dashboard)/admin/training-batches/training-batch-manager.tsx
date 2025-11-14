@@ -42,6 +42,21 @@ function getLevelBadgeClass(level: string): string {
   }
 }
 
+// Helper function to get level sort order (Basic = 0, Competent = 1, Advanced = 2)
+function getLevelSortOrder(level: string): number {
+  const levelLower = level.toLowerCase();
+  switch (levelLower) {
+    case "basic":
+      return 0;
+    case "competent":
+      return 1;
+    case "advanced":
+      return 2;
+    default:
+      return 999; // Unknown levels go to the end
+  }
+}
+
 type TrainingBatchWithRelations = TrainingBatch & {
   competencyLevel: {
     id: string;
@@ -178,21 +193,28 @@ export function TrainingBatchManager({
       );
     }
 
-    // Apply sorting
-    if (sortColumn) {
-      filtered.sort((a, b) => {
+    // Apply sorting - always sort by competency first, then by level
+    filtered.sort((a, b) => {
+      // Primary sort: by competency name
+      const aCompetency = a.competencyLevel.competency.name.toLowerCase();
+      const bCompetency = b.competencyLevel.competency.name.toLowerCase();
+      if (aCompetency !== bCompetency) {
+        return aCompetency < bCompetency ? -1 : 1;
+      }
+
+      // Secondary sort: by level (Basic, Competent, Advanced)
+      const aLevelOrder = getLevelSortOrder(a.competencyLevel.name);
+      const bLevelOrder = getLevelSortOrder(b.competencyLevel.name);
+      if (aLevelOrder !== bLevelOrder) {
+        return aLevelOrder - bLevelOrder;
+      }
+
+      // Tertiary sort: by user-selected column (if any)
+      if (sortColumn && sortColumn !== "competency" && sortColumn !== "level") {
         let aValue: any;
         let bValue: any;
 
         switch (sortColumn) {
-          case "competency":
-            aValue = a.competencyLevel.competency.name.toLowerCase();
-            bValue = b.competencyLevel.competency.name.toLowerCase();
-            break;
-          case "level":
-            aValue = a.competencyLevel.name.toLowerCase();
-            bValue = b.competencyLevel.name.toLowerCase();
-            break;
           case "batchName":
             aValue = a.batchName.toLowerCase();
             bValue = b.batchName.toLowerCase();
@@ -214,8 +236,7 @@ export function TrainingBatchManager({
             bValue = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
             break;
           default:
-            aValue = null;
-            bValue = null;
+            return 0;
         }
 
         // Handle null/undefined values
@@ -227,8 +248,10 @@ export function TrainingBatchManager({
         if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
         if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
         return 0;
-      });
-    }
+      }
+
+      return 0;
+    });
 
     return filtered;
   }, [trainingBatches, filters, sortColumn, sortDirection]);
