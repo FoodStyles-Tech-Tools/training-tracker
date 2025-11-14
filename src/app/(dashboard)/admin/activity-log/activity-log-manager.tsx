@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import type { ActivityLog, User } from "@/db/schema";
 import { TableControls } from "@/components/admin/table-controls";
+import { Pagination } from "@/components/admin/pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ActivityLogEntry = ActivityLog & {
@@ -50,8 +51,10 @@ function parseData(data: string | null) {
 export function ActivityLogManager({ logs }: ActivityLogManagerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortValue, setSortValue] = useState<string>(SORT_OPTIONS[0]?.value ?? "timestamp-desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
-  const visibleLogs = useMemo(() => {
+  const { filteredAndSortedLogs, totalFilteredLogs } = useMemo(() => {
     const normalized = searchQuery.trim().toLowerCase();
     const filtered = normalized
       ? logs.filter((log) => {
@@ -63,7 +66,7 @@ export function ActivityLogManager({ logs }: ActivityLogManagerProps) {
 
     const toTime = (value: string | Date) => (value instanceof Date ? value.getTime() : new Date(value).getTime());
 
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       switch (sortValue) {
         case "timestamp-asc":
           return toTime(a.timestamp) - toTime(b.timestamp);
@@ -85,16 +88,36 @@ export function ActivityLogManager({ logs }: ActivityLogManagerProps) {
           return 0;
       }
     });
+
+    return { filteredAndSortedLogs: sorted, totalFilteredLogs: sorted.length };
   }, [logs, searchQuery, sortValue]);
+
+  // Paginate the filtered and sorted logs
+  const visibleLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredAndSortedLogs.slice(startIndex, endIndex);
+  }, [filteredAndSortedLogs, currentPage, pageSize]);
+
+  // Reset to page 1 when search or sort changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortValue(value);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
       <TableControls
         searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange}
         searchPlaceholder="Search logs by user, module, action, or data..."
         sortValue={sortValue}
-        onSortChange={setSortValue}
+        onSortChange={handleSortChange}
         sortOptions={SORT_OPTIONS}
       />
 
@@ -119,9 +142,10 @@ export function ActivityLogManager({ logs }: ActivityLogManagerProps) {
                 {visibleLogs.length ? (
                   visibleLogs.map((log, index) => {
                     const formattedData = parseData(log.data ?? null);
+                    const rowNumber = (currentPage - 1) * pageSize + index + 1;
                     return (
                       <tr key={log.id} className="hover:bg-slate-900/50">
-                        <td className="px-4 py-2 align-top">{index + 1}</td>
+                        <td className="px-4 py-2 align-top">{rowNumber}</td>
                         <td className="px-4 py-2 align-top">
                           {log.user ? (
                             <>
@@ -159,6 +183,18 @@ export function ActivityLogManager({ logs }: ActivityLogManagerProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <Pagination
+        totalItems={totalFilteredLogs}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(newPageSize) => {
+          setPageSize(newPageSize);
+          setCurrentPage(1);
+        }}
+      />
     </div>
   );
 }
