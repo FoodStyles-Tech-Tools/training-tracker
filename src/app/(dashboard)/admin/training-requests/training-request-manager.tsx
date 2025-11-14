@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
-import type { TrainingRequest, Competency, User } from "@/db/schema";
+import type { TrainingRequest, Competency } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { updateTrainingRequestAction, getTrainingRequestById } from "./actions";
 import { TrainingRequestModal } from "./training-request-modal";
@@ -66,7 +66,12 @@ const customFilterLabels = {
 interface TrainingRequestManagerProps {
   trainingRequests: TrainingRequestWithRelations[];
   competencies: Competency[];
-  users: User[];
+  users: Array<{
+    id: string;
+    name: string;
+    role: string | null;
+    competencyIds: string[];
+  }>;
   statusLabels: string[];
   canEdit: boolean;
 }

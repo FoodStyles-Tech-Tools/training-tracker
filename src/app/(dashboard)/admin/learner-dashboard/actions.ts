@@ -226,12 +226,9 @@ export async function submitHomeworkAction(
       },
     });
 
-    // Get batch and session info for logging
+    // Get batch info for logging
     const batch = await db.query.trainingBatch.findFirst({
       where: eq(schema.trainingBatch.id, trainingBatchId),
-    });
-    const sessionData = await db.query.trainingBatchSessions.findFirst({
-      where: eq(schema.trainingBatchSessions.id, sessionId),
     });
 
     // Log activity

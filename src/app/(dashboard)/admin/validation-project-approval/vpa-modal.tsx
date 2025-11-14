@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { ValidationProjectApproval, User } from "@/db/schema";
+import { getEligibleUsersForAssignment } from "./actions";
 
 type VPAWithRelations = ValidationProjectApproval & {
   learner: {
@@ -65,6 +66,10 @@ export function VPAModal({
   // State to hold the current VPA (may be updated from fetch)
   const [vpa, setVPA] = useState<VPAWithRelations>(initialVPA);
   
+  // State for eligible users (fetched when modal opens)
+  const [eligibleUsers, setEligibleUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     status: initialVPA.status,
     assignedTo: initialVPA.assignedTo || "",
@@ -75,6 +80,33 @@ export function VPAModal({
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+
+  // Fetch eligible users when modal opens
+  useEffect(() => {
+    if (open) {
+      const competencyId = initialVPA.competencyLevel.competency.id;
+      setUsersLoading(true);
+      getEligibleUsersForAssignment(competencyId)
+        .then((result) => {
+          if (result.success && result.data) {
+            setEligibleUsers(result.data);
+          } else {
+            console.error("Failed to fetch eligible users:", result.error);
+            setEligibleUsers([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching eligible users:", error);
+          setEligibleUsers([]);
+        })
+        .finally(() => {
+          setUsersLoading(false);
+        });
+    } else {
+      // Clear users when modal closes
+      setEligibleUsers([]);
+    }
+  }, [open, initialVPA.competencyLevel.competency.id]);
 
   // Fetch fresh data when modal opens
   useEffect(() => {
@@ -428,13 +460,20 @@ export function VPAModal({
                 id="vpa-assigned-to"
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                disabled={usersLoading}
               >
                 <option value="">Select...</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+                {usersLoading ? (
+                  <option value="" disabled>Loading users...</option>
+                ) : eligibleUsers.length === 0 ? (
+                  <option value="" disabled>No eligible users found</option>
+                ) : (
+                  eligibleUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))
+                )}
               </Select>
             </div>
           </div>

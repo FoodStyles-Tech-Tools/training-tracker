@@ -67,6 +67,54 @@ export async function getVSRById(id: string) {
   }
 }
 
+export async function getEligibleUsersForAssignment(competencyId?: string) {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_schedule_request", "list");
+
+  try {
+    // Get all users with role and trainer competencies
+    const allUsers = await db.query.users.findMany({
+      with: {
+        role: true,
+        trainerCompetencies: {
+          with: {
+            competency: true,
+          },
+        },
+      },
+      orderBy: schema.users.name,
+    });
+
+    // Map to simplified structure
+    const users = allUsers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      role: user.role?.roleName ?? null,
+      competencyIds:
+        user.trainerCompetencies?.map((tc) => tc.competencyId).filter(Boolean) ?? [],
+    }));
+
+    // Filter: Ops users + Trainers for the specific competency
+    const eligibleUsers = users.filter((user) => {
+      const roleLower = String(user.role ?? "").toLowerCase();
+      if (roleLower === "ops") {
+        return true;
+      }
+      if (roleLower === "trainer" && competencyId && user.competencyIds.includes(competencyId)) {
+        return true;
+      }
+      return false;
+    });
+
+    return { success: true, data: eligibleUsers };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to fetch eligible users" };
+  }
+}
+
 export async function updateVSRAction(
   input: z.infer<typeof vsrUpdateSchema>,
 ) {

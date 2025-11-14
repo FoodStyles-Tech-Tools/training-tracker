@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { desc, eq, and } from "drizzle-orm";
 
 import { db, schema } from "@/db";
@@ -39,32 +38,41 @@ export default async function TrainingRequestsPage() {
     orderBy: schema.competencies.name,
   });
 
-  // Get all users with trainer role for assignment
-  const allUsers = await db.query.users.findMany({
+  // Get all users with role and trainer competencies for assignment
+  const usersWithRelations = await db.query.users.findMany({
     with: {
       role: true,
+      trainerCompetencies: {
+        with: {
+          competency: true,
+        },
+      },
     },
     orderBy: schema.users.name,
   });
-
-  // Filter to only users with "trainer" role (case-insensitive)
-  const users = allUsers.filter(
-    (user) => user.role?.roleName?.toLowerCase() === "trainer",
-  );
+  
+  const users = usersWithRelations.map((user) => ({
+    id: user.id,
+    name: user.name,
+    role: user.role?.roleName ?? null,
+    competencyIds:
+      user.trainerCompetencies?.map((tc) => tc.competencyId).filter(Boolean) ?? [],
+  }));
+  
+  // Explicitly serialize to ensure all data is passed to client
+  const serializedUsers = JSON.parse(JSON.stringify(users));
 
   // Parse status labels from environment variable
   const statusLabels = env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim());
 
   return (
-    <Suspense fallback={<div className="p-6 text-slate-400">Loading...</div>}>
-      <TrainingRequestManager
-        trainingRequests={trainingRequestsData}
-        competencies={competencies}
-        users={users}
-        statusLabels={statusLabels}
-        canEdit={canEdit}
-      />
-    </Suspense>
+    <TrainingRequestManager
+      trainingRequests={trainingRequestsData}
+      competencies={competencies}
+      users={serializedUsers}
+      statusLabels={statusLabels}
+      canEdit={canEdit}
+    />
   );
 }
 
