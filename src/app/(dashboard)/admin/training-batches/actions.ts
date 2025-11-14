@@ -406,7 +406,7 @@ export async function updateTrainingBatchAction(
       return updatedBatch;
     });
 
-    // Log activity
+    // Log activity - capture all submitted data
     await logActivity({
       userId: session.user.id,
       module: "training_batch",
@@ -414,7 +414,7 @@ export async function updateTrainingBatchAction(
       data: {
         batchId: result.id,
         batchName: result.batchName,
-        updatedFields: Object.keys(parsed).filter((key) => key !== "id" && parsed[key as keyof typeof parsed] !== undefined),
+        ...parsed, // Include all submitted fields
       },
     });
 
@@ -914,7 +914,7 @@ export async function finishBatchAction(batchId: string) {
         userId: session.user.id,
         action: "finish_batch",
         module: "training_batch",
-        details: {
+        data: {
           batchId: batch.id,
           batchName: batch.batchName,
           learnersCount: trainingRequestIds.length,

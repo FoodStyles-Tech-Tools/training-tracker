@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/utils-server";
 
 /**
  * Generate the next VSR ID (e.g., VSR01, VSR02, etc.)
@@ -143,6 +144,48 @@ export async function updateVPAAction(
       rejectionReason: parsed.rejectionReason ?? (finalStatus === 2 ? currentVPA.rejectionReason : null),
       updatedBy: session.user.id,
     });
+
+    // Get VPA info for activity log
+    const vpa = await db.query.validationProjectApproval.findFirst({
+      where: eq(schema.validationProjectApproval.id, parsed.id),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Log activity - capture all submitted data
+    if (vpa) {
+      await logActivity({
+        userId: session.user.id,
+        module: "validation_project_approval",
+        action: "edit",
+        data: {
+          vpaId: vpa.id,
+          vpaIdString: vpa.vpaId,
+          learnerId: vpa.learnerUserId,
+          learnerName: vpa.learner?.name,
+          competencyLevelId: vpa.competencyLevelId,
+          competencyName: vpa.competencyLevel?.competency?.name,
+          levelName: vpa.competencyLevel?.name,
+          ...parsed, // Include all submitted fields
+        },
+      });
+    }
 
     // If status is changing to 1 (Approved), update existing VSR or create new one
     const wasApproved = finalStatus === 1 && currentVPA.status !== 1;

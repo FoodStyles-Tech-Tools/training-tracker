@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
 import { getCurrentSession } from "@/lib/session";
+import { logActivity } from "@/lib/utils-server";
 
 export async function PATCH(
   req: NextRequest,
@@ -74,6 +75,32 @@ export async function PATCH(
         }
       }
     });
+
+    // Get batch and session info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, id),
+    });
+    const sessionData = await db.query.trainingBatchSessions.findFirst({
+      where: eq(schema.trainingBatchSessions.id, sessionId),
+    });
+
+    // Log activity
+    if (batch && sessionData) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "update_attendance",
+          sessionId: sessionId,
+          sessionNumber: sessionData.sessionNumber,
+          attendanceCount: attendance.length,
+          attendance, // Include full attendance data
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

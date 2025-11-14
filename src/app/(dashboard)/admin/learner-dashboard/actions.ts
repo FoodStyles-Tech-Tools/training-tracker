@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
+import { logActivity } from "@/lib/utils-server";
 
 /**
  * Generate the next TR ID (e.g., TR01, TR02, etc.)
@@ -120,6 +121,36 @@ export async function createTrainingRequestAction(competencyLevelId: string) {
       throw new Error("Failed to create training request");
     }
 
+    // Get competency level info for logging
+    const competencyLevel = await db.query.competencyLevels.findFirst({
+      where: eq(schema.competencyLevels.id, competencyLevelId),
+      with: {
+        competency: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      module: "training_request",
+      action: "add",
+      data: {
+        trainingRequestId: trainingRequest.id,
+        trId: trainingRequest.trId,
+        learnerId: session.user.id,
+        competencyLevelId,
+        competencyName: competencyLevel?.competency?.name,
+        levelName: competencyLevel?.name,
+        status: trainingRequest.status,
+        requestedDate: trainingRequest.requestedDate,
+        responseDue: trainingRequest.responseDue,
+      },
+    });
+
     revalidatePath("/admin/learner-dashboard");
     return { success: true, trainingRequestId: trainingRequest.id, trId };
   } catch (error) {
@@ -192,8 +223,33 @@ export async function submitHomeworkAction(
           // Don't change completed status - only update the URL
           // Trainer will mark it as completed after checking
           homeworkUrl,
+      },
+    });
+
+    // Get batch and session info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, trainingBatchId),
+    });
+    const sessionData = await db.query.trainingBatchSessions.findFirst({
+      where: eq(schema.trainingBatchSessions.id, sessionId),
+    });
+
+    // Log activity
+    if (batch && sessionData) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "submit_homework",
+        data: {
+          batchId: trainingBatchId,
+          batchName: batch.batchName,
+          sessionId,
+          sessionNumber: sessionData.sessionNumber,
+          learnerId: session.user.id,
+          homeworkUrl,
         },
       });
+    }
 
     revalidatePath("/admin/learner-dashboard");
     return { success: true };
@@ -294,9 +350,41 @@ export async function submitProjectAction(
     // Create log entry
     await db.insert(schema.validationProjectApprovalLog).values({
       vpaId,
-      status: submissionStatus, // 1 = Pending Validation Project Approval
+      status: submissionStatus, // 0 = Pending Validation Project Approval
       projectDetailsText: projectDetails.trim(),
       updatedBy: session.user.id,
+    });
+
+    // Get competency level info for logging
+    const competencyLevel = await db.query.competencyLevels.findFirst({
+      where: eq(schema.competencyLevels.id, competencyLevelId),
+      with: {
+        competency: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      module: "validation_project_approval",
+      action: existingProjectApproval ? "edit" : "add",
+      data: {
+        vpaId: projectApprovalId,
+        vpaIdString: vpaId,
+        learnerId: session.user.id,
+        competencyLevelId,
+        competencyName: competencyLevel?.competency?.name,
+        levelName: competencyLevel?.name,
+        projectDetails: projectDetails.trim(),
+        status: submissionStatus,
+        trId: trainingRequest.trId,
+        requestedDate,
+        responseDue,
+      },
     });
 
     revalidatePath("/admin/learner-dashboard");

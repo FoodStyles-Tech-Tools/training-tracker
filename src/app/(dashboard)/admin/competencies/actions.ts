@@ -337,7 +337,7 @@ export async function updateCompetencyAction(id: string, input: CompetencyFormIn
     }
   }
 
-  // Log activity
+  // Log activity - capture all submitted data
   const cleanedName = cleanCompetencyName(parsed.name);
   await logActivity({
     userId: session.user.id,
@@ -347,6 +347,17 @@ export async function updateCompetencyAction(id: string, input: CompetencyFormIn
       updatedId: id,
       name: cleanedName,
       status: parsed.status,
+      description: parsed.description,
+      relevantLinks: parsed.relevantLinks,
+      levels: parsed.levels.map((level) => ({
+        name: level.name,
+        trainingPlanDocument: level.trainingPlanDocument,
+        teamKnowledge: level.teamKnowledge,
+        eligibilityCriteria: level.eligibilityCriteria,
+        verification: level.verification,
+      })),
+      trainerIds: parsed.trainerIds,
+      requirementLevelIds: parsed.requirementLevelIds,
     },
   });
 

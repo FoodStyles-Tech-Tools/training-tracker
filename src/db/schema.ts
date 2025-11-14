@@ -175,7 +175,7 @@ export const verifications = pgTable(
   }),
 );
 
-export const actionEnum = pgEnum("action", ["add", "edit", "delete"]);
+export const actionEnum = pgEnum("action", ["add", "edit", "delete"]); // Deprecated - kept for backward compatibility
 
 export const activityLog = pgTable(
   "activity_log",
@@ -185,7 +185,7 @@ export const activityLog = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     module: moduleNameEnum("module").notNull(),
-    action: actionEnum("action").notNull(),
+    action: text("action").notNull(), // Changed from enum to text to accept any action value
     timestamp: timestamp("timestamp", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/utils-server";
 
 const vsrUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -118,6 +119,48 @@ export async function updateVSRAction(
       updatedBy: session.user.id,
     });
 
+    // Get VSR info for activity log
+    const vsr = await db.query.validationScheduleRequest.findFirst({
+      where: eq(schema.validationScheduleRequest.id, parsed.id),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Log activity - capture all submitted data
+    if (vsr) {
+      await logActivity({
+        userId: session.user.id,
+        module: "validation_schedule_request",
+        action: "edit",
+        data: {
+          vsrId: vsr.id,
+          vsrIdString: vsr.vsrId,
+          learnerId: vsr.learnerUserId,
+          learnerName: vsr.learner?.name,
+          competencyLevelId: vsr.competencyLevelId,
+          competencyName: vsr.competencyLevel?.competency?.name,
+          levelName: vsr.competencyLevel?.name,
+          ...parsed, // Include all submitted fields
+        },
+      });
+    }
+
     // If status is changing to Pass (4), update Training Request to Training Complete (8)
     const isPassing = finalStatus === 4 && currentVSR.status !== 4;
     if (isPassing && currentVSR.trId) {
@@ -183,9 +226,27 @@ export async function deleteVSRAction(vsrId: string) {
   await ensurePermission(session.user.id, "validation_schedule_request", "delete");
 
   try {
-    // Find VSR by vsrId
+    // Get VSR info for logging before deletion
     const vsr = await db.query.validationScheduleRequest.findFirst({
       where: eq(schema.validationScheduleRequest.vsrId, vsrId),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!vsr) {
@@ -201,6 +262,24 @@ export async function deleteVSRAction(vsrId: string) {
     await db
       .delete(schema.validationScheduleRequest)
       .where(eq(schema.validationScheduleRequest.vsrId, vsrId));
+
+    // Log activity
+    if (vsr) {
+      await logActivity({
+        userId: session.user.id,
+        module: "validation_schedule_request",
+        action: "delete",
+        data: {
+          vsrId: vsr.id,
+          vsrIdString: vsr.vsrId,
+          learnerId: vsr.learnerUserId,
+          learnerName: vsr.learner?.name,
+          competencyLevelId: vsr.competencyLevelId,
+          competencyName: vsr.competencyLevel?.competency?.name,
+          levelName: vsr.competencyLevel?.name,
+        },
+      });
+    }
 
     return { success: true };
   } catch (error) {

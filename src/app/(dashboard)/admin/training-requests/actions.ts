@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/utils-server";
 
 const trainingRequestUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -121,6 +122,48 @@ export async function updateTrainingRequestAction(
       .update(schema.trainingRequest)
       .set(updateData)
       .where(eq(schema.trainingRequest.id, parsed.id));
+
+    // Get training request info for logging
+    const trainingRequest = await db.query.trainingRequest.findFirst({
+      where: eq(schema.trainingRequest.id, parsed.id),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Log activity - capture all submitted data
+    if (trainingRequest) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_request",
+        action: "edit",
+        data: {
+          trainingRequestId: parsed.id,
+          trId: trainingRequest.trId,
+          learnerId: trainingRequest.learnerUserId,
+          learnerName: trainingRequest.learner?.name,
+          competencyLevelId: trainingRequest.competencyLevelId,
+          competencyName: trainingRequest.competencyLevel?.competency?.name,
+          levelName: trainingRequest.competencyLevel?.name,
+          ...parsed, // Include all submitted fields
+        },
+      });
+    }
 
     // Don't revalidate to avoid page refresh - state is updated locally
     // revalidatePath("/admin/training-requests");

@@ -662,12 +662,16 @@ export function TrainingBatchForm({
       const result = await finishBatchAction(batch.id);
       if (result.success) {
         setMessage({ text: "Batch finished successfully. All learners' statuses updated to 'Sessions Complete'.", tone: "success" });
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => {
           router.refresh();
         }, 1000);
         setTimeout(() => setMessage(null), 5000);
       } else {
         setMessage({ text: result.error || "Failed to finish batch", tone: "error" });
+        // Scroll to top to show error message
+        window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => setMessage(null), 5000);
       }
     } catch (error) {
@@ -675,6 +679,8 @@ export function TrainingBatchForm({
         text: error instanceof Error ? error.message : "Failed to finish batch",
         tone: "error",
       });
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsFinishingBatch(false);
