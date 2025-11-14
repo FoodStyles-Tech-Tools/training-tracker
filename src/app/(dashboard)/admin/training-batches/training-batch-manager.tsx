@@ -3,12 +3,12 @@
 import { useState, useMemo, useTransition, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
+import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Pagination } from "@/components/admin/pagination";
 import type { TrainingBatch, Competency, User } from "@/db/schema";
@@ -39,6 +39,21 @@ function getLevelBadgeClass(level: string): string {
       return "bg-purple-500/20 text-purple-200";
     default:
       return "bg-slate-500/20 text-slate-200";
+  }
+}
+
+// Helper function to get level sort order (Basic = 0, Competent = 1, Advanced = 2)
+function getLevelSortOrder(level: string): number {
+  const levelLower = level.toLowerCase();
+  switch (levelLower) {
+    case "basic":
+      return 0;
+    case "competent":
+      return 1;
+    case "advanced":
+      return 2;
+    default:
+      return 999; // Unknown levels go to the end
   }
 }
 
@@ -178,21 +193,28 @@ export function TrainingBatchManager({
       );
     }
 
-    // Apply sorting
-    if (sortColumn) {
-      filtered.sort((a, b) => {
+    // Apply sorting - always sort by competency first, then by level
+    filtered.sort((a, b) => {
+      // Primary sort: by competency name
+      const aCompetency = a.competencyLevel.competency.name.toLowerCase();
+      const bCompetency = b.competencyLevel.competency.name.toLowerCase();
+      if (aCompetency !== bCompetency) {
+        return aCompetency < bCompetency ? -1 : 1;
+      }
+
+      // Secondary sort: by level (Basic, Competent, Advanced)
+      const aLevelOrder = getLevelSortOrder(a.competencyLevel.name);
+      const bLevelOrder = getLevelSortOrder(b.competencyLevel.name);
+      if (aLevelOrder !== bLevelOrder) {
+        return aLevelOrder - bLevelOrder;
+      }
+
+      // Tertiary sort: by user-selected column (if any)
+      if (sortColumn && sortColumn !== "competency" && sortColumn !== "level") {
         let aValue: any;
         let bValue: any;
 
         switch (sortColumn) {
-          case "competency":
-            aValue = a.competencyLevel.competency.name.toLowerCase();
-            bValue = b.competencyLevel.competency.name.toLowerCase();
-            break;
-          case "level":
-            aValue = a.competencyLevel.name.toLowerCase();
-            bValue = b.competencyLevel.name.toLowerCase();
-            break;
           case "batchName":
             aValue = a.batchName.toLowerCase();
             bValue = b.batchName.toLowerCase();
@@ -214,8 +236,7 @@ export function TrainingBatchManager({
             bValue = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
             break;
           default:
-            aValue = null;
-            bValue = null;
+            return 0;
         }
 
         // Handle null/undefined values
@@ -227,8 +248,10 @@ export function TrainingBatchManager({
         if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
         if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
         return 0;
-      });
-    }
+      }
+
+      return 0;
+    });
 
     return filtered;
   }, [trainingBatches, filters, sortColumn, sortDirection]);
@@ -608,13 +631,15 @@ export function TrainingBatchManager({
                           >
                             Edit
                           </Link>
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={() => setSelectedBatchForDelete(batch.id)}
-                            className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            className="border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -701,14 +726,16 @@ export function TrainingBatchManager({
                     >
                       Remove from Batch
                     </button>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => setDropOffLearnerConfirm({ learnerId: learner.id, learnerName: learner.name })}
                       disabled={isPending}
-                      className="rounded-md border border-red-700 bg-red-800/50 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50"
+                      className="border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
                     >
                       Drop-off
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))
@@ -731,7 +758,8 @@ export function TrainingBatchManager({
         }}
         onCancel={() => setSelectedBatchForDelete(null)}
         confirmProps={{
-          className: "bg-red-600 hover:bg-red-700",
+          variant: "outline",
+          className: "border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200",
         }}
       />
 
@@ -770,7 +798,7 @@ export function TrainingBatchManager({
         }}
         onCancel={() => setDropOffLearnerConfirm(null)}
         confirmProps={{
-          className: "bg-red-600 hover:bg-red-700",
+          className: "bg-red-600 hover:bg-red-700 force-white-text",
           disabled: isPending,
         }}
         cancelProps={{

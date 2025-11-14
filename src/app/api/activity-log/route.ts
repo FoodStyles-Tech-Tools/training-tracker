@@ -32,15 +32,12 @@ export async function GET(req: NextRequest) {
   const from = url.searchParams.get("from") ? new Date(url.searchParams.get("from")!) : undefined;
   const to = url.searchParams.get("to") ? new Date(url.searchParams.get("to")!) : undefined;
 
-  // Validate enum values
+  // Validate module enum value (action is now text, accepts any string)
   const moduleName: typeof schema.moduleNameEnum.enumValues[number] | undefined = 
     moduleNameParam && (schema.moduleNameEnum.enumValues as readonly string[]).includes(moduleNameParam)
       ? (moduleNameParam as typeof schema.moduleNameEnum.enumValues[number])
       : undefined;
-  const action: typeof schema.actionEnum.enumValues[number] | undefined = 
-    actionParam && (schema.actionEnum.enumValues as readonly string[]).includes(actionParam)
-      ? (actionParam as typeof schema.actionEnum.enumValues[number])
-      : undefined;
+  const action: string | undefined = actionParam || undefined; // Action is now text, accept any string
 
   const filters = [];
   if (userId) {

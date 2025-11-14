@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import { ReactNode, useMemo, useState } from "react";
+import { Menu, Moon, Sun, X } from "lucide-react";
+import { ReactNode, useEffect, useMemo, useRef, useState, startTransition } from "react";
 
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/logout-button";
@@ -23,23 +23,79 @@ interface AdminShellProps {
   children: ReactNode;
 }
 
+type AdminTheme = "dark" | "light";
+
 export function AdminShell({ user, navItems, children }: AdminShellProps) {
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [theme, setTheme] = useState<AdminTheme>("light");
+  const hasHydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedTheme = window.localStorage.getItem("admin-theme");
+    if (storedTheme === "light" || storedTheme === "dark") {
+      startTransition(() => setTheme(storedTheme as AdminTheme));
+    }
+    hasHydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    document.body.dataset.adminTheme = theme;
+    if (hasHydratedRef.current) {
+      window.localStorage.setItem("admin-theme", theme);
+    }
+
+    return () => {
+      if (typeof document !== "undefined") {
+        delete document.body.dataset.adminTheme;
+      }
+    };
+  }, [theme]);
 
   const nav = useMemo(
     () =>
-      navItems.map((item) => ({
-        ...item,
-        active: pathname === item.href || (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")),
-      })),
+      navItems.map((item) => {
+        let active = pathname === item.href;
+        
+        // Special handling for Learner Dashboard
+        if (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")) {
+          active = true;
+        }
+        
+        // Special handling for Request Log - also active on old request routes
+        if (item.href === "/admin/request-log") {
+          active = pathname === "/admin/request-log" ||
+                   pathname === "/admin/training-requests" ||
+                   pathname === "/admin/validation-project-approval" ||
+                   pathname === "/admin/validation-schedule-request";
+        }
+        
+        return {
+          ...item,
+          active,
+        };
+      }),
     [navItems, pathname],
   );
 
   const closeNav = () => setIsNavOpen(false);
+  const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100 lg:flex-row">
+    <div
+      className={cn(
+        "admin-theme flex min-h-screen flex-col bg-slate-950 text-slate-100 transition-colors lg:flex-row",
+      )}
+      data-theme={theme}
+    >
       <aside className="hidden w-64 border-r border-slate-800 bg-slate-950/80 p-6 lg:flex lg:flex-col">
         <div className="space-y-8">
           <div>
@@ -94,6 +150,15 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:border-blue-400 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             <LogoutButton />
           </div>
         </header>

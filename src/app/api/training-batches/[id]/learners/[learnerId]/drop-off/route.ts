@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
 import { getCurrentSession } from "@/lib/session";
+import { logActivity } from "@/lib/utils-server";
 
 export async function POST(
   req: NextRequest,
@@ -87,6 +88,36 @@ export async function POST(
           .where(eq(schema.trainingBatch.id, id));
       }
     });
+
+    // Get batch and learner info for logging
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, id),
+    });
+    const learner = await db.query.users.findFirst({
+      where: eq(schema.users.id, learnerId),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // Log activity
+    if (batch && learner) {
+      await logActivity({
+        userId: session.user.id,
+        module: "training_batch",
+        action: "edit",
+        data: {
+          batchId: batch.id,
+          batchName: batch.batchName,
+          action: "drop_off_learner",
+          learnerId: learner.id,
+          learnerName: learner.name,
+          dropOffReason: dropOffReason || null,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

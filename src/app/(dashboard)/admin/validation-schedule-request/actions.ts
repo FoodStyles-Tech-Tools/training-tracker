@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
+import { logActivity } from "@/lib/utils-server";
 
 const vsrUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -66,6 +67,54 @@ export async function getVSRById(id: string) {
   }
 }
 
+export async function getEligibleUsersForAssignment(competencyId?: string) {
+  const session = await requireSession();
+  await ensurePermission(session.user.id, "validation_schedule_request", "list");
+
+  try {
+    // Get all users with role and trainer competencies
+    const allUsers = await db.query.users.findMany({
+      with: {
+        role: true,
+        trainerCompetencies: {
+          with: {
+            competency: true,
+          },
+        },
+      },
+      orderBy: schema.users.name,
+    });
+
+    // Map to simplified structure
+    const users = allUsers.map((user) => ({
+      id: user.id,
+      name: user.name,
+      role: user.role?.roleName ?? null,
+      competencyIds:
+        user.trainerCompetencies?.map((tc) => tc.competencyId).filter(Boolean) ?? [],
+    }));
+
+    // Filter: Ops users + Trainers for the specific competency
+    const eligibleUsers = users.filter((user) => {
+      const roleLower = String(user.role ?? "").toLowerCase();
+      if (roleLower === "ops") {
+        return true;
+      }
+      if (roleLower === "trainer" && competencyId && user.competencyIds.includes(competencyId)) {
+        return true;
+      }
+      return false;
+    });
+
+    return { success: true, data: eligibleUsers };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to fetch eligible users" };
+  }
+}
+
 export async function updateVSRAction(
   input: z.infer<typeof vsrUpdateSchema>,
 ) {
@@ -117,6 +166,48 @@ export async function updateVSRAction(
       status: finalStatus,
       updatedBy: session.user.id,
     });
+
+    // Get VSR info for activity log
+    const vsr = await db.query.validationScheduleRequest.findFirst({
+      where: eq(schema.validationScheduleRequest.id, parsed.id),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Log activity - capture all submitted data
+    if (vsr) {
+      await logActivity({
+        userId: session.user.id,
+        module: "validation_schedule_request",
+        action: "edit",
+        data: {
+          vsrId: vsr.id,
+          vsrIdString: vsr.vsrId,
+          learnerId: vsr.learnerUserId,
+          learnerName: vsr.learner?.name,
+          competencyLevelId: vsr.competencyLevelId,
+          competencyName: vsr.competencyLevel?.competency?.name,
+          levelName: vsr.competencyLevel?.name,
+          ...parsed, // Include all submitted fields
+        },
+      });
+    }
 
     // If status is changing to Pass (4), update Training Request to Training Complete (8)
     const isPassing = finalStatus === 4 && currentVSR.status !== 4;
@@ -183,9 +274,27 @@ export async function deleteVSRAction(vsrId: string) {
   await ensurePermission(session.user.id, "validation_schedule_request", "delete");
 
   try {
-    // Find VSR by vsrId
+    // Get VSR info for logging before deletion
     const vsr = await db.query.validationScheduleRequest.findFirst({
       where: eq(schema.validationScheduleRequest.vsrId, vsrId),
+      with: {
+        learner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        competencyLevel: {
+          with: {
+            competency: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!vsr) {
@@ -201,6 +310,24 @@ export async function deleteVSRAction(vsrId: string) {
     await db
       .delete(schema.validationScheduleRequest)
       .where(eq(schema.validationScheduleRequest.vsrId, vsrId));
+
+    // Log activity
+    if (vsr) {
+      await logActivity({
+        userId: session.user.id,
+        module: "validation_schedule_request",
+        action: "delete",
+        data: {
+          vsrId: vsr.id,
+          vsrIdString: vsr.vsrId,
+          learnerId: vsr.learnerUserId,
+          learnerName: vsr.learner?.name,
+          competencyLevelId: vsr.competencyLevelId,
+          competencyName: vsr.competencyLevel?.competency?.name,
+          levelName: vsr.competencyLevel?.name,
+        },
+      });
+    }
 
     return { success: true };
   } catch (error) {

@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-import { QuillEditor } from "@/components/ui/quill-editor";
 import type { Competency, CompetencyLevel } from "@/db/schema";
 import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
 import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
+import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
+import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
 import { X } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
@@ -136,6 +137,7 @@ export function LearnerDashboardClient({
   const [success, setSuccess] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
+  const [showTrainingSlotFormModal, setShowTrainingSlotFormModal] = useState(false);
   const [homeworkData, setHomeworkData] = useState<{
     batchId: string;
     sessions: Array<{ id: string; sessionNumber: number; sessionDate: Date | null }>;
@@ -219,14 +221,9 @@ export function LearnerDashboardClient({
     }
   }, [currentProjectApproval]);
 
-  // Helper to check if QuillJS content is empty
+  // Helper to check if project document link is empty
   const isProjectDetailsEmpty = useMemo(() => {
-    if (!projectDetails || projectDetails.trim() === "" || projectDetails === "<p><br></p>") {
-      return true;
-    }
-    // Remove HTML tags and check if there's actual text content
-    const textOnly = projectDetails.replace(/<[^>]*>/g, "").trim();
-    return textOnly === "";
+    return !projectDetails || projectDetails.trim() === "";
   }, [projectDetails]);
 
   // VPA Status mapping:
@@ -239,39 +236,69 @@ export function LearnerDashboardClient({
   const isProjectApproved = currentProjectApproval && currentProjectApproval.status === 1;
 
   // Get applicable requirements for the selected level
-  // Default requirements are automatically added when creating/updating competencies:
+  // Default requirements are calculated programmatically (not stored in database):
   // - Competent level requires Basic level (of the same competency)
+  // - Advanced level requires Basic level (of the same competency)
   // - Advanced level requires Competent level (of the same competency)
+  // Only manually selected requirements (from different competencies) are stored in the database
   const applicableRequirements = useMemo(() => {
     if (!selectedCompetency || !selectedLevelData) return [];
 
     const selectedLevelName = selectedLevelData.name.toLowerCase();
+    const requirements: Array<{
+      requiredLevel: CompetencyLevel & {
+        competency: Competency;
+      };
+    }> = [];
 
-    // Filter requirements based on the selected level:
-    // - Basic level: no default requirements (only manually set requirements from different competencies)
-    // - Competent level: requires Basic level (of same competency) + manually set requirements
-    // - Advanced level: requires Competent level (of same competency) + manually set requirements
-    return selectedCompetency.requirements.filter((req) => {
-      const requiredLevel = req.requiredLevel;
-      const requiredLevelName = requiredLevel.name.toLowerCase();
-      const isSameCompetency = requiredLevel.competency.id === selectedCompetency.id;
-
-      // If requirement is from a different competency, it applies to all levels (manually set)
-      if (!isSameCompetency) {
-        return true;
-      }
-
-      // For same competency requirements (default requirements):
-      // - Basic level requirement applies to Competent and Advanced
-      // - Competent level requirement applies to Advanced only
-      if (requiredLevelName === "basic") {
-        return selectedLevelName === "competent" || selectedLevelName === "advanced";
-      } else if (requiredLevelName === "competent") {
-        return selectedLevelName === "advanced";
-      }
-
-      return false;
+    // Add manually selected requirements from database (these are from different competencies)
+    // These apply to all levels
+    const manualRequirements = selectedCompetency.requirements.filter((req) => {
+      const isSameCompetency = req.requiredLevel.competency.id === selectedCompetency.id;
+      // Only include requirements from different competencies (manually set)
+      return !isSameCompetency;
     });
+    requirements.push(...manualRequirements);
+
+    // Add default requirements programmatically based on selected level
+    // Use a Set to track level IDs to avoid duplicates
+    const addedLevelIds = new Set(
+      requirements.map((req) => req.requiredLevel.id)
+    );
+
+    if (selectedLevelName === "competent" || selectedLevelName === "advanced") {
+      // Competent and Advanced both require Basic level (same competency)
+      const basicLevel = selectedCompetency.levels.find(
+        (level) => level.name.toLowerCase() === "basic"
+      );
+      if (basicLevel && !addedLevelIds.has(basicLevel.id)) {
+        requirements.push({
+          requiredLevel: {
+            ...basicLevel,
+            competency: selectedCompetency,
+          },
+        });
+        addedLevelIds.add(basicLevel.id);
+      }
+    }
+
+    if (selectedLevelName === "advanced") {
+      // Advanced also requires Competent level (same competency)
+      const competentLevel = selectedCompetency.levels.find(
+        (level) => level.name.toLowerCase() === "competent"
+      );
+      if (competentLevel && !addedLevelIds.has(competentLevel.id)) {
+        requirements.push({
+          requiredLevel: {
+            ...competentLevel,
+            competency: selectedCompetency,
+          },
+        });
+        addedLevelIds.add(competentLevel.id);
+      }
+    }
+
+    return requirements;
   }, [selectedCompetency, selectedLevelData]);
 
   // Get unmet requirements for display
@@ -387,6 +414,8 @@ export function LearnerDashboardClient({
         setSuccess(successMessage);
         // Store success message in sessionStorage to persist across refresh
         sessionStorage.setItem("trainingRequestSuccess", successMessage);
+        // Show training slot selection form popup
+        setShowTrainingSlotFormModal(true);
         // Refresh the data to show the new training request
         router.refresh();
       } else {
@@ -483,27 +512,34 @@ export function LearnerDashboardClient({
       );
 
       if (result.success) {
-        setSuccess(`Homework ${sessionNumber} submitted successfully`);
-        // Update homework data
-        setHomeworkData((prev) => {
-          if (!prev) return null;
-          const updatedHomework = [...prev.homework];
-          const existingIndex = updatedHomework.findIndex((h) => h.sessionId === sessionId);
-          if (existingIndex >= 0) {
-            updatedHomework[existingIndex] = {
-              sessionId,
-              homeworkUrl,
-              completed: true,
-            };
-          } else {
-            updatedHomework.push({
-              sessionId,
-              homeworkUrl,
-              completed: true,
-            });
+        setSuccess(`Homework ${sessionNumber} submitted successfully. Waiting for trainer review.`);
+        
+        // Reload homework data from server to get the latest state
+        if (homeworkData) {
+          try {
+            const batchResponse = await fetch(`/api/training-batches/${homeworkData.batchId}`);
+            if (batchResponse.ok) {
+              const batchData = await batchResponse.json();
+              setHomeworkData({
+                batchId: homeworkData.batchId,
+                sessions: batchData.batch.sessions || [],
+                homework: batchData.homework || [],
+              });
+
+              // Update homework URLs from server data
+              const urls = new Map<string, string>();
+              batchData.homework?.forEach((h: any) => {
+                if (h.homeworkUrl) {
+                  urls.set(h.sessionId, h.homeworkUrl);
+                }
+              });
+              setHomeworkUrls(urls);
+            }
+          } catch (error) {
+            console.error("Error reloading homework data:", error);
           }
-          return { ...prev, homework: updatedHomework };
-        });
+        }
+        
         setTimeout(() => {
           setSuccess(null);
         }, 3000);
@@ -736,8 +772,12 @@ export function LearnerDashboardClient({
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-slate-300">Training Status:</span>
-                            <span className="text-slate-200">
-                              {statusLabels[currentTrainingRequest.status] || "Unknown"}
+                            <span
+                              className={`inline-block rounded-md px-2 py-0.5 text-sm font-semibold whitespace-nowrap ${getStatusBadgeClass(
+                                currentTrainingRequest.status,
+                              )}`}
+                            >
+                              {getTrainingRequestStatusLabel(currentTrainingRequest.status, statusLabels)}
                             </span>
                           </div>
                           {/* Homework Submit Button - Only show if status is 4 */}
@@ -832,14 +872,17 @@ export function LearnerDashboardClient({
                   <CardContent className="space-y-4 p-6">
                     <h3 className="text-lg font-semibold text-white">Submit Project</h3>
                     <div className="space-y-3">
-                      <label className="text-sm font-medium text-slate-200">Project details</label>
-                      <QuillEditor
-                        key={`project-details-${selectedLevelData?.id || 'none'}-${currentProjectApproval?.id || 'new'}-${isProjectEditable}`}
+                      <Label htmlFor="project-document-link" className="text-sm font-medium text-slate-200">
+                        Project document link
+                      </Label>
+                      <Input
+                        id="project-document-link"
+                        type="url"
                         value={projectDetails}
-                        onChange={(value) => setProjectDetails(value)}
-                        placeholder={isProjectDetailsEmpty ? "Enter project details..." : undefined}
+                        onChange={(e) => setProjectDetails(e.target.value)}
+                        placeholder="Enter document link..."
                         disabled={submittingProject || isPending || !isProjectEditable}
-                        className="min-h-[200px]"
+                        className="w-full"
                       />
                       {/* Status Details - Show when project is submitted */}
                       {isProjectSubmitted && currentProjectApproval && (
@@ -857,17 +900,11 @@ export function LearnerDashboardClient({
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-slate-300">Status:</span>
                                 <span
-                                  className={`font-semibold ${
-                                    currentProjectApproval.status === 0
-                                      ? "text-slate-200"
-                                      : currentProjectApproval.status === 1
-                                        ? "text-emerald-400"
-                                        : currentProjectApproval.status === 2
-                                          ? "text-red-400"
-                                          : "text-slate-200"
-                                  }`}
+                                  className={`inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getVPAStatusBadgeClass(
+                                    currentProjectApproval.status,
+                                  )}`}
                                 >
-                                  {vpaStatusLabels[currentProjectApproval.status] || "Unknown"}
+                                  {getVPAStatusLabel(currentProjectApproval.status, vpaStatusLabels)}
                                 </span>
                               </div>
                               {currentProjectApproval.status === 1 && currentProjectApproval.assignedToUser && (
@@ -950,11 +987,11 @@ export function LearnerDashboardClient({
                 <div className="space-y-6">
                   {/* Training Plan Document */}
                   <Card className="border border-slate-800/80 bg-slate-950/50">
-                    <CardContent className="space-y-3 p-6">
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-200">
+                    <CardContent className="space-y-6 p-6">
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-white">
                           Training Plan Document
-                        </label>
+                        </h2>
                         <div className="text-sm">
                           <a
                             href={selectedLevelData.trainingPlanDocument}
@@ -966,32 +1003,35 @@ export function LearnerDashboardClient({
                           </a>
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-200">
+                      <hr className="border-slate-800/80" />
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-white">
                           What team member should know
-                        </label>
+                        </h2>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.teamKnowledge,
                           }}
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-200">
+                      <hr className="border-slate-800/80" />
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-white">
                           Eligibility criteria
-                        </label>
+                        </h2>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.eligibilityCriteria,
                           }}
                         />
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-200">Verification</label>
+                      <hr className="border-slate-800/80" />
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-white">Verification</h2>
                         <div
-                          className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
                           dangerouslySetInnerHTML={{
                             __html: selectedLevelData.verification,
                           }}
@@ -1003,13 +1043,13 @@ export function LearnerDashboardClient({
                   {/* Relevant Links */}
                   {selectedCompetency.relevantLinks && (
                     <Card className="border border-slate-800/80 bg-slate-950/50">
-                      <CardContent className="space-y-3 p-6">
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium text-slate-200">
+                      <CardContent className="space-y-6 p-6">
+                        <div className="space-y-4">
+                          <h2 className="text-lg font-semibold text-white">
                             Relevant Links
-                          </label>
+                          </h2>
                           <div
-                            className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
+                            className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
                             dangerouslySetInnerHTML={{
                               __html: selectedCompetency.relevantLinks,
                             }}
@@ -1071,6 +1111,55 @@ export function LearnerDashboardClient({
         </div>
       </Modal>
 
+      {/* Training Slot Selection Form Modal */}
+      <Modal
+        open={showTrainingSlotFormModal}
+        onClose={() => setShowTrainingSlotFormModal(false)}
+        contentClassName="max-w-md"
+      >
+        <div className="border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <h2 className="text-lg font-semibold text-white">Training Slot Selection</h2>
+        </div>
+        <div className="p-6">
+          <p className="mb-4 text-sm text-slate-300">
+            Please fill out the Training Slot Selection Form to complete your application.
+          </p>
+          <div className="mb-6">
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSePiV-8zYEQjmT56YE1dwbC-Yki_Xc1Ou7Z5nFvUiGJvVOgCg/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              Open Training Slot Selection Form
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              onClick={() => setShowTrainingSlotFormModal(false)}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Homework Submission Modal */}
       <Modal
         open={showHomeworkModal}
@@ -1100,7 +1189,8 @@ export function LearnerDashboardClient({
                   (h) => h.sessionId === session.id,
                 );
                 const homeworkUrl = homeworkUrls.get(session.id) || existingHomework?.homeworkUrl || "";
-                const isSubmitted = existingHomework?.completed || false;
+                const hasSubmittedUrl = !!existingHomework?.homeworkUrl;
+                const isCompleted = existingHomework?.completed || false;
 
                 return (
                   <div key={session.id} className="space-y-2">
@@ -1122,27 +1212,24 @@ export function LearnerDashboardClient({
                           newUrls.set(session.id, e.target.value);
                           setHomeworkUrls(newUrls);
                         }}
-                        disabled={isSubmitted || submittingSessionId === session.id}
+                        disabled={isCompleted || submittingSessionId === session.id}
                         className="flex-1 min-w-[400px]"
                       />
                       <Button
                         type="button"
                         onClick={() => handleSubmitHomework(session.id, session.sessionNumber)}
-                        disabled={isSubmitted || submittingSessionId === session.id || !homeworkUrl.trim()}
+                        disabled={isCompleted || submittingSessionId === session.id || !homeworkUrl.trim()}
                         className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submittingSessionId === session.id
                           ? "Submitting..."
-                          : isSubmitted
-                            ? "Submitted"
-                            : "Submit"}
+                          : isCompleted
+                            ? "Completed"
+                            : hasSubmittedUrl
+                              ? "Update"
+                              : "Submit"}
                       </Button>
                     </div>
-                    {isSubmitted && homeworkUrl && (
-                      <p className="text-xs text-slate-400">
-                        Submitted: <a href={homeworkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">{homeworkUrl}</a>
-                      </p>
-                    )}
                   </div>
                 );
               })}

@@ -9,8 +9,8 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { QuillEditor } from "@/components/ui/quill-editor";
 import type { ValidationProjectApproval, User } from "@/db/schema";
+import { getEligibleUsersForAssignment } from "./actions";
 
 type VPAWithRelations = ValidationProjectApproval & {
   learner: {
@@ -66,6 +66,10 @@ export function VPAModal({
   // State to hold the current VPA (may be updated from fetch)
   const [vpa, setVPA] = useState<VPAWithRelations>(initialVPA);
   
+  // State for eligible users (fetched when modal opens)
+  const [eligibleUsers, setEligibleUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     status: initialVPA.status,
     assignedTo: initialVPA.assignedTo || "",
@@ -76,6 +80,33 @@ export function VPAModal({
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
+
+  // Fetch eligible users when modal opens
+  useEffect(() => {
+    if (open) {
+      const competencyId = initialVPA.competencyLevel.competency.id;
+      setUsersLoading(true);
+      getEligibleUsersForAssignment(competencyId)
+        .then((result) => {
+          if (result.success && result.data) {
+            setEligibleUsers(result.data);
+          } else {
+            console.error("Failed to fetch eligible users:", result.error);
+            setEligibleUsers([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching eligible users:", error);
+          setEligibleUsers([]);
+        })
+        .finally(() => {
+          setUsersLoading(false);
+        });
+    } else {
+      // Clear users when modal closes
+      setEligibleUsers([]);
+    }
+  }, [open, initialVPA.competencyLevel.competency.id]);
 
   // Fetch fresh data when modal opens
   useEffect(() => {
@@ -429,13 +460,20 @@ export function VPAModal({
                 id="vpa-assigned-to"
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                disabled={usersLoading}
               >
                 <option value="">Select...</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+                {usersLoading ? (
+                  <option value="" disabled>Loading users...</option>
+                ) : eligibleUsers.length === 0 ? (
+                  <option value="" disabled>No eligible users found</option>
+                ) : (
+                  eligibleUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))
+                )}
               </Select>
             </div>
           </div>
@@ -468,14 +506,39 @@ export function VPAModal({
           {/* Project Details */}
           <div className="space-y-2 border-t border-slate-800/80 pt-4">
             <Label htmlFor="vpa-project-details">Project Details</Label>
-            <QuillEditor
-              key={`vpa-editor-${vpa.id}-${open}`}
-              id="vpa-project-details"
-              value={formData.projectDetails}
-              onChange={(value) => setFormData({ ...formData, projectDetails: value })}
-              placeholder="Enter project details..."
-              className="min-h-[200px]"
-            />
+            {formData.projectDetails ? (
+              <div className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm">
+                {/* Extract URL from projectDetails - could be plain text or HTML */}
+                {(() => {
+                  // Strip HTML tags first
+                  const textContent = formData.projectDetails.replace(/<[^>]*>/g, "").trim();
+                  // Try to find URL in the text
+                  const urlMatch = textContent.match(/https?:\/\/[^\s<>"{}|\\^`[\]]+/i);
+                  const url = urlMatch ? urlMatch[0] : textContent;
+                  // Check if it's a valid URL
+                  try {
+                    new URL(url);
+                    return (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline break-all"
+                      >
+                        {url}
+                      </a>
+                    );
+                  } catch {
+                    // If not a valid URL, just display the text
+                    return <span className="text-slate-100 break-all">{textContent || formData.projectDetails}</span>;
+                  }
+                })()}
+              </div>
+            ) : (
+              <div className="rounded-md border border-slate-700 bg-slate-900/80 p-3 text-sm text-slate-400">
+                No project details provided
+              </div>
+            )}
           </div>
 
           {/* Rejection Reason - shown when status is Rejected */}
@@ -488,7 +551,6 @@ export function VPAModal({
                 value={formData.rejectionReason}
                 onChange={(e) => setFormData({ ...formData, rejectionReason: e.target.value })}
                 placeholder="Enter the reason for rejecting this validation project..."
-                className="focus-visible:ring-red-500 focus-visible:border-red-500"
               />
             </div>
           )}
@@ -502,7 +564,7 @@ export function VPAModal({
           <Button
             type="button"
             onClick={handleReject}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             disabled={isPending}
           >
             Reject
@@ -515,7 +577,7 @@ export function VPAModal({
           >
             Approve
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} className="force-white-text">
             {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
@@ -571,7 +633,6 @@ export function VPAModal({
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="Enter the reason for rejecting this validation project..."
               required
-              className="focus-visible:ring-red-500 focus-visible:border-red-500"
             />
           </div>
           <div className="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
@@ -585,7 +646,7 @@ export function VPAModal({
             </Button>
             <Button
               type="submit"
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
               disabled={isPending || !rejectionReason.trim()}
             >
               {isPending ? "Processing..." : "Confirm Rejection"}
@@ -654,7 +715,7 @@ export function VPAModal({
           <Button
             type="button"
             onClick={handleConfirmApprove}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="force-white-text rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             disabled={isPending}
           >
             {isPending ? "Processing..." : "Confirm Approval"}

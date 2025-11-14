@@ -4,13 +4,16 @@ import { forwardRef, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "rounded-lg border px-4 py-3 text-sm shadow-lg shadow-black/10",
+  "rounded-lg border px-4 py-3 text-sm shadow-lg shadow-black/10 transition-colors",
   {
     variants: {
       variant: {
-        success: "border-green-500/40 bg-green-500/10 text-green-200",
-        error: "border-red-500/40 bg-red-500/10 text-red-200",
-        info: "border-blue-500/40 bg-blue-500/10 text-blue-200",
+        success:
+          "border-green-500 bg-green-500 text-white dark:border-green-500/40 dark:bg-green-500/15 dark:text-green-100",
+        error:
+          "border-red-500 bg-red-500 text-white dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-100",
+        info:
+          "border-blue-500 bg-blue-500 text-white dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-100",
       },
     },
     defaultVariants: {

@@ -136,7 +136,15 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
               };
         }),
         trainerIds: competency.trainers.map((t) => t.trainerUserId),
-        requirementLevelIds: competency.requirements.map((r) => r.requiredCompetencyLevelId),
+        // Only load manually selected requirements (from different competencies)
+        // Default requirements (same competency) are handled programmatically, not stored in DB
+        requirementLevelIds: competency.requirements
+          .filter((req) => {
+            // Only include requirements from different competencies (manually set)
+            const isSameCompetency = req.requiredLevel.competency.id === competency.id;
+            return !isSameCompetency;
+          })
+          .map((r) => r.requiredCompetencyLevelId),
       }
     : {
         name: "",
@@ -161,6 +169,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
 
   const onSubmit = (values: FormValues, publish: boolean = false) => {
     setMessage(null);
+    console.log("Form submission - requirementLevelIds:", values.requirementLevelIds);
     const payload: CompetencyFormInput = {
       name: values.name,
       description: values.description || undefined,
@@ -168,7 +177,7 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
       relevantLinks: values.relevantLinks || undefined,
       levels: values.levels,
       trainerIds: values.trainerIds,
-      requirementLevelIds: values.requirementLevelIds,
+      requirementLevelIds: values.requirementLevelIds || [],
     };
 
     startTransition(async () => {
@@ -480,21 +489,27 @@ export function CompetencyForm({ users, competencyLevels, competency }: Competen
                         {["Basic", "Competent", "Advanced"].map((levelName) => {
                           const level = item.levels.find((l) => l.name === levelName);
                           if (!level) return <td key={levelName} className="px-4 py-3"></td>;
-                          const isChecked = form
-                            .watch("requirementLevelIds")
-                            .includes(level.id);
+                          const requirementLevelIds = form.watch("requirementLevelIds") || [];
+                          const isChecked = requirementLevelIds.includes(level.id);
                           return (
                             <td key={levelName} className="px-4 py-3 text-center">
                               <Checkbox
                                 checked={isChecked}
                                 onChange={(event) => {
-                                  const current = form.getValues("requirementLevelIds");
+                                  const current = form.getValues("requirementLevelIds") || [];
                                   if (event.target.checked) {
-                                    form.setValue("requirementLevelIds", [...current, level.id]);
+                                    form.setValue("requirementLevelIds", [...current, level.id], {
+                                      shouldValidate: true,
+                                      shouldDirty: true,
+                                    });
                                   } else {
                                     form.setValue(
                                       "requirementLevelIds",
                                       current.filter((id) => id !== level.id),
+                                      {
+                                        shouldValidate: true,
+                                        shouldDirty: true,
+                                      },
                                     );
                                   }
                                 }}

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ValidationScheduleRequest, User } from "@/db/schema";
 import type { rolesList } from "@/db/schema";
+import { getEligibleUsersForAssignment } from "./actions";
 
 type UserWithRole = User & {
   role: typeof rolesList.$inferSelect | null;
@@ -168,6 +169,10 @@ export function VSRModal({
   // State to hold the current VSR (may be updated from fetch)
   const [vsr, setVSR] = useState<VSRWithRelations>(initialVSR);
   
+  // State for eligible users (fetched when modal opens)
+  const [eligibleUsers, setEligibleUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     status: initialVSR.status,
     assignedTo: initialVSR.assignedTo || currentUserId || "",
@@ -201,6 +206,33 @@ export function VSRModal({
   };
 
   const calendarUrl = getCalendarUrl(formData.validatorOps);
+
+  // Fetch eligible users when modal opens
+  useEffect(() => {
+    if (open) {
+      const competencyId = initialVSR.competencyLevel.competency.id;
+      setUsersLoading(true);
+      getEligibleUsersForAssignment(competencyId)
+        .then((result) => {
+          if (result.success && result.data) {
+            setEligibleUsers(result.data);
+          } else {
+            console.error("Failed to fetch eligible users:", result.error);
+            setEligibleUsers([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching eligible users:", error);
+          setEligibleUsers([]);
+        })
+        .finally(() => {
+          setUsersLoading(false);
+        });
+    } else {
+      // Clear users when modal closes
+      setEligibleUsers([]);
+    }
+  }, [open, initialVSR.competencyLevel.competency.id]);
 
   // Fetch fresh data when modal opens
   useEffect(() => {
@@ -680,13 +712,20 @@ export function VSRModal({
                 id="vsr-assigned-to"
                 value={formData.assignedTo}
                 onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                disabled={usersLoading}
               >
                 <option value="">Select...</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+                {usersLoading ? (
+                  <option value="" disabled>Loading users...</option>
+                ) : eligibleUsers.length === 0 ? (
+                  <option value="" disabled>No eligible users found</option>
+                ) : (
+                  eligibleUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))
+                )}
               </Select>
             </div>
           </div>
@@ -861,7 +900,7 @@ export function VSRModal({
           <Button
             type="button"
             onClick={handleFailClick}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             disabled={isPending}
           >
             Fail
@@ -869,12 +908,12 @@ export function VSRModal({
           <Button
             type="button"
             onClick={handlePassClick}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="force-white-text rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             disabled={isPending}
           >
             Pass
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} className="force-white-text">
             {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
@@ -944,7 +983,7 @@ export function VSRModal({
           <Button
             type="button"
             onClick={handleConfirmFail}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             disabled={isPending}
           >
             {isPending ? "Processing..." : "Confirm Fail"}
@@ -1016,7 +1055,7 @@ export function VSRModal({
           <Button
             type="button"
             onClick={handleConfirmPass}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="force-white-text rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             disabled={isPending}
           >
             {isPending ? "Processing..." : "Confirm Pass"}

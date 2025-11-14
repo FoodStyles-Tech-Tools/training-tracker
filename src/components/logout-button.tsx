@@ -30,7 +30,7 @@ export function LogoutButton() {
       variant="outline"
       size="sm"
       disabled={isLoading}
-      className="border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+      className="h-10 border-red-500 text-red-300 hover:bg-red-500/10 hover:text-red-200"
     >
       {isLoading ? "Signing out..." : "Sign out"}
     </Button>
