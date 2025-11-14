@@ -554,6 +554,22 @@ a {
   border-color: #d6dee8 !important;
 }
 
+/* Form component light theme styles */
+.admin-theme[data-theme="light"] input.bg-slate-900:not([readonly]),
+.admin-theme[data-theme="light"] textarea.bg-slate-900:not([readonly]),
+.admin-theme[data-theme="light"] select.bg-slate-900:not([disabled]) {
+  background-color: #ffffff !important;
+}
+
+.admin-theme[data-theme="light"] input[readonly],
+.admin-theme[data-theme="light"] input.bg-slate-800,
+.admin-theme[data-theme="light"] textarea[readonly],
+.admin-theme[data-theme="light"] textarea.bg-slate-800,
+.admin-theme[data-theme="light"] select[disabled],
+.admin-theme[data-theme="light"] select.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
 .admin-theme[data-theme="light"] .hover\:bg-slate-900:hover,
 .admin-theme[data-theme="light"] .hover\:bg-slate-900\/70:hover,
 .admin-theme[data-theme="light"] .hover\:bg-slate-900\/60:hover,
