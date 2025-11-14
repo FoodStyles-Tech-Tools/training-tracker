@@ -657,7 +657,7 @@ export function VPAManager({
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-400">
-                        {responseDue ? formatDateTime(responseDue) : "-"}
+                        {responseDue ? formatDate(responseDue) : "-"}
                       </td>
                       <td className="px-4 py-3 text-slate-400">
                         {formatDateTime(vpa.updatedAt)}

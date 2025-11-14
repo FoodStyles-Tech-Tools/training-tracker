@@ -87,6 +87,14 @@ type VSRWithRelations = ValidationScheduleRequest & {
 
 type UserWithRole = User & {
   role: typeof rolesList.$inferSelect | null;
+  trainerCompetencies?: Array<{
+    competencyId: string;
+    trainerUserId: string;
+    competency?: {
+      id: string;
+      name: string;
+    };
+  }>;
 };
 
 interface RequestLogClientProps {
@@ -126,10 +134,15 @@ export function RequestLogClient({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  // Filter users for TR (only trainers)
-  const trainerUsers = usersWithRole.filter(
-    (user) => user.role?.roleName?.toLowerCase() === "trainer",
-  );
+  // Filter users for TR (only trainers) and transform to expected format
+  const trainerUsers = usersWithRole
+    .filter((user) => user.role?.roleName?.toLowerCase() === "trainer")
+    .map((user) => ({
+      id: user.id,
+      name: user.name,
+      role: user.role?.roleName ?? null,
+      competencyIds: user.trainerCompetencies?.map((tc) => tc.competencyId).filter(Boolean) ?? [],
+    }));
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -206,7 +219,7 @@ export function RequestLogClient({
           <TrainingRequestManager
             trainingRequests={trainingRequests}
             competencies={competencies}
-            users={trainerUsers as User[]}
+            users={trainerUsers}
             statusLabels={trStatusLabels}
             canEdit={canEditTR}
           />

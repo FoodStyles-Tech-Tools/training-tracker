@@ -97,10 +97,15 @@ export default async function RequestLogPage() {
     orderBy: schema.users.name,
   });
 
-  // Get all users with role information (needed for VSR)
+  // Get all users with role information (needed for VSR and TR)
   const usersWithRole = await db.query.users.findMany({
     with: {
       role: true,
+      trainerCompetencies: {
+        with: {
+          competency: true,
+        },
+      },
     },
     orderBy: schema.users.name,
   });
