@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import type { Competency, CompetencyLevel } from "@/db/schema";
 import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
 import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
+import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
+import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
 import { X } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
@@ -770,8 +772,12 @@ export function LearnerDashboardClient({
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-slate-300">Training Status:</span>
-                            <span className="text-slate-200">
-                              {statusLabels[currentTrainingRequest.status] || "Unknown"}
+                            <span
+                              className={`inline-block rounded-md px-2 py-0.5 text-sm font-semibold whitespace-nowrap ${getStatusBadgeClass(
+                                currentTrainingRequest.status,
+                              )}`}
+                            >
+                              {getTrainingRequestStatusLabel(currentTrainingRequest.status, statusLabels)}
                             </span>
                           </div>
                           {/* Homework Submit Button - Only show if status is 4 */}
@@ -894,17 +900,11 @@ export function LearnerDashboardClient({
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-slate-300">Status:</span>
                                 <span
-                                  className={`font-semibold ${
-                                    currentProjectApproval.status === 0
-                                      ? "text-slate-200"
-                                      : currentProjectApproval.status === 1
-                                        ? "text-emerald-400"
-                                        : currentProjectApproval.status === 2
-                                          ? "text-red-400"
-                                          : "text-slate-200"
-                                  }`}
+                                  className={`inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getVPAStatusBadgeClass(
+                                    currentProjectApproval.status,
+                                  )}`}
                                 >
-                                  {vpaStatusLabels[currentProjectApproval.status] || "Unknown"}
+                                  {getVPAStatusLabel(currentProjectApproval.status, vpaStatusLabels)}
                                 </span>
                               </div>
                               {currentProjectApproval.status === 1 && currentProjectApproval.assignedToUser && (
