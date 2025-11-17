@@ -1,3 +1,5 @@
+import { getCompetencyLevelBadgeClass } from "./competency-level-config";
+
 /**
  * Validation Project Approval Status Configuration
  * Status labels are defined in env.ts (VPA_STATUS environment variable)
@@ -5,7 +7,6 @@
  * 
  * To update status labels, edit the default value in src/env.ts
  */
-
 export function getVPAStatusLabel(status: number, statuses: string[]): string {
   // Map status 0-3 directly to array indices 0-3
   if (status >= 0 && status < statuses.length) {
@@ -49,14 +50,6 @@ export function getVPAStatusBadgeClass(status: number): string {
  * Level badge color classes
  */
 export function getVPALevelBadgeClass(level: string): string {
-  const levelLower = level.toLowerCase();
-  if (levelLower === "basic") {
-    return "bg-blue-500/20 text-blue-200";
-  } else if (levelLower === "competent") {
-    return "bg-emerald-500/20 text-emerald-200";
-  } else if (levelLower === "advanced") {
-    return "bg-purple-500/20 text-purple-200";
-  }
-  return "bg-slate-500/20 text-slate-200";
+  return getCompetencyLevelBadgeClass(level);
 }
 

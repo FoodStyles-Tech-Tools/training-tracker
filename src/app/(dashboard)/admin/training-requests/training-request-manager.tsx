@@ -15,6 +15,7 @@ import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/traini
 import { updateTrainingRequestAction, getTrainingRequestById } from "./actions";
 import { TrainingRequestModal } from "./training-request-modal";
 import { cn } from "@/lib/utils";
+import { getCompetencyLevelBadgeClass } from "@/lib/competency-level-config";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
 // This matches Flatpickr's "d M Y" format exactly
@@ -898,7 +899,9 @@ export function TrainingRequestManager({
                     </td>
                     <td className="px-4 py-3 text-slate-300">{tr.competencyLevel.competency.name}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-block max-w-[140px] rounded-md bg-blue-500/20 px-2 py-0.5 text-sm font-semibold text-blue-200">
+                      <span
+                        className={`inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getCompetencyLevelBadgeClass(tr.competencyLevel.name)}`}
+                      >
                         {tr.competencyLevel.name}
                       </span>
                     </td>
