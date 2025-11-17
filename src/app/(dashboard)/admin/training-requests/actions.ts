@@ -166,6 +166,26 @@ export async function updateTrainingRequestAction(
       updateData.inQueueDate = toDateOnly(today);
     }
 
+    // If status is being updated to "Drop Off" (7) and responseDue is not set, set it to +3 days from today
+    if (parsed.status === 7 && !parsed.responseDue) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const responseDueDate = new Date(today);
+      responseDueDate.setDate(responseDueDate.getDate() + 3);
+      updateData.responseDue = toDateOnly(responseDueDate);
+    }
+
+    // If status is being changed TO a status where response date appears, clear the response date
+    // Response date appears for: Looking for trainer (1), In Queue (2), No batch match (3), Drop Off (7)
+    const statusesWithResponseDate = [1, 2, 3, 7];
+    if (parsed.status !== undefined && 
+        currentRequest && 
+        parsed.status !== currentRequest.status && 
+        statusesWithResponseDate.includes(parsed.status) && 
+        currentRequest.responseDate) {
+      updateData.responseDate = null;
+    }
+
     await db
       .update(schema.trainingRequest)
       .set(updateData)

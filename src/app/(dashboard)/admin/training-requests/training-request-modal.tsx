@@ -293,9 +293,29 @@ export function TrainingRequestModal({
     }
   }, [formData.status]);
 
+  // Clear response date when changing to a status where response date appears (including Drop Off)
+  useEffect(() => {
+    const statusesWithResponseDate = [1, 2, 3, 7];
+    if (formData.status !== trainingRequest.status && 
+        statusesWithResponseDate.includes(formData.status)) {
+      // Use setTimeout to ensure DOM has updated and flatpickr instance is ready
+      // For Drop Off, we need to wait a bit longer for the flatpickr to initialize
+      const delay = formData.status === 7 ? 300 : 100;
+      setTimeout(() => {
+        if (responseDateFpRef.current) {
+          responseDateFpRef.current.clear();
+        } else if (responseDateRef.current) {
+          // If flatpickr isn't ready yet, clear the input directly
+          responseDateRef.current.value = '';
+        }
+      }, delay);
+    }
+  }, [formData.status, trainingRequest.status]);
+
   // Auto-calculate Response Due date when status changes
   // +1 day for "Looking for trainer" (1) and "In Queue" (2)
   // +5 days for "No batch match" (3)
+  // +3 days from TODAY for "Drop Off" (7)
   useEffect(() => {
     if (showResponseFields && responseDueFpRef.current && trainingRequest.requestedDate) {
       // Always recalculate when status changes to ensure correct days are added
@@ -308,6 +328,90 @@ export function TrainingRequestModal({
       responseDueFpRef.current.setDate(responseDueDate, false);
     }
   }, [showResponseFields, formData.status, trainingRequest.requestedDate]);
+
+  // Auto-calculate Response Due date when status changes to Drop Off (7)
+  // +3 days from TODAY (not requested date)
+  useEffect(() => {
+    if (showDropOffFields) {
+      // Calculate +3 days from TODAY
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const responseDueDate = new Date(today);
+      responseDueDate.setDate(responseDueDate.getDate() + 3);
+      
+      // Reinitialize flatpickr for responseDueRef if needed (element might have changed)
+      if (responseDueRef.current && !responseDueRef.current.dataset.flatpickr) {
+        try {
+          // Destroy old instance if it exists
+          if (responseDueFpRef.current) {
+            try {
+              responseDueFpRef.current.destroy();
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+          // Initialize new instance
+          const fp = flatpickr(responseDueRef.current as any, {
+            dateFormat: "d M Y",
+            allowInput: false,
+            clickOpens: false,
+            appendTo: document.body,
+            defaultDate: responseDueDate,
+          });
+          responseDueRef.current.dataset.flatpickr = "true";
+          responseDueFpRef.current = fp;
+        } catch (error) {
+          console.error('Error initializing flatpickr for Drop Off response due:', error);
+        }
+      } else if (responseDueFpRef.current) {
+        // Update existing instance
+        responseDueFpRef.current.setDate(responseDueDate, false);
+      }
+
+      // Reinitialize flatpickr for responseDateRef if needed
+      if (responseDateRef.current && !responseDateRef.current.dataset.flatpickr) {
+        try {
+          // Destroy old instance if it exists
+          if (responseDateFpRef.current) {
+            try {
+              responseDateFpRef.current.destroy();
+            } catch (e) {
+              // Ignore errors
+            }
+          }
+          // If status changed to Drop Off, clear the response date
+          // Otherwise get initial value
+          const shouldClearResponseDate = formData.status !== trainingRequest.status && formData.status === 7;
+          const initialResponseDate = shouldClearResponseDate ? null : (
+            trainingRequest.responseDate
+              ? trainingRequest.responseDate instanceof Date 
+                ? trainingRequest.responseDate 
+                : new Date(trainingRequest.responseDate)
+              : null
+          );
+          // Initialize new instance
+          const fp = flatpickr(responseDateRef.current as any, {
+            dateFormat: "d M Y",
+            allowInput: true,
+            clickOpens: true,
+            appendTo: document.body,
+            defaultDate: initialResponseDate || undefined,
+          });
+          responseDateRef.current.dataset.flatpickr = "true";
+          responseDateFpRef.current = fp;
+          // Clear if needed
+          if (shouldClearResponseDate) {
+            fp.clear();
+          }
+        } catch (error) {
+          console.error('Error initializing flatpickr for Drop Off response date:', error);
+        }
+      } else if (responseDateFpRef.current && formData.status !== trainingRequest.status && formData.status === 7) {
+        // If flatpickr already exists and status changed to Drop Off, clear it
+        responseDateFpRef.current.clear();
+      }
+    }
+  }, [showDropOffFields, formData.status, trainingRequest.status, trainingRequest.responseDate]);
 
 
   // Auto-calculate follow-up date when definite answer is "no" (Requested Date + 3 days)
@@ -603,7 +707,10 @@ export function TrainingRequestModal({
               <Select
                 id="tr-status"
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
+                onChange={(e) => {
+                  const newStatus = parseInt(e.target.value);
+                  setFormData({ ...formData, status: newStatus });
+                }}
               >
                 {statusLabels.map((status, index) => {
                   // Hide "Not Started" (status 0)
@@ -739,7 +846,7 @@ export function TrainingRequestModal({
         {showDropOffFields && (
           <div className="space-y-4 border-t border-slate-800/80 pt-4">
             <div className="space-y-2">
-              <Label htmlFor="tr-drop-off-reason">Drop-off reason</Label>
+              <Label htmlFor="tr-drop-off-reason">Drop Off reason</Label>
               <Textarea
                 id="tr-drop-off-reason"
                 rows={3}
@@ -751,12 +858,57 @@ export function TrainingRequestModal({
                     setValidationErrors({ ...validationErrors, dropOffReason: undefined });
                   }
                 }}
-                placeholder="Enter reason for drop-off..."
+                placeholder="Enter reason for Drop Off..."
                 className={validationErrors.dropOffReason ? "border-red-500/50 focus-visible:border-red-500/50 focus-visible:ring-red-500/20" : ""}
               />
               {validationErrors.dropOffReason && (
                 <p className="text-sm text-red-400">{validationErrors.dropOffReason}</p>
               )}
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="tr-drop-off-response-due">Response Due</Label>
+                <Input
+                  id="tr-drop-off-response-due"
+                  ref={responseDueRef}
+                  type="text"
+                  readOnly
+                  placeholder="Auto-calculated (+3 days from today)"
+                  className="cursor-not-allowed"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tr-drop-off-assigned-to">Assigned to</Label>
+                <Select
+                  id="tr-drop-off-assigned-to"
+                  value={formData.assignedTo}
+                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                  disabled={usersLoading}
+                >
+                  <option value="">Select...</option>
+                  {usersLoading ? (
+                    <option value="" disabled>Loading users...</option>
+                  ) : eligibleUsers.length === 0 ? (
+                    <option value="" disabled>No eligible users found</option>
+                  ) : (
+                    eligibleUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))
+                  )}
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tr-drop-off-response-date">Response date</Label>
+              <Input
+                id="tr-drop-off-response-date"
+                ref={responseDateRef}
+                type="text"
+                placeholder="Select date"
+                className="cursor-pointer"
+              />
             </div>
           </div>
         )}

@@ -8,6 +8,7 @@ import { requireSession } from "@/lib/session";
 
 const NAV_ITEMS: Array<{ label: string; href: string; module: ModuleName; requiresEdit?: boolean; alwaysVisible?: boolean }> = [
   { label: "Learner Dashboard", href: "/admin/learner-dashboard", module: "users", alwaysVisible: true },
+  { label: "Waitlist", href: "/admin/waitlist", module: "training_request" },
   { label: "Competencies", href: "/admin/competencies", module: "competencies" },
   { label: "Training Batches", href: "/admin/training-batches", module: "training_batch" },
   { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true },

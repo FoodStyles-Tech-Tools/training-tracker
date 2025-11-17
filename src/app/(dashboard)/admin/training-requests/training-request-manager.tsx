@@ -3,6 +3,7 @@
 import { useState, useMemo, useTransition, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -107,6 +108,7 @@ export function TrainingRequestManager({
     trainer: "",
     batch: "",
     customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked" | "followUp",
+    hideCompleted: true,
   });
   const activeCustomFilterLabel = filters.customFilter
     ? customFilterLabels[filters.customFilter]
@@ -189,6 +191,9 @@ export function TrainingRequestManager({
         return false;
       }
       if (filters.status && tr.status.toString() !== filters.status) {
+        return false;
+      }
+      if (filters.hideCompleted && (tr.status === 5 || tr.status === 8)) {
         return false;
       }
 
@@ -410,6 +415,7 @@ export function TrainingRequestManager({
       trainer: "",
       batch: "",
       customFilter: "",
+      hideCompleted: true,
     });
   };
 
@@ -580,6 +586,14 @@ export function TrainingRequestManager({
             >
               Follow Up ({filterCounts.followUp})
             </Button>
+            <label htmlFor="hide-completed-filter" className="flex items-center gap-2 text-xs font-medium text-slate-300">
+              <Checkbox
+                id="hide-completed-filter"
+                checked={filters.hideCompleted}
+                onChange={(e) => setFilters({ ...filters, hideCompleted: e.target.checked })}
+              />
+              <span className="text-slate-200">Hide Sessions Completed / Training Complete</span>
+            </label>
             <div className="flex-1"></div>
             <Button
               type="button"

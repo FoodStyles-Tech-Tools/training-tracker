@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
 import type { ValidationScheduleRequest, Competency, User } from "@/db/schema";
-import type { rolesList } from "@/db/schema";
+import type { rolesList, competenciesTrainer } from "@/db/schema";
 import { getVSRStatusLabel, getVSRStatusBadgeClass, getVSRLevelBadgeClass } from "@/lib/vsr-config";
 import { updateVSRAction, getVSRById } from "./actions";
 import { VSRModal } from "./vsr-modal";
 
 type UserWithRole = User & {
   role: typeof rolesList.$inferSelect | null;
+  trainerCompetencies?: typeof competenciesTrainer.$inferSelect[];
 };
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")

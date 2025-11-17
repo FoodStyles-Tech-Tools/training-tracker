@@ -9,11 +9,12 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ValidationScheduleRequest, User } from "@/db/schema";
-import type { rolesList } from "@/db/schema";
+import type { rolesList, competenciesTrainer } from "@/db/schema";
 import { getEligibleUsersForAssignment } from "./actions";
 
 type UserWithRole = User & {
   role: typeof rolesList.$inferSelect | null;
+  trainerCompetencies?: typeof competenciesTrainer.$inferSelect[];
 };
 
 // Helper functions to convert dates to/from UK timezone for display
@@ -188,9 +189,15 @@ export function VSRModal({
   const opsUsers = users.filter(
     (user) => user.role?.roleName?.toLowerCase() === "ops"
   );
-  const trainerUsers = users.filter(
-    (user) => user.role?.roleName?.toLowerCase() === "trainer"
-  );
+  const trainerUsers = users.filter((user) => {
+    if (user.role?.roleName?.toLowerCase() !== "trainer") {
+      return false;
+    }
+    const assignedCompetencyId = vsr.competencyLevel.competency.id;
+    const trainerCompetencyIds =
+      user.trainerCompetencies?.map((tc) => tc.competencyId) ?? [];
+    return trainerCompetencyIds.includes(assignedCompetencyId);
+  });
 
   // Get calendar URL based on selected validator ops
   const getCalendarUrl = (validatorOpsId: string | null): string | null => {

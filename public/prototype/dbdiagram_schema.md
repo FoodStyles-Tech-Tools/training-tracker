@@ -8,6 +8,11 @@ Enum module_name {
   roles
   users
   activity_log
+  competencies
+  training_batch
+  training_request
+  validation_project_approval
+  validation_schedule_request
 }
 
 Enum user_status {
@@ -51,7 +56,7 @@ Table users {
   id uuid [pk, default: `gen_random_uuid()`]
   name text [not null]
   email text [not null]
-  email_verified boolean [not null, default: true]
+  email_verified boolean [not null, default: false]
   image text
   discord_id text
   status user_status [not null, default: 'active']
@@ -70,7 +75,7 @@ Table users {
 }
 
 Table auth_accounts {
-  id uuid [pk, default: `gen_random_uuid()`]
+  id text [pk, default: `gen_random_uuid()::text`]
   user_id uuid [not null]
   provider_id text [not null]
   account_id text [not null]
@@ -108,9 +113,10 @@ Table auth_sessions {
 }
 
 Table auth_verification_tokens {
-  id uuid [pk, default: `gen_random_uuid()`]
+  id text [pk, default: `gen_random_uuid()::text`]
   identifier text [not null]
-  token text [not null]
+  token text [not null, default: `gen_random_uuid()::text`]
+  value text [not null]
   expires_at timestamptz [not null]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
@@ -124,7 +130,7 @@ Table activity_log {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
   module module_name [not null]
-  action action [not null]
+  action text [not null] // Changed from enum to text to accept any action value
   timestamp timestamptz [not null, default: `now()`]
   data text
 
@@ -184,6 +190,24 @@ Table competency_requirements {
     (competency_id, required_competency_level_id) [unique]
     (competency_id)
     (required_competency_level_id)
+  }
+}
+
+Table user_competency_progress {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  competency_level_id uuid [not null]
+  status text [not null, default: 'in_progress'] // "in_progress", "completed", "verified"
+  verified_at timestamptz
+  verified_by uuid
+  notes text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (user_id, competency_level_id) [unique]
+    (user_id)
+    (competency_level_id)
   }
 }
 
@@ -366,6 +390,7 @@ Table validation_schedule_request {
   scheduled_date date
   validator_ops uuid
   validator_trainer uuid
+  assigned_to uuid
   updated_at timestamptz [not null, default: `now()`]
   created_at timestamptz [not null, default: `now()`]
 
@@ -375,6 +400,7 @@ Table validation_schedule_request {
     (competency_level_id)
     (validator_ops)
     (validator_trainer)
+    (assigned_to)
   }
 }
 
@@ -406,6 +432,9 @@ Ref: competencies_trainer.competency_id > competencies.id [delete: cascade]
 Ref: competencies_trainer.trainer_user_id > users.id [delete: cascade]
 Ref: competency_requirements.competency_id > competencies.id [delete: cascade]
 Ref: competency_requirements.required_competency_level_id > competency_levels.id [delete: cascade]
+Ref: user_competency_progress.user_id > users.id [delete: cascade]
+Ref: user_competency_progress.competency_level_id > competency_levels.id [delete: cascade]
+Ref: user_competency_progress.verified_by > users.id [delete: set null]
 
 Ref: training_batch.competency_level_id > competency_levels.id [delete: cascade]
 Ref: training_batch.trainer_user_id > users.id [delete: cascade]
@@ -441,6 +470,7 @@ Ref: validation_schedule_request.competency_level_id > competency_levels.id [del
 Ref: validation_project_approval.assigned_to > users.id [delete: set null]
 Ref: validation_schedule_request.validator_ops > users.id [delete: set null]
 Ref: validation_schedule_request.validator_trainer > users.id [delete: set null]
+Ref: validation_schedule_request.assigned_to > users.id [delete: set null]
 Ref: training_request.assigned_to > users.id [delete: set null]
 Ref: validation_project_approval_log.updated_by > users.id [delete: set null]
 Ref: validation_schedule_request_log.updated_by > users.id [delete: set null]
