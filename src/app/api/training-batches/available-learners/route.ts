@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Get learners with training requests in allowed statuses:
-    // Status 2 = In Queue, 3 = No batch match, 7 = Drop off
+    // Status 2 = In Queue, 3 = No batch match, 6 = On Hold, 7 = Drop off
     // for the specified competency level
     // Exclude learners already in batches for this competency level
     const trainingRequests = await db
