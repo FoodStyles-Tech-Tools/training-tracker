@@ -220,6 +220,7 @@ Table training_batch {
   duration_hrs numeric
   estimated_start date
   batch_start_date date
+  batch_finish_date date
   capacity int [not null, default: 0]
   current_participant int [not null, default: 0]
   spot_left int [not null, default: 0]

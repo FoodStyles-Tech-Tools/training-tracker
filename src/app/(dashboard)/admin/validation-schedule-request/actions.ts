@@ -238,19 +238,32 @@ export async function updateVSRAction(
       });
 
       if (vpa) {
+        // Set response date to today when VSR fails
+        const responseDate = toDateOnly(new Date());
+
         // Update VPA status to 3 (Resubmit for Re-validation)
         await db
           .update(schema.validationProjectApproval)
           .set({
             status: 3, // Resubmit for Re-validation
+            responseDate: responseDate,
             updatedAt: new Date(),
           })
           .where(eq(schema.validationProjectApproval.id, vpa.id));
 
-        // Create log entry for VPA
+        // Create log entry for VPA with status 2 (Rejected) to track the rejection date
         await db.insert(schema.validationProjectApprovalLog).values({
           vpaId: vpa.vpaId,
-          status: 3,
+          status: 2, // Rejected - to track when it was rejected
+          projectDetailsText: vpa.projectDetails,
+          rejectionReason: null,
+          updatedBy: session.user.id,
+        });
+
+        // Also create log entry with status 3 (Resubmit for Re-validation)
+        await db.insert(schema.validationProjectApprovalLog).values({
+          vpaId: vpa.vpaId,
+          status: 3, // Resubmit for Re-validation
           projectDetailsText: vpa.projectDetails,
           rejectionReason: null,
           updatedBy: session.user.id,

@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Learner Dashboard", href: "/admin/learner-dashboard", module: "users", alwaysVisible: true, group: "learner" },
   { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true, group: "trainer" },
   { label: "Waitlist", href: "/admin/waitlist", module: "training_request", group: "report" },
+  { label: "Project Submission", href: "/admin/project-submission", module: "validation_project_approval", group: "report" },
   { label: "Competencies", href: "/admin/competencies", module: "competencies", group: "settings" },
   { label: "Training Batches", href: "/admin/training-batches", module: "training_batch", group: "settings" },
   { label: "Users", href: "/admin/users", module: "users", group: "settings" },

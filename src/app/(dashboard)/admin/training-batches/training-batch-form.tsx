@@ -1038,15 +1038,24 @@ export function TrainingBatchForm({
 
         {/* Finish Batch button - only show when editing and all session dates are filled */}
         {isEditing && batch && allSessionDatesFilled && (
-          <div className="flex justify-end">
+          <div className="flex flex-col items-end gap-2">
             <Button
               type="button"
               onClick={handleFinishBatch}
-              disabled={isFinishingBatch}
-              className="bg-green-600 hover:bg-green-700 !text-white text-white"
+              disabled={isFinishingBatch || !!batch.batchFinishDate}
+              className="bg-green-600 hover:bg-green-700 !text-white text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isFinishingBatch ? "Finishing..." : "Finish Batch"}
             </Button>
+            {batch.batchFinishDate && (
+              <p className="text-sm text-slate-400">
+                Finished at: {new Date(batch.batchFinishDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </p>
+            )}
           </div>
         )}
       </Card>

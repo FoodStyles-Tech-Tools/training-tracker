@@ -874,6 +874,15 @@ export async function finishBatchAction(batchId: string) {
   const session = await requireSession();
 
   try {
+    // Get batch info first to check if batchFinishDate exists
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+    });
+
+    if (!batch) {
+      return { success: false, error: "Batch not found" };
+    }
+
     // Get all learners in the batch with their training request IDs
     const batchLearners = await db.query.trainingBatchLearners.findMany({
       where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
@@ -903,24 +912,32 @@ export async function finishBatchAction(batchId: string) {
       })
       .where(inArray(schema.trainingRequest.id, trainingRequestIds));
 
-    // Get batch info for logging
-    const batch = await db.query.trainingBatch.findFirst({
-      where: eq(schema.trainingBatch.id, batchId),
-    });
+    // Update batchFinishDate only if it's empty/null
+    if (!batch.batchFinishDate) {
+      const today = new Date();
+      // Set to date only (no time)
+      const finishDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+      
+      await db
+        .update(schema.trainingBatch)
+        .set({
+          batchFinishDate: finishDate,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.trainingBatch.id, batchId));
+    }
 
     // Log activity
-    if (batch) {
-      await logActivity({
-        userId: session.user.id,
-        action: "finish_batch",
-        module: "training_batch",
-        data: {
-          batchId: batch.id,
-          batchName: batch.batchName,
-          learnersCount: trainingRequestIds.length,
-        },
-      });
-    }
+    await logActivity({
+      userId: session.user.id,
+      action: "finish_batch",
+      module: "training_batch",
+      data: {
+        batchId: batch.id,
+        batchName: batch.batchName,
+        learnersCount: trainingRequestIds.length,
+      },
+    });
 
     revalidatePath(`/admin/training-batches/${batchId}/edit`);
     revalidatePath("/admin/training-batches");
