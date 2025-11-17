@@ -627,7 +627,7 @@ export function TrainingBatchManager({
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/admin/training-batches/${batch.id}/edit`}
-                            className="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            className="rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 cursor-pointer"
                           >
                             Edit
                           </Link>

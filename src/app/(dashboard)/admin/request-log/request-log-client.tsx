@@ -165,7 +165,7 @@ export function RequestLogClient({
               activeTab === "tr"
                 ? "border-blue-500 text-blue-200"
                 : "border-transparent text-slate-300 hover:border-slate-600 hover:text-slate-200"
-            } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             Training Request
             {isPending && activeTab === "tr" && (
@@ -180,7 +180,7 @@ export function RequestLogClient({
               activeTab === "vpa"
                 ? "border-blue-500 text-blue-200"
                 : "border-transparent text-slate-300 hover:border-slate-600 hover:text-slate-200"
-            } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             Validation Project Approval
             {isPending && activeTab === "vpa" && (
@@ -195,7 +195,7 @@ export function RequestLogClient({
               activeTab === "vsr"
                 ? "border-blue-500 text-blue-200"
                 : "border-transparent text-slate-300 hover:border-slate-600 hover:text-slate-200"
-            } ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+            } ${isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             Validation Schedule Request
             {isPending && activeTab === "vsr" && (

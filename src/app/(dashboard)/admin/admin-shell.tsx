@@ -14,18 +14,24 @@ type NavItem = {
   href: string;
 };
 
+type NavGroups = {
+  learner: NavItem[];
+  trainer: NavItem[];
+  settings: NavItem[];
+};
+
 interface AdminShellProps {
   user: {
     name: string;
     roleName: string | null;
   };
-  navItems: NavItem[];
+  navGroups: NavGroups;
   children: ReactNode;
 }
 
 type AdminTheme = "dark" | "light";
 
-export function AdminShell({ user, navItems, children }: AdminShellProps) {
+export function AdminShell({ user, navGroups, children }: AdminShellProps) {
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [theme, setTheme] = useState<AdminTheme>("light");
@@ -60,30 +66,41 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
     };
   }, [theme]);
 
-  const nav = useMemo(
-    () =>
-      navItems.map((item) => {
-        let active = pathname === item.href;
-        
-        // Special handling for Learner Dashboard
-        if (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")) {
-          active = true;
-        }
-        
-        // Special handling for Request Log - also active on old request routes
-        if (item.href === "/admin/request-log") {
-          active = pathname === "/admin/request-log" ||
-                   pathname === "/admin/training-requests" ||
-                   pathname === "/admin/validation-project-approval" ||
-                   pathname === "/admin/validation-schedule-request";
-        }
-        
-        return {
-          ...item,
-          active,
-        };
-      }),
-    [navItems, pathname],
+  const processNavItems = (items: NavItem[]) =>
+    items.map((item) => {
+      let active = pathname === item.href;
+      
+      // Special handling for Learner Dashboard
+      if (item.href === "/admin/learner-dashboard" && pathname.startsWith("/admin/learner-dashboard")) {
+        active = true;
+      }
+      
+      // Special handling for Request Log - also active on old request routes
+      if (item.href === "/admin/request-log") {
+        active = pathname === "/admin/request-log" ||
+                 pathname === "/admin/training-requests" ||
+                 pathname === "/admin/validation-project-approval" ||
+                 pathname === "/admin/validation-schedule-request";
+      }
+      
+      return {
+        ...item,
+        active,
+      };
+    });
+
+  const processedGroups = useMemo(
+    () => ({
+      learner: processNavItems(navGroups.learner),
+      trainer: processNavItems(navGroups.trainer),
+      settings: processNavItems(navGroups.settings),
+    }),
+    [navGroups, pathname],
+  );
+
+  const allNavItems = useMemo(
+    () => [...processedGroups.learner, ...processedGroups.trainer, ...processedGroups.settings],
+    [processedGroups],
   );
 
   const closeNav = () => setIsNavOpen(false);
@@ -92,48 +109,99 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
   return (
     <div
       className={cn(
-        "admin-theme flex min-h-screen flex-col bg-slate-950 text-slate-100 transition-colors lg:flex-row",
+        "admin-theme min-h-screen bg-slate-950 text-slate-100 transition-colors",
       )}
       data-theme={theme}
     >
-      <aside className="hidden w-64 border-r border-slate-800 bg-slate-950/80 p-6 lg:flex lg:flex-col">
-        <div className="space-y-8">
-          <div>
-            <p className="text-lg font-semibold">Competency Training Tracker</p>
-            <p className="text-sm text-slate-400">{user.roleName ?? "No role"}</p>
+      {/* Fixed Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-slate-800 bg-slate-950/80 lg:flex lg:flex-col">
+        <div className="flex h-full flex-col overflow-y-auto p-6">
+          <div className="space-y-8">
+            <div>
+              <p className="text-lg font-semibold">Competency Training Tracker</p>
+              <p className="text-sm text-slate-400">{user.roleName ?? "No role"}</p>
+            </div>
+            <nav className="space-y-6">
+              {processedGroups.learner.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Learner</p>
+                  <div className="space-y-1">
+                    {processedGroups.learner.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                          item.active
+                            ? "bg-slate-800 text-slate-50"
+                            : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {processedGroups.trainer.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Trainer</p>
+                  <div className="space-y-1">
+                    {processedGroups.trainer.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                          item.active
+                            ? "bg-slate-800 text-slate-50"
+                            : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {processedGroups.settings.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</p>
+                  <div className="space-y-1">
+                    {processedGroups.settings.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                          item.active
+                            ? "bg-slate-800 text-slate-50"
+                            : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {allNavItems.length === 0 && (
+                <p className="text-sm text-slate-500">No modules available.</p>
+              )}
+            </nav>
           </div>
-          <nav className="space-y-2">
-            {nav.length ? (
-              <>
-                {nav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "block rounded-md px-3 py-2 text-sm font-medium transition",
-                      item.active
-                        ? "bg-slate-800 text-slate-50"
-                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </>
-            ) : (
-              <p className="text-sm text-slate-500">No modules available.</p>
-            )}
-          </nav>
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-950/80 px-4 py-3 sm:px-6">
+      {/* Main Content Area */}
+      <div className="lg:pl-64">
+        {/* Fixed Header */}
+        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-950/80 px-4 py-3 backdrop-blur-sm sm:px-6">
           <div className="flex flex-1 items-center gap-3">
-            {nav.length ? (
+            {allNavItems.length > 0 ? (
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:hidden"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer lg:hidden"
                 onClick={() => setIsNavOpen(true)}
                 aria-label="Open navigation"
               >
@@ -153,7 +221,7 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:border-blue-400 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:border-blue-400 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 cursor-pointer"
               aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
@@ -163,7 +231,8 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden bg-slate-900/40 px-4 py-4 sm:px-6 sm:py-6">
+        {/* Scrollable Main Content */}
+        <main className="min-h-[calc(100vh-73px)] overflow-x-hidden bg-slate-900/40 px-4 py-4 sm:px-6 sm:py-6">
           {children}
         </main>
       </div>
@@ -178,33 +247,81 @@ export function AdminShell({ user, navItems, children }: AdminShellProps) {
           <p className="text-sm font-semibold">Navigation</p>
           <button
             type="button"
-            className="rounded-md border border-slate-700 p-1.5 text-slate-300 transition hover:border-blue-500 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="rounded-md border border-slate-700 p-1.5 text-slate-300 transition hover:border-blue-500 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
             onClick={closeNav}
             aria-label="Close navigation"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <nav className="mt-4 space-y-2">
-          {nav.length ? (
-            <>
-              {nav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={closeNav}
-                  className={cn(
-                    "block rounded-md px-3 py-2 text-sm font-medium transition",
-                    item.active
-                      ? "bg-slate-800 text-slate-50"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </>
-          ) : (
+        <nav className="mt-4 space-y-6">
+          {processedGroups.learner.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Learner</p>
+              <div className="space-y-1">
+                {processedGroups.learner.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeNav}
+                    className={cn(
+                      "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                      item.active
+                        ? "bg-slate-800 text-slate-50"
+                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {processedGroups.trainer.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Trainer</p>
+              <div className="space-y-1">
+                {processedGroups.trainer.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeNav}
+                    className={cn(
+                      "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                      item.active
+                        ? "bg-slate-800 text-slate-50"
+                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {processedGroups.settings.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</p>
+              <div className="space-y-1">
+                {processedGroups.settings.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeNav}
+                    className={cn(
+                      "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                      item.active
+                        ? "bg-slate-800 text-slate-50"
+                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {allNavItems.length === 0 && (
             <p className="text-sm text-slate-500">No modules available.</p>
           )}
         </nav>

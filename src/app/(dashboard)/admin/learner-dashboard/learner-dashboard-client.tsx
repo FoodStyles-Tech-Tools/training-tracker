@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useMemo, useTransition, useEffect } from "react";
+import React, { useState, useMemo, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { Competency, CompetencyLevel } from "@/db/schema";
 import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
 import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
-import { X } from "lucide-react";
+import { X, Check, Info } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
@@ -84,6 +84,23 @@ interface LearnerDashboardClientProps {
 
 type LevelType = "basic" | "competent" | "advanced";
 
+type TableRow = {
+  competency: CompetencyWithLevels;
+  level: CompetencyLevel;
+  competencyId: string;
+  levelId: string;
+  levelType: LevelType;
+  trainingRequest: TrainingRequest | null;
+  projectApproval: ProjectApproval | null;
+  vsr: ValidationScheduleRequest | null;
+  areRequirementsMet: boolean;
+  applicableRequirements: Array<{
+    requiredLevel: CompetencyLevel & {
+      competency: Competency;
+    };
+  }>;
+};
+
 // Helper function to format dates as "d M Y" (e.g., "09 Nov 2025")
 function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "-";
@@ -128,14 +145,12 @@ export function LearnerDashboardClient({
   vpaStatusLabels,
   vsrStatusLabels,
 }: LearnerDashboardClientProps) {
-  const [selectedCompetencyId, setSelectedCompetencyId] = useState<string>(
-    competencies[0]?.id ?? "",
-  );
-  const [selectedLevel, setSelectedLevel] = useState<LevelType>("basic");
+  const [selectedRow, setSelectedRow] = useState<TableRow | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [showTrainingSlotFormModal, setShowTrainingSlotFormModal] = useState(false);
   const [homeworkData, setHomeworkData] = useState<{
@@ -149,102 +164,28 @@ export function LearnerDashboardClient({
   const [submittingProject, setSubmittingProject] = useState(false);
   const router = useRouter();
 
-  const selectedCompetency = useMemo(
-    () => competencies.find((c) => c.id === selectedCompetencyId),
-    [competencies, selectedCompetencyId],
-  );
-
-  const selectedLevelData = useMemo(() => {
-    if (!selectedCompetency) return null;
-    return selectedCompetency.levels.find(
-      (level) => level.name.toLowerCase() === selectedLevel,
-    );
-  }, [selectedCompetency, selectedLevel]);
-
-  // Auto-select first level with content if selected level has no content
-  useEffect(() => {
-    if (!selectedCompetency || !selectedLevelData) return;
+  // Check if a level has content (at least one field is filled)
+  const hasLevelContent = (level: CompetencyLevel | undefined): boolean => {
+    if (!level) return false;
     
-    // Only auto-select if current level has no content
-    if (!hasLevelContent(selectedLevelData)) {
-      // Check levels in priority order: basic, competent, advanced
-      const levelOrder: LevelType[] = ["basic", "competent", "advanced"];
-      let firstLevelWithContent: LevelType | null = null;
-      
-      for (const levelType of levelOrder) {
-        const levelData = selectedCompetency.levels.find(
-          (l) => l.name.toLowerCase() === levelType,
-        );
-        if (levelData && hasLevelContent(levelData)) {
-          firstLevelWithContent = levelType;
-          break;
-        }
-      }
-      
-      if (firstLevelWithContent && firstLevelWithContent !== selectedLevel) {
-        setSelectedLevel(firstLevelWithContent);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCompetency?.id, selectedLevelData?.id]);
+    const hasTrainingPlan = !!level.trainingPlanDocument?.trim();
+    const hasTeamKnowledge = !!level.teamKnowledge?.trim();
+    const hasEligibilityCriteria = !!level.eligibilityCriteria?.trim();
+    const hasVerification = !!level.verification?.trim();
+    
+    return hasTrainingPlan || hasTeamKnowledge || hasEligibilityCriteria || hasVerification;
+  };
 
-  // Get training request for selected competency and level
-  const currentTrainingRequest = useMemo(() => {
-    if (!selectedLevelData) return null;
-    return trainingRequests.find(
-      (tr) => tr.competencyLevelId === selectedLevelData.id,
-    );
-  }, [trainingRequests, selectedLevelData]);
-
-  // Get project approval for selected competency and level
-  const currentProjectApproval = useMemo(() => {
-    if (!selectedLevelData) return null;
-    return projectApprovals.find(
-      (pa) => pa.competencyLevelId === selectedLevelData.id,
-    );
-  }, [projectApprovals, selectedLevelData]);
-
-  // Get validation schedule request (VSR) for selected competency and level
-  const currentVSR = useMemo(() => {
-    if (!selectedLevelData) return null;
-    return validationScheduleRequests.find(
-      (vsr) => vsr.competencyLevelId === selectedLevelData.id,
-    );
-  }, [validationScheduleRequests, selectedLevelData]);
-
-  // Initialize project details from current project approval
-  useEffect(() => {
-    if (currentProjectApproval?.projectDetails) {
-      setProjectDetails(currentProjectApproval.projectDetails);
-    } else {
-      setProjectDetails("");
-    }
-  }, [currentProjectApproval]);
-
-  // Helper to check if project document link is empty
-  const isProjectDetailsEmpty = useMemo(() => {
-    return !projectDetails || projectDetails.trim() === "";
-  }, [projectDetails]);
-
-  // VPA Status mapping:
-  // Status 0 = Pending Validation Project Approval (read-only after submission)
-  // Status 1 = Approved (read-only)
-  // Status 2 = Rejected (editable, can resubmit)
-  // Status 3 = Resubmit for Re-validation (editable, can resubmit)
-  const isProjectSubmitted = !!currentProjectApproval; // Project is submitted if approval exists
-  const isProjectEditable = !currentProjectApproval || currentProjectApproval.status === 2 || currentProjectApproval.status === 3; // Editable when rejected (status 2), resubmit (status 3), or not yet submitted
-  const isProjectApproved = currentProjectApproval && currentProjectApproval.status === 1;
-
-  // Get applicable requirements for the selected level
-  // Default requirements are calculated programmatically (not stored in database):
-  // - Competent level requires Basic level (of the same competency)
-  // - Advanced level requires Basic level (of the same competency)
-  // - Advanced level requires Competent level (of the same competency)
-  // Only manually selected requirements (from different competencies) are stored in the database
-  const applicableRequirements = useMemo(() => {
-    if (!selectedCompetency || !selectedLevelData) return [];
-
-    const selectedLevelName = selectedLevelData.name.toLowerCase();
+  // Get applicable requirements for a level
+  const getApplicableRequirements = (
+    competency: CompetencyWithLevels,
+    level: CompetencyLevel,
+  ): Array<{
+    requiredLevel: CompetencyLevel & {
+      competency: Competency;
+    };
+  }> => {
+    const levelName = level.name.toLowerCase();
     const requirements: Array<{
       requiredLevel: CompetencyLevel & {
         competency: Competency;
@@ -252,46 +193,35 @@ export function LearnerDashboardClient({
     }> = [];
 
     // Add manually selected requirements from database (these are from different competencies)
-    // These apply to all levels
-    const manualRequirements = selectedCompetency.requirements.filter((req) => {
-      const isSameCompetency = req.requiredLevel.competency.id === selectedCompetency.id;
-      // Only include requirements from different competencies (manually set)
+    const manualRequirements = competency.requirements.filter((req) => {
+      const isSameCompetency = req.requiredLevel.competency.id === competency.id;
       return !isSameCompetency;
     });
     requirements.push(...manualRequirements);
 
-    // Add default requirements programmatically based on selected level
-    // Use a Set to track level IDs to avoid duplicates
-    const addedLevelIds = new Set(
-      requirements.map((req) => req.requiredLevel.id)
-    );
+    // Add default requirements programmatically based on level
+    const addedLevelIds = new Set(requirements.map((req) => req.requiredLevel.id));
 
-    if (selectedLevelName === "competent" || selectedLevelName === "advanced") {
-      // Competent and Advanced both require Basic level (same competency)
-      const basicLevel = selectedCompetency.levels.find(
-        (level) => level.name.toLowerCase() === "basic"
-      );
+    if (levelName === "competent" || levelName === "advanced") {
+      const basicLevel = competency.levels.find((l) => l.name.toLowerCase() === "basic");
       if (basicLevel && !addedLevelIds.has(basicLevel.id)) {
         requirements.push({
           requiredLevel: {
             ...basicLevel,
-            competency: selectedCompetency,
+            competency: competency,
           },
         });
         addedLevelIds.add(basicLevel.id);
       }
     }
 
-    if (selectedLevelName === "advanced") {
-      // Advanced also requires Competent level (same competency)
-      const competentLevel = selectedCompetency.levels.find(
-        (level) => level.name.toLowerCase() === "competent"
-      );
+    if (levelName === "advanced") {
+      const competentLevel = competency.levels.find((l) => l.name.toLowerCase() === "competent");
       if (competentLevel && !addedLevelIds.has(competentLevel.id)) {
         requirements.push({
           requiredLevel: {
             ...competentLevel,
-            competency: selectedCompetency,
+            competency: competency,
           },
         });
         addedLevelIds.add(competentLevel.id);
@@ -299,14 +229,77 @@ export function LearnerDashboardClient({
     }
 
     return requirements;
-  }, [selectedCompetency, selectedLevelData]);
+  };
+
+  // Check if all requirements are met for a level
+  const areRequirementsMet = (
+    requirements: Array<{
+      requiredLevel: CompetencyLevel & {
+        competency: Competency;
+      };
+    }>,
+  ): boolean => {
+    if (requirements.length === 0) return true;
+
+    return requirements.every((req) => {
+      const requiredLevelId = req.requiredLevel.id;
+      const trainingRequest = trainingRequests.find(
+        (tr) => tr.competencyLevelId === requiredLevelId,
+      );
+      return trainingRequest && trainingRequest.status === 8;
+    });
+  };
+
+  // Generate table rows from competencies
+  const tableRows = useMemo<TableRow[]>(() => {
+    const rows: TableRow[] = [];
+    const levelOrder: LevelType[] = ["basic", "competent", "advanced"];
+
+    for (const competency of competencies) {
+      for (const levelType of levelOrder) {
+        const level = competency.levels.find(
+          (l) => l.name.toLowerCase() === levelType,
+        );
+
+        if (!level || !hasLevelContent(level)) continue;
+
+        const trainingRequest = trainingRequests.find(
+          (tr) => tr.competencyLevelId === level.id,
+        ) || null;
+
+        const projectApproval = projectApprovals.find(
+          (pa) => pa.competencyLevelId === level.id,
+        ) || null;
+
+        const vsr = validationScheduleRequests.find(
+          (vsr) => vsr.competencyLevelId === level.id,
+        ) || null;
+
+        const applicableRequirements = getApplicableRequirements(competency, level);
+        const requirementsMet = areRequirementsMet(applicableRequirements);
+
+        rows.push({
+          competency,
+          level,
+          competencyId: competency.id,
+          levelId: level.id,
+          levelType,
+          trainingRequest,
+          projectApproval,
+          vsr,
+          areRequirementsMet: requirementsMet,
+          applicableRequirements,
+        });
+      }
+    }
+
+    return rows;
+  }, [competencies, trainingRequests, projectApprovals, validationScheduleRequests]);
 
   // Get unmet requirements for display
   const unmetRequirements = useMemo(() => {
-    if (!selectedCompetency || !selectedLevelData) return [];
-
-    return applicableRequirements.filter((req) => {
-      // Filter out requirements that are already met
+    if (!selectedRow) return [];
+    return selectedRow.applicableRequirements.filter((req) => {
       const requiredLevelId = req.requiredLevel.id;
       const trainingRequest = trainingRequests.find(
         (tr) => tr.competencyLevelId === requiredLevelId,
@@ -314,26 +307,29 @@ export function LearnerDashboardClient({
       const isRequirementMet = trainingRequest && trainingRequest.status === 8;
       return !isRequirementMet;
     });
-  }, [applicableRequirements, trainingRequests, selectedCompetency, selectedLevelData]);
+  }, [selectedRow, trainingRequests]);
 
-  // Check if all requirements are met
-  // A requirement is met if the user has a training request with status = 8 (Training Completed)
-  const areRequirementsMet = useMemo(() => {
-    if (!selectedCompetency || !selectedLevelData) return true; // No requirements = requirements met
-    
-    if (applicableRequirements.length === 0) return true; // No requirements = requirements met
+  // Initialize project details when selected row changes
+  useEffect(() => {
+    if (selectedRow?.projectApproval?.projectDetails) {
+      setProjectDetails(selectedRow.projectApproval.projectDetails);
+    } else {
+      setProjectDetails("");
+    }
+  }, [selectedRow]);
 
-    // Check each requirement
-    return applicableRequirements.every((req) => {
-      const requiredLevelId = req.requiredLevel.id;
-      const trainingRequest = trainingRequests.find(
-        (tr) => tr.competencyLevelId === requiredLevelId,
-      );
-      
-      // Requirement is met if training request exists and status = 8 (Training Completed)
-      return trainingRequest && trainingRequest.status === 8;
-    });
-  }, [applicableRequirements, trainingRequests, selectedCompetency, selectedLevelData]);
+  // Helper to check if project document link is empty
+  const isProjectDetailsEmpty = useMemo(() => {
+    return !projectDetails || projectDetails.trim() === "";
+  }, [projectDetails]);
+
+  // VPA Status mapping
+  const isProjectSubmitted = !!selectedRow?.projectApproval;
+  const isProjectEditable =
+    !selectedRow?.projectApproval ||
+    selectedRow.projectApproval.status === 2 ||
+    selectedRow.projectApproval.status === 3;
+  const isProjectApproved = selectedRow?.projectApproval?.status === 1;
 
   const getLevelBadgeClass = (level: string) => {
     const levelLower = level.toLowerCase();
@@ -347,76 +343,35 @@ export function LearnerDashboardClient({
     return "bg-slate-500/20 text-slate-200";
   };
 
-  // Check if a level has content (at least one field is filled)
-  const hasLevelContent = (level: CompetencyLevel | undefined): boolean => {
-    if (!level) return false;
-    
-    const hasTrainingPlan = !!level.trainingPlanDocument?.trim();
-    const hasTeamKnowledge = !!level.teamKnowledge?.trim();
-    const hasEligibilityCriteria = !!level.eligibilityCriteria?.trim();
-    const hasVerification = !!level.verification?.trim();
-    
-    return hasTrainingPlan || hasTeamKnowledge || hasEligibilityCriteria || hasVerification;
+  const handleRowClick = (row: TableRow) => {
+    setSelectedRow(row);
+    setShowDetailModal(true);
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleCompetencyChange = (competencyId: string) => {
-    setSelectedCompetencyId(competencyId);
-    
-    // Find the first level with content for the new competency, checking in order: basic, competent, advanced
-    const newCompetency = competencies.find((c) => c.id === competencyId);
-    if (newCompetency) {
-      // Check levels in priority order: basic, competent, advanced
-      const levelOrder: LevelType[] = ["basic", "competent", "advanced"];
-      let firstLevelWithContent: LevelType | null = null;
-      
-      for (const levelType of levelOrder) {
-        const levelData = newCompetency.levels.find(
-          (l) => l.name.toLowerCase() === levelType,
-        );
-        if (levelData && hasLevelContent(levelData)) {
-          firstLevelWithContent = levelType;
-          break;
-        }
-      }
-      
-      if (firstLevelWithContent) {
-        setSelectedLevel(firstLevelWithContent);
-      } else {
-        setSelectedLevel("basic"); // Fallback to basic if no level has content
-      }
-    } else {
-      setSelectedLevel("basic"); // Fallback to basic if competency not found
-    }
-  };
-
-  const handleLevelChange = (level: LevelType) => {
-    setSelectedLevel(level);
-  };
-
-  const handleApply = () => {
-    if (!selectedLevelData) return;
+  const handleApply = (row: TableRow, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedRow(row);
     setShowConfirmModal(true);
   };
 
   const handleConfirmApply = () => {
-    if (!selectedLevelData) return;
+    if (!selectedRow) return;
 
     setError(null);
     setSuccess(null);
     setShowConfirmModal(false);
 
     startTransition(async () => {
-      const result = await createTrainingRequestAction(selectedLevelData.id);
+      const result = await createTrainingRequestAction(selectedRow.levelId);
       if (result.success) {
-        const competencyName = selectedCompetency?.name || "this competency";
-        const levelName = selectedLevelData.name;
+        const competencyName = selectedRow.competency.name || "this competency";
+        const levelName = selectedRow.level.name;
         const successMessage = `You successfully applied for ${competencyName} - ${levelName}`;
         setSuccess(successMessage);
-        // Store success message in sessionStorage to persist across refresh
         sessionStorage.setItem("trainingRequestSuccess", successMessage);
-        // Show training slot selection form popup
         setShowTrainingSlotFormModal(true);
-        // Refresh the data to show the new training request
         router.refresh();
       } else {
         setError(result.error || "Failed to create training request");
@@ -434,24 +389,21 @@ export function LearnerDashboardClient({
   }, []);
 
   const handleOpenHomeworkModal = async () => {
-    if (!currentTrainingRequest || !currentTrainingRequest.id) return;
+    if (!selectedRow?.trainingRequest?.id) return;
 
     setShowHomeworkModal(true);
     setError(null);
     setSuccess(null);
 
     try {
-      // Fetch training batch data for this training request
-      const response = await fetch(`/api/training-batches?trainingRequestId=${currentTrainingRequest.id}`);
+      const response = await fetch(`/api/training-batches?trainingRequestId=${selectedRow.trainingRequest.id}`);
       if (response.ok) {
         const data = await response.json();
-        // Find the batch that contains this training request
-        const batch = data.batches?.find((b: any) => 
-          b.learners?.some((l: any) => l.trainingRequestId === currentTrainingRequest.id)
+        const batch = data.batches?.find((b: any) =>
+          b.learners?.some((l: any) => l.trainingRequestId === selectedRow.trainingRequest?.id)
         );
 
         if (batch) {
-          // Fetch full batch details with sessions
           const batchResponse = await fetch(`/api/training-batches/${batch.id}`);
           if (batchResponse.ok) {
             const batchData = await batchResponse.json();
@@ -461,7 +413,6 @@ export function LearnerDashboardClient({
               homework: batchData.homework || [],
             });
 
-            // Initialize homework URLs from existing homework data
             const urls = new Map<string, string>();
             batchData.homework?.forEach((h: any) => {
               if (h.homeworkUrl) {
@@ -492,7 +443,7 @@ export function LearnerDashboardClient({
   };
 
   const handleSubmitHomework = async (sessionId: string, sessionNumber: number) => {
-    if (!homeworkData || !currentTrainingRequest) return;
+    if (!homeworkData || !selectedRow?.trainingRequest) return;
 
     const homeworkUrl = homeworkUrls.get(sessionId)?.trim();
     if (!homeworkUrl) {
@@ -513,8 +464,7 @@ export function LearnerDashboardClient({
 
       if (result.success) {
         setSuccess(`Homework ${sessionNumber} submitted successfully. Waiting for trainer review.`);
-        
-        // Reload homework data from server to get the latest state
+
         if (homeworkData) {
           try {
             const batchResponse = await fetch(`/api/training-batches/${homeworkData.batchId}`);
@@ -526,7 +476,6 @@ export function LearnerDashboardClient({
                 homework: batchData.homework || [],
               });
 
-              // Update homework URLs from server data
               const urls = new Map<string, string>();
               batchData.homework?.forEach((h: any) => {
                 if (h.homeworkUrl) {
@@ -539,7 +488,7 @@ export function LearnerDashboardClient({
             console.error("Error reloading homework data:", error);
           }
         }
-        
+
         setTimeout(() => {
           setSuccess(null);
         }, 3000);
@@ -551,7 +500,7 @@ export function LearnerDashboardClient({
   };
 
   const handleSubmitProject = async () => {
-    if (!selectedLevelData) return;
+    if (!selectedRow) return;
 
     if (isProjectDetailsEmpty) {
       setError("Project details cannot be empty");
@@ -563,10 +512,9 @@ export function LearnerDashboardClient({
     setSuccess(null);
 
     startTransition(async () => {
-      const result = await submitProjectAction(selectedLevelData.id, projectDetails);
+      const result = await submitProjectAction(selectedRow.levelId, projectDetails);
       if (result.success) {
         setSuccess("Project submitted successfully");
-        // Refresh the data to show the updated project approval
         router.refresh();
         setTimeout(() => {
           setSuccess(null);
@@ -578,6 +526,7 @@ export function LearnerDashboardClient({
     });
   };
 
+
   if (competencies.length === 0) {
     return (
       <Card>
@@ -588,125 +537,250 @@ export function LearnerDashboardClient({
     );
   }
 
+  // Group rows by competency for visual grouping
+  const groupedRows = useMemo(() => {
+    const groups: { [key: string]: TableRow[] } = {};
+    for (const row of tableRows) {
+      if (!groups[row.competencyId]) {
+        groups[row.competencyId] = [];
+      }
+      groups[row.competencyId].push(row);
+    }
+    return groups;
+  }, [tableRows]);
+
   return (
     <div className="space-y-6">
       {/* Error/Success Messages */}
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
-      {/* Competency Selector */}
-      <Card className="overflow-hidden p-0">
-        <div className="border-b border-slate-800 bg-slate-950/50 px-6 py-4">
-          <label htmlFor="competency-select" className="mb-2 block text-sm font-medium text-slate-300">
-            Select Competency
-          </label>
-          <Select
-            id="competency-select"
-            value={selectedCompetencyId}
-            onChange={(e) => handleCompetencyChange(e.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-900/80 px-4 py-2.5 text-sm font-semibold text-white transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          >
-            {competencies.map((competency) => (
-              <option key={competency.id} value={competency.id}>
-                {competency.name}
-              </option>
-            ))}
-          </Select>
+      {/* Table */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead className="bg-slate-950/70 text-slate-300">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium">Level</th>
+                <th className="px-4 py-3 text-left font-medium">Application Status</th>
+                <th className="px-4 py-3 text-left font-medium">Training Status</th>
+                <th className="px-4 py-3 text-left font-medium">Project Status</th>
+                <th className="px-4 py-3 text-left font-medium">Validation Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80">
+              {Object.entries(groupedRows).map(([competencyId, rows]) => (
+                <React.Fragment key={competencyId}>
+                  {/* Competency Header Row */}
+                  <tr className="bg-slate-900/50">
+                    <td colSpan={5} className="px-4 py-3 font-semibold text-slate-200">
+                      {rows[0]?.competency.name}
+                    </td>
+                  </tr>
+                  {/* Level Rows */}
+                  {rows.map((row) => (
+                    <tr
+                      key={`${row.competencyId}-${row.levelId}`}
+                      onClick={() => handleRowClick(row)}
+                      className="cursor-pointer transition hover:bg-slate-900/60"
+                    >
+                      <td className="px-4 py-3">
+                        <span
+                          className={cn(
+                            "inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
+                            getLevelBadgeClass(row.level.name),
+                          )}
+                        >
+                          {row.level.name}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        {row.trainingRequest ? (
+                          <div className="flex items-center gap-2 text-slate-200">
+                            <Check className="h-4 w-4 text-emerald-400" />
+                            <span>Applied</span>
+                          </div>
+                        ) : !row.areRequirementsMet ? (
+                          <div className="group relative inline-flex items-center gap-1.5">
+                            <span className="text-slate-400">Not Eligible</span>
+                            <div className="relative">
+                              <Info className="h-4 w-4 text-slate-400 cursor-help transition-colors hover:text-slate-300" />
+                              <div className="absolute left-1/2 bottom-full mb-2 hidden group-hover:block z-50 transform -translate-x-1/2 pointer-events-none">
+                                <div className="bg-slate-900 border border-slate-700 rounded-md p-3 shadow-xl min-w-[250px] max-w-[350px]">
+                                  <div className="text-xs font-semibold text-slate-200 mb-2">
+                                    Requirements needed:
+                                  </div>
+                                   <div className="space-y-1.5">
+                                     {row.applicableRequirements
+                                       .filter((req) => {
+                                         const requiredLevelId = req.requiredLevel.id;
+                                         const trainingRequest = trainingRequests.find(
+                                           (tr) => tr.competencyLevelId === requiredLevelId,
+                                         );
+                                         const isRequirementMet = trainingRequest && trainingRequest.status === 8;
+                                         return !isRequirementMet;
+                                       })
+                                       .map((req, idx) => (
+                                         <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                                           <span className="text-slate-500 mt-0.5">•</span>
+                                           <span>
+                                             {req.requiredLevel.competency.name} - {req.requiredLevel.name}
+                                           </span>
+                                         </div>
+                                       ))}
+                                   </div>
+                                 </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleApply(row, e)}
+                            disabled={isPending}
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Apply
+                          </button>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.trainingRequest ? (
+                          <span
+                            className={cn(
+                              "inline-block rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
+                              getStatusBadgeClass(row.trainingRequest.status),
+                            )}
+                          >
+                            {getTrainingRequestStatusLabel(row.trainingRequest.status, statusLabels)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.projectApproval ? (
+                          <span
+                            className={cn(
+                              "inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
+                              getVPAStatusBadgeClass(row.projectApproval.status),
+                            )}
+                          >
+                            {getVPAStatusLabel(row.projectApproval.status, vpaStatusLabels)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.vsr ? (
+                          <span
+                            className={cn(
+                              "inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
+                              getVSRStatusBadgeClass(row.vsr.status),
+                            )}
+                          >
+                            {vsrStatusLabels[row.vsr.status] || "Unknown"}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </Card>
 
-        {/* Tab Content */}
-        <div className="p-6">
-          {selectedCompetency && (
-            <>
-              {/* Level Tabs */}
-              <div className="mb-6 border-b border-slate-800">
-                <nav className="-mb-px flex space-x-6" aria-label="Levels">
-                  {["basic", "competent", "advanced"].map((level) => {
-                    const levelData = selectedCompetency.levels.find(
-                      (l) => l.name.toLowerCase() === level,
-                    );
-                    if (!levelData) return null;
+      {/* Detail Modal */}
+      {selectedRow && (
+        <Modal
+          open={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedRow(null);
+          }}
+          contentClassName="max-w-4xl max-h-[90vh] overflow-hidden"
+          overlayClassName="bg-black/60 backdrop-blur-sm"
+        >
+          <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+            <div>
+              <h2 className="text-lg font-semibold text-white">{selectedRow.competency.name}</h2>
+              <span
+                className={cn(
+                  "mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
+                  getLevelBadgeClass(selectedRow.level.name),
+                )}
+              >
+                {selectedRow.level.name}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDetailModal(false);
+                setSelectedRow(null);
+              }}
+              className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-6">
+            {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+            {success && <Alert variant="success" className="mb-4">{success}</Alert>}
 
-                    // Only show tab if level has content
-                    if (!hasLevelContent(levelData)) return null;
+            {/* Apply Button */}
+            {!selectedRow.trainingRequest && selectedRow.areRequirementsMet && (
+              <div className="mb-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleApply.bind(null, selectedRow)}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPending ? "Applying..." : "Apply"}
+                </button>
+              </div>
+            )}
 
-                    const isActive = selectedLevel === level;
-                    return (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => handleLevelChange(level as LevelType)}
-                        className={`border-b-2 px-1 py-3 text-sm font-semibold transition ${
-                          isActive
-                            ? "border-blue-500 text-blue-200"
-                            : "border-transparent text-slate-300 hover:border-slate-600 hover:text-slate-200"
-                        }`}
+            {/* Requirements Section */}
+            {unmetRequirements.length > 0 && (
+              <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
+                <CardContent className="space-y-3 p-6">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-amber-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <h3 className="text-sm font-semibold text-amber-400">Requirements needed</h3>
+                  </div>
+                  <p className="text-sm text-slate-300">
+                    To apply for this competency level, you need to complete the following:
+                  </p>
+                  <div className="space-y-2">
+                    {unmetRequirements.map((req, index) => (
+                      <div
+                        key={`${req.requiredLevel.competency.id}-${req.requiredLevel.name}-${index}`}
+                        className="flex items-center gap-2 text-sm"
                       >
-                        {levelData.name}
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              {/* Competency Name and Level */}
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="flex items-center gap-3 text-xl font-semibold text-white">
-                  <span>{selectedCompetency.name}</span>
-                  {selectedLevelData && (
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-sm font-semibold ${getLevelBadgeClass(
-                        selectedLevelData.name,
-                      )}`}
-                    >
-                      {selectedLevelData.name}
-                    </span>
-                  )}
-                </h2>
-                <div className="flex items-center gap-2">
-                  {currentTrainingRequest?.status === 8 && currentVSR?.status === 4 ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Scroll to project submission section
-                        const projectSection = document.getElementById("project-submission-section");
-                        if (projectSection) {
-                          projectSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                          projectSection.focus();
-                        }
-                      }}
-                      className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-                    >
-                      Request Project
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleApply}
-                      disabled={isPending || !!currentTrainingRequest || !areRequirementsMet}
-                      className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
-                    >
-                      {isPending
-                        ? "Applying..."
-                        : currentTrainingRequest
-                          ? "Applied"
-                          : !areRequirementsMet
-                            ? "Requirements Not Met"
-                            : "Apply"}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Requirements Section - Only show unmet requirements */}
-              {selectedLevelData &&
-                unmetRequirements.length > 0 && (
-                  <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
-                    <CardContent className="space-y-3 p-6">
-                      <div className="flex items-center gap-2">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-amber-400"
+                          className="h-4 w-4 text-slate-500"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -718,352 +792,307 @@ export function LearnerDashboardClient({
                           <line x1="12" y1="8" x2="12" y2="12"></line>
                           <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
-                        <h3 className="text-sm font-semibold text-amber-400">
-                          Requirements needed
-                        </h3>
+                        <span className="text-slate-200">
+                          {req.requiredLevel.competency.name} - {req.requiredLevel.name}
+                        </span>
                       </div>
-                      <p className="text-sm text-slate-300">
-                        To apply for this competency level, you need to complete the following:
-                      </p>
-                      <div className="space-y-2">
-                        {unmetRequirements.map((req, index) => (
-                          <div
-                            key={`${req.requiredLevel.competency.id}-${req.requiredLevel.name}-${index}`}
-                            className="flex items-center gap-2 text-sm"
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Training Request and Validation Cards */}
+            {(selectedRow.trainingRequest || isProjectApproved || selectedRow.vsr) && (
+              <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {selectedRow.trainingRequest && (
+                  <Card className="border border-slate-800/80 bg-slate-950/50">
+                    <CardContent className="space-y-3 p-6">
+                      <h3 className="text-lg font-semibold text-white">Training Request</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-300">Applied at:</span>
+                          <span className="text-slate-200">
+                            {formatDate(selectedRow.trainingRequest.requestedDate)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-300">Training Status:</span>
+                          <span
+                            className={cn(
+                              "inline-block rounded-md px-2 py-0.5 text-sm font-semibold whitespace-nowrap",
+                              getStatusBadgeClass(selectedRow.trainingRequest.status),
+                            )}
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-slate-500"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                            {getTrainingRequestStatusLabel(selectedRow.trainingRequest.status, statusLabels)}
+                          </span>
+                        </div>
+                        {selectedRow.trainingRequest.status === 4 && (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={handleOpenHomeworkModal}
+                              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
                             >
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <line x1="12" y1="8" x2="12" y2="12"></line>
-                              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <span className="text-slate-200">
-                              {req.requiredLevel.competency.name} - {req.requiredLevel.name}
-                            </span>
+                              Submit Homework
+                            </button>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
-              {/* Training Request and Validation Cards - Side by side */}
-              {(currentTrainingRequest || isProjectApproved || currentVSR) && (
-                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {/* Training Request Display - Only show if training request exists */}
-                  {currentTrainingRequest && (
-                    <Card className="border border-slate-800/80 bg-slate-950/50">
-                      <CardContent className="space-y-3 p-6">
-                        <h3 className="text-lg font-semibold text-white">Training Request</h3>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-300">Applied at:</span>
-                            <span className="text-slate-200">
-                              {formatDate(currentTrainingRequest.requestedDate)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-300">Training Status:</span>
-                            <span
-                              className={`inline-block rounded-md px-2 py-0.5 text-sm font-semibold whitespace-nowrap ${getStatusBadgeClass(
-                                currentTrainingRequest.status,
-                              )}`}
-                            >
-                              {getTrainingRequestStatusLabel(currentTrainingRequest.status, statusLabels)}
-                            </span>
-                          </div>
-                          {/* Homework Submit Button - Only show if status is 4 */}
-                          {currentTrainingRequest.status === 4 && (
-                            <div className="mt-4">
-                              <button
-                                type="button"
-                                onClick={handleOpenHomeworkModal}
-                                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                              >
-                                Submit Homework
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Validation Interface - Show when VSR exists (including Fail status) */}
-                  {currentVSR && (
-                    <Card className="border border-slate-800/80 bg-slate-950/50">
-                      <CardContent className="space-y-3 p-6">
-                        <h3 className="text-lg font-semibold text-white">Validation</h3>
-                        <div className="space-y-2 text-sm">
-                          {currentVSR ? (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-slate-300">VSR ID:</span>
-                                <span className="text-slate-200">{currentVSR.vsrId}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-slate-300">Validation Status:</span>
-                                <span
-                                  className={`inline-block rounded-md px-2 py-0.5 text-xs font-semibold ${getVSRStatusBadgeClass(
-                                    currentVSR.status,
-                                  )}`}
-                                >
-                                  {vsrStatusLabels[currentVSR.status] || "Unknown"}
-                                </span>
-                              </div>
-                              {currentVSR.requestedDate && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-slate-300">Requested Date:</span>
-                                  <span className="text-slate-200">
-                                    {formatDate(currentVSR.requestedDate)}
-                                  </span>
-                                </div>
-                              )}
-                              {currentVSR.scheduledDate && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-slate-300">Scheduled Date Time:</span>
-                                  <span className="text-slate-200">
-                                    {formatDateTime(currentVSR.scheduledDate)} (UK Time)
-                                  </span>
-                                </div>
-                              )}
-                              {currentVSR.validatorOpsUser && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-slate-300">Validator (Ops):</span>
-                                  <span className="text-slate-200">
-                                    {currentVSR.validatorOpsUser.name || "-"}
-                                  </span>
-                                </div>
-                              )}
-                              {currentVSR.validatorTrainerUser && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-slate-300">Validator (Trainer):</span>
-                                  <span className="text-slate-200">
-                                    {currentVSR.validatorTrainerUser.name || "-"}
-                                  </span>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-slate-300">Validation Status:</span>
-                              <span className="text-slate-200">Pending Validation</span>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* Project Submission - Show if training request status is 5 (Sessions Completed) or 8 (Training Completed) */}
-              {currentTrainingRequest && (currentTrainingRequest.status === 5 || currentTrainingRequest.status === 8) && (
-                <div id="project-submission-section">
-                <Card className="mb-6 border border-slate-800/80 bg-slate-950/50">
-                  <CardContent className="space-y-4 p-6">
-                    <h3 className="text-lg font-semibold text-white">Submit Project</h3>
-                    <div className="space-y-3">
-                      <Label htmlFor="project-document-link" className="text-sm font-medium text-slate-200">
-                        Project document link
-                      </Label>
-                      <Input
-                        id="project-document-link"
-                        type="url"
-                        value={projectDetails}
-                        onChange={(e) => setProjectDetails(e.target.value)}
-                        placeholder="Enter document link..."
-                        disabled={submittingProject || isPending || !isProjectEditable}
-                        className="w-full"
-                      />
-                      {/* Status Details - Show when project is submitted */}
-                      {isProjectSubmitted && currentProjectApproval && (
-                        <div className="text-sm border-t border-slate-800/80 pt-3">
-                          <div className="flex gap-6">
-                            <div className="space-y-2 flex-1">
-                              {currentProjectApproval.requestedDate && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-slate-300">Submitted Date:</span>
-                                  <span className="text-slate-200">
-                                    {formatDate(currentProjectApproval.requestedDate)}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-slate-300">Status:</span>
-                                <span
-                                  className={`inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getVPAStatusBadgeClass(
-                                    currentProjectApproval.status,
-                                  )}`}
-                                >
-                                  {getVPAStatusLabel(currentProjectApproval.status, vpaStatusLabels)}
-                                </span>
-                              </div>
-                              {currentProjectApproval.status === 1 && currentProjectApproval.assignedToUser && (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-slate-300">Approved by:</span>
-                                    <span className="text-slate-200">
-                                      {currentProjectApproval.assignedToUser.name || "Unknown"}
-                                    </span>
-                                  </div>
-                                  {currentProjectApproval.responseDate && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-slate-300">Approved at:</span>
-                                      <span className="text-slate-200">
-                                        {formatDate(currentProjectApproval.responseDate)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                              {currentProjectApproval.status === 2 && (
-                                <>
-                                  {currentProjectApproval.assignedToUser && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-slate-300">Rejected by:</span>
-                                      <span className="text-slate-200">
-                                        {currentProjectApproval.assignedToUser.name || "Unknown"}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {currentProjectApproval.responseDate && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-slate-300">Rejected at:</span>
-                                      <span className="text-slate-200">
-                                        {formatDate(currentProjectApproval.responseDate)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                            {currentProjectApproval.status === 2 && currentProjectApproval.rejectionReason && (
-                              <div className="flex-1">
-                                <div className="flex flex-col gap-2">
-                                  <span className="font-medium text-slate-300">Rejection reason:</span>
-                                  <span className="text-slate-200">
-                                    {currentProjectApproval.rejectionReason}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {!isProjectApproved && (
-                        <button
-                          type="button"
-                          onClick={handleSubmitProject}
-                          disabled={submittingProject || isPending || !isProjectEditable || isProjectDetailsEmpty}
-                          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
-                        >
-                          {submittingProject || isPending
-                            ? "Submitting..."
-                            : currentProjectApproval?.status === 2 || currentProjectApproval?.status === 3
-                              ? "Resubmit"
-                              : isProjectSubmitted
-                                ? "Submitted"
-                                : "Submit"}
-                        </button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                </div>
-              )}
-
-
-              {/* Level Content */}
-              {selectedLevelData && (
-                <div className="space-y-6">
-                  {/* Training Plan Document */}
+                {selectedRow.vsr && (
                   <Card className="border border-slate-800/80 bg-slate-950/50">
-                    <CardContent className="space-y-6 p-6">
-                      <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-white">
-                          Training Plan Document
-                        </h2>
-                        <div className="text-sm">
-                          <a
-                            href={selectedLevelData.trainingPlanDocument}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="!text-blue-400 hover:!text-blue-300 underline"
-                          >
-                            {selectedLevelData.trainingPlanDocument}
-                          </a>
+                    <CardContent className="space-y-3 p-6">
+                      <h3 className="text-lg font-semibold text-white">Validation</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-300">VSR ID:</span>
+                          <span className="text-slate-200">{selectedRow.vsr.vsrId}</span>
                         </div>
-                      </div>
-                      <hr className="border-slate-800/80" />
-                      <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-white">
-                          What team member should know
-                        </h2>
-                        <div
-                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
-                          dangerouslySetInnerHTML={{
-                            __html: selectedLevelData.teamKnowledge,
-                          }}
-                        />
-                      </div>
-                      <hr className="border-slate-800/80" />
-                      <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-white">
-                          Eligibility criteria
-                        </h2>
-                        <div
-                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
-                          dangerouslySetInnerHTML={{
-                            __html: selectedLevelData.eligibilityCriteria,
-                          }}
-                        />
-                      </div>
-                      <hr className="border-slate-800/80" />
-                      <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-white">Verification</h2>
-                        <div
-                          className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
-                          dangerouslySetInnerHTML={{
-                            __html: selectedLevelData.verification,
-                          }}
-                        />
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-slate-300">Validation Status:</span>
+                          <span
+                            className={cn(
+                              "inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
+                              getVSRStatusBadgeClass(selectedRow.vsr.status),
+                            )}
+                          >
+                            {vsrStatusLabels[selectedRow.vsr.status] || "Unknown"}
+                          </span>
+                        </div>
+                        {selectedRow.vsr.requestedDate && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Requested Date:</span>
+                            <span className="text-slate-200">
+                              {formatDate(selectedRow.vsr.requestedDate)}
+                            </span>
+                          </div>
+                        )}
+                        {selectedRow.vsr.scheduledDate && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Scheduled Date Time:</span>
+                            <span className="text-slate-200">
+                              {formatDateTime(selectedRow.vsr.scheduledDate)} (UK Time)
+                            </span>
+                          </div>
+                        )}
+                        {selectedRow.vsr.validatorOpsUser && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Validator (Ops):</span>
+                            <span className="text-slate-200">
+                              {selectedRow.vsr.validatorOpsUser.name || "-"}
+                            </span>
+                          </div>
+                        )}
+                        {selectedRow.vsr.validatorTrainerUser && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-300">Validator (Trainer):</span>
+                            <span className="text-slate-200">
+                              {selectedRow.vsr.validatorTrainerUser.name || "-"}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
+                )}
+              </div>
+            )}
 
-                  {/* Relevant Links */}
-                  {selectedCompetency.relevantLinks && (
-                    <Card className="border border-slate-800/80 bg-slate-950/50">
-                      <CardContent className="space-y-6 p-6">
-                        <div className="space-y-4">
-                          <h2 className="text-lg font-semibold text-white">
-                            Relevant Links
-                          </h2>
-                          <div
-                            className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
-                            dangerouslySetInnerHTML={{
-                              __html: selectedCompetency.relevantLinks,
-                            }}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+            {/* Project Submission */}
+            {selectedRow.trainingRequest &&
+              (selectedRow.trainingRequest.status === 5 || selectedRow.trainingRequest.status === 8) && (
+                <div id="project-submission-section" className="mb-6">
+                  <Card className="border border-slate-800/80 bg-slate-950/50">
+                    <CardContent className="space-y-4 p-6">
+                      <h3 className="text-lg font-semibold text-white">Submit Project</h3>
+                      <div className="space-y-3">
+                        <Label htmlFor="project-document-link" className="text-sm font-medium text-slate-200">
+                          Project document link
+                        </Label>
+                        <Input
+                          id="project-document-link"
+                          type="url"
+                          value={projectDetails}
+                          onChange={(e) => setProjectDetails(e.target.value)}
+                          placeholder="Enter document link..."
+                          disabled={submittingProject || isPending || !isProjectEditable}
+                          className="w-full"
+                        />
+                        {isProjectSubmitted && selectedRow.projectApproval && (
+                          <div className="text-sm border-t border-slate-800/80 pt-3">
+                            <div className="flex gap-6">
+                              <div className="space-y-2 flex-1">
+                                {selectedRow.projectApproval.requestedDate && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-300">Submitted Date:</span>
+                                    <span className="text-slate-200">
+                                      {formatDate(selectedRow.projectApproval.requestedDate)}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-slate-300">Status:</span>
+                                  <span
+                                    className={cn(
+                                      "inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold",
+                                      getVPAStatusBadgeClass(selectedRow.projectApproval.status),
+                                    )}
+                                  >
+                                    {getVPAStatusLabel(selectedRow.projectApproval.status, vpaStatusLabels)}
+                                  </span>
+                                </div>
+                                {selectedRow.projectApproval.status === 1 &&
+                                  selectedRow.projectApproval.assignedToUser && (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-slate-300">Approved by:</span>
+                                        <span className="text-slate-200">
+                                          {selectedRow.projectApproval.assignedToUser.name || "Unknown"}
+                                        </span>
+                                      </div>
+                                      {selectedRow.projectApproval.responseDate && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium text-slate-300">Approved at:</span>
+                                          <span className="text-slate-200">
+                                            {formatDate(selectedRow.projectApproval.responseDate)}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                {selectedRow.projectApproval.status === 2 && (
+                                  <>
+                                    {selectedRow.projectApproval.assignedToUser && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-slate-300">Rejected by:</span>
+                                        <span className="text-slate-200">
+                                          {selectedRow.projectApproval.assignedToUser.name || "Unknown"}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {selectedRow.projectApproval.responseDate && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-slate-300">Rejected at:</span>
+                                        <span className="text-slate-200">
+                                          {formatDate(selectedRow.projectApproval.responseDate)}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                              {selectedRow.projectApproval.status === 2 &&
+                                selectedRow.projectApproval.rejectionReason && (
+                                  <div className="flex-1">
+                                    <div className="flex flex-col gap-2">
+                                      <span className="font-medium text-slate-300">Rejection reason:</span>
+                                      <span className="text-slate-200">
+                                        {selectedRow.projectApproval.rejectionReason}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        )}
+                        {!isProjectApproved && (
+                          <button
+                            type="button"
+                            onClick={handleSubmitProject}
+                            disabled={submittingProject || isPending || !isProjectEditable || isProjectDetailsEmpty}
+                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                          >
+                            {submittingProject || isPending
+                              ? "Submitting..."
+                              : selectedRow.projectApproval?.status === 2 ||
+                                  selectedRow.projectApproval?.status === 3
+                                ? "Resubmit"
+                                : isProjectSubmitted
+                                  ? "Submitted"
+                                  : "Submit"}
+                          </button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </Card>
+
+            {/* Level Content */}
+            <div className="space-y-6">
+              {/* Training Plan Document */}
+              <Card className="border border-slate-800/80 bg-slate-950/50">
+                <CardContent className="space-y-6 p-6">
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white">Training Plan Document</h2>
+                    <div className="text-sm">
+                      <a
+                        href={selectedRow.level.trainingPlanDocument || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="!text-blue-400 hover:!text-blue-300 underline cursor-pointer"
+                      >
+                        {selectedRow.level.trainingPlanDocument}
+                      </a>
+                    </div>
+                  </div>
+                  <hr className="border-slate-800/80" />
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white">What team member should know</h2>
+                    <div
+                      className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedRow.level.teamKnowledge || "",
+                      }}
+                    />
+                  </div>
+                  <hr className="border-slate-800/80" />
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white">Eligibility criteria</h2>
+                    <div
+                      className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedRow.level.eligibilityCriteria || "",
+                      }}
+                    />
+                  </div>
+                  <hr className="border-slate-800/80" />
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white">Verification</h2>
+                    <div
+                      className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedRow.level.verification || "",
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Relevant Links */}
+              {selectedRow.competency.relevantLinks && (
+                <Card className="border border-slate-800/80 bg-slate-950/50">
+                  <CardContent className="space-y-6 p-6">
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold text-white">Relevant Links</h2>
+                      <div
+                        className="text-sm text-slate-100 [&_p]:mb-2 [&_p]:leading-relaxed [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2 [&_li]:mb-1 [&_li]:leading-relaxed [&_a]:!text-blue-500 [&_a]:underline [&_a:hover]:!text-blue-400 [&_a:visited]:!text-blue-500 [&_strong]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:mb-2 [&_h1]:leading-relaxed [&_h2]:text-base [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:leading-relaxed [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:leading-relaxed [&_*]:break-words [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-600 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-600 [&_td]:p-2"
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRow.competency.relevantLinks,
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Apply Confirmation Modal */}
       <Modal
@@ -1078,15 +1107,16 @@ export function LearnerDashboardClient({
           <p className="mb-4 text-sm text-slate-300">You are about to apply for</p>
           <div className="mb-6 flex items-center gap-3">
             <span className="text-lg font-semibold text-white">
-              {selectedCompetency?.name}
+              {selectedRow?.competency.name}
             </span>
-            {selectedLevelData && (
+            {selectedRow && (
               <span
-                className={`rounded-md px-2 py-0.5 text-sm font-semibold ${getLevelBadgeClass(
-                  selectedLevelData.name,
-                )}`}
+                className={cn(
+                  "rounded-md px-2 py-0.5 text-sm font-semibold",
+                  getLevelBadgeClass(selectedRow.level.name),
+                )}
               >
-                {selectedLevelData.name}
+                {selectedRow.level.name}
               </span>
             )}
           </div>
@@ -1172,7 +1202,7 @@ export function LearnerDashboardClient({
           <button
             type="button"
             onClick={handleCloseHomeworkModal}
-            className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -1181,7 +1211,7 @@ export function LearnerDashboardClient({
         <div className="max-h-[70vh] overflow-y-auto p-6">
           {error && <Alert variant="error" className="mb-4">{error}</Alert>}
           {success && <Alert variant="success" className="mb-4">{success}</Alert>}
-          
+
           {homeworkData ? (
             <div className="space-y-4">
               {homeworkData.sessions.map((session) => {
@@ -1242,4 +1272,3 @@ export function LearnerDashboardClient({
     </div>
   );
 }
-

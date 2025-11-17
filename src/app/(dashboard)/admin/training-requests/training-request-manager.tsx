@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition, useCallback, useEffect } from "react";
+import { useState, useMemo, useTransition, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
+import { X, ChevronDown } from "lucide-react";
 import type { TrainingRequest, Competency } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { updateTrainingRequestAction, getTrainingRequestById } from "./actions";
 import { TrainingRequestModal } from "./training-request-modal";
+import { cn } from "@/lib/utils";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
 // This matches Flatpickr's "d M Y" format exactly
@@ -106,10 +108,14 @@ export function TrainingRequestManager({
     level: "",
     status: "",
     trainer: "",
-    batch: "",
+    batch: [] as string[],
     customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue" | "blocked" | "followUp",
     hideCompleted: true,
   });
+  
+  // Multi-select dropdown state for batches
+  const [batchDropdownOpen, setBatchDropdownOpen] = useState(false);
+  const batchDropdownRef = useRef<HTMLDivElement>(null);
   const activeCustomFilterLabel = filters.customFilter
     ? customFilterLabels[filters.customFilter]
     : null;
@@ -195,6 +201,22 @@ export function TrainingRequestManager({
       }
       if (filters.hideCompleted && (tr.status === 5 || tr.status === 8)) {
         return false;
+      }
+
+      // Trainer filter
+      if (filters.trainer) {
+        const trainerId = tr.trainingBatch?.trainer?.id;
+        if (trainerId !== filters.trainer) {
+          return false;
+        }
+      }
+
+      // Batch filter (multi-select)
+      if (filters.batch.length > 0) {
+        const batchId = tr.trainingBatch?.id;
+        if (!batchId || !filters.batch.includes(batchId)) {
+          return false;
+        }
       }
 
       // Custom filters
@@ -413,10 +435,11 @@ export function TrainingRequestManager({
       level: "",
       status: "",
       trainer: "",
-      batch: "",
+      batch: [],
       customFilter: "",
       hideCompleted: true,
     });
+    setBatchDropdownOpen(false);
   };
 
   // Helper function to get row background color class
@@ -454,6 +477,54 @@ export function TrainingRequestManager({
     });
     return Array.from(levelSet).sort();
   }, [trainingRequests]);
+
+  // Get unique trainers (users with role === "trainer")
+  const trainers = useMemo(() => {
+    return users
+      .filter((user) => user.role?.toLowerCase() === "trainer")
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [users]);
+
+  // Get unique batches from training requests
+  const batches = useMemo(() => {
+    const batchMap = new Map<string, { id: string; name: string }>();
+    trainingRequests.forEach((tr) => {
+      if (tr.trainingBatch) {
+        batchMap.set(tr.trainingBatch.id, {
+          id: tr.trainingBatch.id,
+          name: tr.trainingBatch.batchName,
+        });
+      }
+    });
+    return Array.from(batchMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [trainingRequests]);
+
+  // Close batch dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (batchDropdownRef.current && !batchDropdownRef.current.contains(event.target as Node)) {
+        setBatchDropdownOpen(false);
+      }
+    };
+
+    if (batchDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [batchDropdownOpen]);
+
+  // Toggle batch selection
+  const toggleBatch = (batchId: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      batch: prev.batch.includes(batchId)
+        ? prev.batch.filter((id) => id !== batchId)
+        : [...prev.batch, batchId],
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -543,6 +614,106 @@ export function TrainingRequestManager({
                   </option>
                 ))}
               </Select>
+            </div>
+            <div className="flex-1 min-w-0 sm:min-w-[140px]">
+              <label htmlFor="search-trainer" className="mb-1.5 block text-xs font-medium text-slate-300">
+                Trainer
+              </label>
+              <Select
+                id="search-trainer"
+                value={filters.trainer}
+                onChange={(e) => setFilters({ ...filters, trainer: e.target.value })}
+              >
+                <option value="">All Trainers</option>
+                {trainers.map((trainer) => (
+                  <option key={trainer.id} value={trainer.id}>
+                    {trainer.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex-1 min-w-0 sm:min-w-[140px]">
+              <label htmlFor="search-batch" className="mb-1.5 block text-xs font-medium text-slate-300">
+                Batch
+              </label>
+              <div className="relative" ref={batchDropdownRef}>
+                <button
+                  type="button"
+                  id="search-batch"
+                  onClick={() => setBatchDropdownOpen(!batchDropdownOpen)}
+                  className={cn(
+                    "flex h-10 w-full items-center justify-between rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
+                    filters.batch.length > 0 && "border-blue-500",
+                  )}
+                >
+                  <span className="truncate">
+                    {filters.batch.length === 0
+                      ? "All Batches"
+                      : filters.batch.length === 1
+                        ? batches.find((b) => b.id === filters.batch[0])?.name || "1 selected"
+                        : `${filters.batch.length} selected`}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-slate-400 transition-transform",
+                      batchDropdownOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+
+                {/* Selected batches display */}
+                {filters.batch.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {filters.batch.map((batchId) => {
+                      const batch = batches.find((b) => b.id === batchId);
+                      if (!batch) return null;
+                      return (
+                        <div
+                          key={batchId}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-blue-500 bg-blue-900/30 px-2 py-1 text-xs text-slate-100"
+                        >
+                          <span>{batch.name}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleBatch(batchId);
+                            }}
+                            className="text-slate-400 hover:text-slate-100 transition cursor-pointer"
+                            aria-label={`Remove ${batch.name}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Dropdown options */}
+                {batchDropdownOpen && (
+                  <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-700 bg-slate-900 shadow-lg">
+                    {batches.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-slate-400">No batches available</div>
+                    ) : (
+                      batches.map((batch) => (
+                        <label
+                          key={batch.id}
+                          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.batch.includes(batch.id)}
+                            onChange={() => toggleBatch(batch.id)}
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span>{batch.name}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap items-center">

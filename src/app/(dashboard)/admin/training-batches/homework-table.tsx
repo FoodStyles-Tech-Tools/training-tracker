@@ -247,7 +247,7 @@ export function HomeworkTable({
                               href={state.homeworkUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs !text-blue-600 hover:!text-blue-500 transition underline"
+                              className="text-xs !text-blue-600 hover:!text-blue-500 transition underline cursor-pointer"
                               title={state.homeworkUrl}
                             >
                               Homework URL
