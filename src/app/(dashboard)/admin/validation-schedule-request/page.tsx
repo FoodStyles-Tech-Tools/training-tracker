@@ -40,6 +40,7 @@ export default async function ValidationScheduleRequestPage() {
   const users = await db.query.users.findMany({
     with: {
       role: true,
+      trainerCompetencies: true,
     },
     orderBy: schema.users.name,
   });
