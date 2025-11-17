@@ -522,6 +522,7 @@ export const trainingBatch = pgTable(
     durationHrs: numeric("duration_hrs"),
     estimatedStart: timestamp("estimated_start", { mode: "date" }),
     batchStartDate: timestamp("batch_start_date", { mode: "date" }),
+    batchFinishDate: timestamp("batch_finish_date", { mode: "date" }),
     capacity: integer("capacity").notNull().default(0),
     currentParticipant: integer("current_participant").notNull().default(0),
     spotLeft: integer("spot_left").notNull().default(0),
