@@ -1,3 +1,5 @@
+import { getCompetencyLevelBadgeClass } from "./competency-level-config";
+
 /**
  * Validation Schedule Request Status Configuration
  * Status labels are defined in env.ts (VSR_STATUS environment variable)
@@ -5,7 +7,6 @@
  * 
  * To update status labels, edit the default value in src/env.ts
  */
-
 export function getVSRStatusLabel(status: number, statuses: string[]): string {
   // Map status to array index
   if (status >= 0 && status < statuses.length) {
@@ -52,14 +53,6 @@ export function getVSRStatusBadgeClass(status: number): string {
  * Level badge color classes
  */
 export function getVSRLevelBadgeClass(level: string): string {
-  const levelLower = level.toLowerCase();
-  if (levelLower === "basic") {
-    return "bg-blue-500/20 text-blue-200";
-  } else if (levelLower === "competent") {
-    return "bg-emerald-500/20 text-emerald-200";
-  } else if (levelLower === "advanced") {
-    return "bg-purple-500/20 text-purple-200";
-  }
-  return "bg-slate-500/20 text-slate-200";
+  return getCompetencyLevelBadgeClass(level);
 }
 
