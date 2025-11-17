@@ -6,14 +6,23 @@ import type { ModuleName } from "@/db/schema";
 import { AdminShell } from "./admin-shell";
 import { requireSession } from "@/lib/session";
 
-const NAV_ITEMS: Array<{ label: string; href: string; module: ModuleName; requiresEdit?: boolean; alwaysVisible?: boolean }> = [
-  { label: "Learner Dashboard", href: "/admin/learner-dashboard", module: "users", alwaysVisible: true },
-  { label: "Competencies", href: "/admin/competencies", module: "competencies" },
-  { label: "Training Batches", href: "/admin/training-batches", module: "training_batch" },
-  { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true },
-  { label: "Users", href: "/admin/users", module: "users" },
-  { label: "Roles", href: "/admin/roles", module: "roles" },
-  { label: "Activity Log", href: "/admin/activity-log", module: "activity_log" },
+type NavItem = {
+  label: string;
+  href: string;
+  module: ModuleName;
+  requiresEdit?: boolean;
+  alwaysVisible?: boolean;
+  group: "learner" | "trainer" | "settings";
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Learner Dashboard", href: "/admin/learner-dashboard", module: "users", alwaysVisible: true, group: "learner" },
+  { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true, group: "trainer" },
+  { label: "Competencies", href: "/admin/competencies", module: "competencies", group: "settings" },
+  { label: "Training Batches", href: "/admin/training-batches", module: "training_batch", group: "settings" },
+  { label: "Users", href: "/admin/users", module: "users", group: "settings" },
+  { label: "Roles", href: "/admin/roles", module: "roles", group: "settings" },
+  { label: "Activity Log", href: "/admin/activity-log", module: "activity_log", group: "settings" },
 ];
 
 export default async function AdminLayout({
@@ -70,15 +79,26 @@ export default async function AdminLayout({
     return permissionMap.get(item.module)?.canList ?? false;
   });
 
-  const navItems = allowedNav.map((item) => ({
-    label: item.label,
-    href: item.href,
-  }));
+  // Organize nav items into groups
+  const navGroups = {
+    learner: allowedNav.filter((item) => item.group === "learner").map((item) => ({
+      label: item.label,
+      href: item.href,
+    })),
+    trainer: allowedNav.filter((item) => item.group === "trainer").map((item) => ({
+      label: item.label,
+      href: item.href,
+    })),
+    settings: allowedNav.filter((item) => item.group === "settings").map((item) => ({
+      label: item.label,
+      href: item.href,
+    })),
+  };
 
   return (
     <AdminShell
       user={{ name: user.name, roleName: user.role?.roleName ?? null }}
-      navItems={navItems}
+      navGroups={navGroups}
     >
       {children}
     </AdminShell>
