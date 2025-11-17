@@ -16,6 +16,11 @@
     "db:seed": "tsx src/scripts/seed.ts",
     "db:seed-waitlist": "tsx src/scripts/seed-waitlist.ts",
     "db:seed-waitlist-vpa-vsr": "tsx src/scripts/seed-waitlist-vpa-vsr.ts",
+    "db:seed-waitlist-vpa": "tsx src/scripts/seed-waitlist-vpa.ts",
+    "db:seed-waitlist-vsr": "tsx src/scripts/seed-waitlist-vsr.ts",
+    "db:truncate-tr": "tsx src/scripts/truncate-tr.ts",
+    "db:truncate-vpa": "tsx src/scripts/truncate-vpa.ts",
+    "db:truncate-vsr": "tsx src/scripts/truncate-vsr.ts",
     "db:sync": "tsx src/scripts/sync-database.ts"
   },
   "dependencies": {
