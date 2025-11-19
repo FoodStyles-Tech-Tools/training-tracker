@@ -258,6 +258,125 @@ export async function submitHomeworkAction(
   }
 }
 
+/**
+ * Generate the next PAR ID (e.g., PAR01, PAR02, etc.)
+ * Uses PostgreSQL's atomic UPDATE to ensure thread-safe number generation
+ */
+async function generateParId(): Promise<string> {
+  // First, ensure the 'par' module exists in custom_numbering
+  const existing = await db.query.customNumbering.findFirst({
+    where: eq(schema.customNumbering.module, "par"),
+  });
+
+  if (!existing) {
+    // Initialize with running_number = 0 (will be incremented to 1 for first PAR ID)
+    await db.insert(schema.customNumbering).values({
+      module: "par",
+      runningNumber: 0,
+    });
+  }
+
+  // Atomically increment and get the new number
+  // First request will be PAR01 (running_number becomes 1), second will be PAR02, etc.
+  const result = await db
+    .update(schema.customNumbering)
+    .set({
+      runningNumber: sql`${schema.customNumbering.runningNumber} + 1`,
+    })
+    .where(eq(schema.customNumbering.module, "par"))
+    .returning({ runningNumber: schema.customNumbering.runningNumber });
+
+  if (!result[0]) {
+    throw new Error("Failed to generate PAR ID");
+  }
+
+  const parNumber = result[0].runningNumber;
+  return `PAR${parNumber.toString().padStart(2, "0")}`;
+}
+
+export async function createProjectAssignmentRequestAction(competencyLevelId: string) {
+  const session = await requireSession();
+
+  try {
+    // Check if user already has a PAR for this competency level
+    const existingPAR = await db.query.projectAssignmentRequest.findFirst({
+      where: (par, { and, eq }) =>
+        and(
+          eq(par.learnerUserId, session.user.id),
+          eq(par.competencyLevelId, competencyLevelId),
+        ),
+    });
+
+    if (existingPAR) {
+      return { success: false, error: "You already have a project assignment request for this competency level" };
+    }
+
+    // Generate PAR ID
+    const parId = await generateParId();
+
+    // Calculate requested date (today) and response due (requested date + 1 day)
+    const requestedDate = new Date();
+    requestedDate.setHours(0, 0, 0, 0); // Set to start of day
+    const responseDue = new Date(requestedDate);
+    responseDue.setDate(responseDue.getDate() + 1);
+
+    // Create project assignment request
+    const [par] = await db
+      .insert(schema.projectAssignmentRequest)
+      .values({
+        parId,
+        requestedDate,
+        learnerUserId: session.user.id,
+        competencyLevelId,
+        status: 0, // Status 0 = New
+        responseDue, // Auto-fill as requested date + 1 day
+      })
+      .returning();
+
+    if (!par) {
+      throw new Error("Failed to create project assignment request");
+    }
+
+    // Get competency level info for logging
+    const competencyLevel = await db.query.competencyLevels.findFirst({
+      where: eq(schema.competencyLevels.id, competencyLevelId),
+      with: {
+        competency: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Log activity
+    await logActivity({
+      userId: session.user.id,
+      module: "project_assignment_request",
+      action: "add",
+      data: {
+        parId: par.parId,
+        learnerId: session.user.id,
+        competencyLevelId,
+        competencyName: competencyLevel?.competency?.name,
+        levelName: competencyLevel?.name,
+        status: par.status,
+        requestedDate: par.requestedDate,
+        responseDue: par.responseDue,
+      },
+    });
+
+    revalidatePath("/admin/learner-dashboard");
+    revalidatePath("/admin/project-assignment-request");
+    return { success: true, parId: par.parId };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to create project assignment request" };
+  }
+}
+
 export async function submitProjectAction(
   competencyLevelId: string,
   projectDetails: string,

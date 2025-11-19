@@ -13,6 +13,7 @@ Enum module_name {
   training_request
   validation_project_approval
   validation_schedule_request
+  project_assignment_request
 }
 
 Enum user_status {
@@ -418,6 +419,32 @@ Table validation_schedule_request_log {
   }
 }
 
+Table project_assignment_request {
+  id uuid [pk, default: `gen_random_uuid()`]
+  par_id text [not null] // human-readable, e.g., PARxx
+  requested_date date [not null]
+  learner_user_id uuid [not null]
+  competency_level_id uuid [not null]
+  status int [not null, default: 0] // Status values defined in env.PAR_STATUS (0-4): 0 = New, 1 = Pending Project Assignment, 2 = Project Assigned, 3 = Rejected Project, 4 = No project match
+  assigned_to uuid
+  response_due date // if status New, fill +1 from requested date
+  response_date date
+  project_name text
+  description text
+  definite_answer bool
+  no_follow_up_date date
+  follow_up_date date
+  updated_at timestamptz [not null, default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (par_id) [unique]
+    (learner_user_id)
+    (competency_level_id)
+    (assigned_to)
+  }
+}
+
 /* relationships */
 
 Ref: roles_permission.role_id > roles_list.id [delete: cascade]
@@ -466,12 +493,15 @@ Ref: validation_schedule_request.vsr_id > validation_schedule_request_log.vsr_id
 // Foreign key relationships using UUIDs
 Ref: validation_project_approval.learner_user_id > users.id [delete: cascade]
 Ref: validation_schedule_request.learner_user_id > users.id [delete: cascade]
+Ref: project_assignment_request.learner_user_id > users.id [delete: cascade]
 Ref: validation_project_approval.competency_level_id > competency_levels.id [delete: cascade]
 Ref: validation_schedule_request.competency_level_id > competency_levels.id [delete: cascade]
+Ref: project_assignment_request.competency_level_id > competency_levels.id [delete: cascade]
 Ref: validation_project_approval.assigned_to > users.id [delete: set null]
 Ref: validation_schedule_request.validator_ops > users.id [delete: set null]
 Ref: validation_schedule_request.validator_trainer > users.id [delete: set null]
 Ref: validation_schedule_request.assigned_to > users.id [delete: set null]
+Ref: project_assignment_request.assigned_to > users.id [delete: set null]
 Ref: training_request.assigned_to > users.id [delete: set null]
 Ref: validation_project_approval_log.updated_by > users.id [delete: set null]
 Ref: validation_schedule_request_log.updated_by > users.id [delete: set null]

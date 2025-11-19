@@ -13,7 +13,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies", "training_batch", "training_request", "validation_project_approval", "validation_schedule_request"]);
+export const moduleNameEnum = pgEnum("module_name", ["roles", "users", "activity_log", "competencies", "training_batch", "training_request", "validation_project_approval", "validation_schedule_request", "project_assignment_request"]);
 export const userStatusEnum = pgEnum("user_status", ["active", "inactive"]);
 export const userDepartmentEnum = pgEnum("user_department", ["curator", "scraping"]);
 
@@ -224,6 +224,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   validationProjectApprovals: many(validationProjectApproval),
   validationProjectApprovalLogs: many(validationProjectApprovalLog),
   validationScheduleRequestLogs: many(validationScheduleRequestLog),
+  projectAssignmentRequests: many(projectAssignmentRequest),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -896,3 +897,57 @@ export const validationScheduleRequestLogRelations = relations(validationSchedul
 
 export type ValidationScheduleRequest = typeof validationScheduleRequest.$inferSelect;
 export type ValidationScheduleRequestLog = typeof validationScheduleRequestLog.$inferSelect;
+
+// Project Assignment Request tables
+export const projectAssignmentRequest = pgTable(
+  "project_assignment_request",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    parId: text("par_id").notNull(),
+    requestedDate: timestamp("requested_date", { mode: "date" }).notNull(),
+    learnerUserId: uuid("learner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    competencyLevelId: uuid("competency_level_id")
+      .notNull()
+      .references(() => competencyLevels.id, { onDelete: "cascade" }),
+    status: integer("status").notNull().default(0), // Status values defined in env.PAR_STATUS (0-4): 0 = New, 1 = Pending Project Assignment, 2 = Project Assigned, 3 = Rejected Project, 4 = No project match
+    assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
+    responseDue: timestamp("response_due", { mode: "date" }),
+    responseDate: timestamp("response_date", { mode: "date" }),
+    projectName: text("project_name"),
+    description: text("description"),
+    definiteAnswer: boolean("definite_answer"),
+    noFollowUpDate: timestamp("no_follow_up_date", { mode: "date" }),
+    followUpDate: timestamp("follow_up_date", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (par) => ({
+    parIdIdx: uniqueIndex("project_assignment_request_par_id_idx").on(par.parId),
+    learnerUserIdIdx: index("project_assignment_request_learner_user_id_idx").on(par.learnerUserId),
+    competencyLevelIdIdx: index("project_assignment_request_competency_level_id_idx").on(par.competencyLevelId),
+    assignedToIdx: index("project_assignment_request_assigned_to_idx").on(par.assignedTo),
+  }),
+);
+
+export const projectAssignmentRequestRelations = relations(projectAssignmentRequest, ({ one }) => ({
+  learner: one(users, {
+    fields: [projectAssignmentRequest.learnerUserId],
+    references: [users.id],
+  }),
+  competencyLevel: one(competencyLevels, {
+    fields: [projectAssignmentRequest.competencyLevelId],
+    references: [competencyLevels.id],
+  }),
+  assignedUser: one(users, {
+    fields: [projectAssignmentRequest.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export type ProjectAssignmentRequest = typeof projectAssignmentRequest.$inferSelect;

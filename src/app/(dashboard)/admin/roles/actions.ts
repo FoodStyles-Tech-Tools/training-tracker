@@ -75,32 +75,38 @@ export async function updateRoleAction(id: string, input: RoleFormInput) {
 
   const parsed = roleSchema.parse(input);
 
-  await db
-    .update(schema.rolesList)
-    .set({
-      roleName: parsed.roleName,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.rolesList.id, id));
+  // Use a transaction to ensure atomicity - if anything fails, all changes are rolled back
+  await db.transaction(async (tx) => {
+    // Update role name
+    await tx
+      .update(schema.rolesList)
+      .set({
+        roleName: parsed.roleName,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.rolesList.id, id));
 
-  await db
-    .delete(schema.rolePermissions)
-    .where(eq(schema.rolePermissions.roleId, id));
+    // Delete existing permissions
+    await tx
+      .delete(schema.rolePermissions)
+      .where(eq(schema.rolePermissions.roleId, id));
 
-  if (parsed.permissions.length) {
-    await db.insert(schema.rolePermissions).values(
-      parsed.permissions.map((perm) => ({
-        roleId: id,
-        module: perm.module,
-        canList: perm.canList,
-        canAdd: perm.canAdd,
-        canEdit: perm.canEdit,
-        canDelete: perm.canDelete,
-      })),
-    );
-  }
+    // Insert new permissions
+    if (parsed.permissions.length) {
+      await tx.insert(schema.rolePermissions).values(
+        parsed.permissions.map((perm) => ({
+          roleId: id,
+          module: perm.module,
+          canList: perm.canList,
+          canAdd: perm.canAdd,
+          canEdit: perm.canEdit,
+          canDelete: perm.canDelete,
+        })),
+      );
+    }
+  });
 
-  // Log role update
+  // Log role update (outside transaction to avoid rollback on logging failure)
   await logActivity({
     userId: session.user.id,
     module: "roles",
