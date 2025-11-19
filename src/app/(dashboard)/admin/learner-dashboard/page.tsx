@@ -114,6 +114,11 @@ export default async function LearnerDashboardPage() {
     description: vsr.description,
   }));
 
+  // Get user's project assignment requests
+  const projectAssignmentRequests = await db.query.projectAssignmentRequest.findMany({
+    where: eq(schema.projectAssignmentRequest.learnerUserId, session.user.id),
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -129,9 +134,11 @@ export default async function LearnerDashboardPage() {
         trainingRequests={trainingRequests}
         projectApprovals={projectApprovals}
         validationScheduleRequests={validationScheduleRequests}
+        projectAssignmentRequests={projectAssignmentRequests}
         statusLabels={env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim())}
         vpaStatusLabels={env.VPA_STATUS.split(",").map((s) => s.trim())}
         vsrStatusLabels={env.VSR_STATUS.split(",").map((s) => s.trim())}
+        parStatusLabels={env.PAR_STATUS.split(",").map((s) => s.trim())}
       />
     </div>
   );

@@ -18,6 +18,7 @@ type NavGroups = {
   learner: NavItem[];
   trainer: NavItem[];
   report: NavItem[];
+  training_forum: NavItem[];
   settings: NavItem[];
 };
 
@@ -95,6 +96,7 @@ export function AdminShell({ user, navGroups, children }: AdminShellProps) {
       learner: processNavItems(navGroups.learner),
       trainer: processNavItems(navGroups.trainer),
       report: processNavItems(navGroups.report),
+      training_forum: processNavItems(navGroups.training_forum),
       settings: processNavItems(navGroups.settings),
     }),
     [navGroups, pathname],
@@ -105,6 +107,7 @@ export function AdminShell({ user, navGroups, children }: AdminShellProps) {
       ...processedGroups.learner,
       ...processedGroups.trainer,
       ...processedGroups.report,
+      ...processedGroups.training_forum,
       ...processedGroups.settings,
     ],
     [processedGroups],
@@ -176,6 +179,27 @@ export function AdminShell({ user, navGroups, children }: AdminShellProps) {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Report</p>
                   <div className="space-y-1">
                     {processedGroups.report.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                          item.active
+                            ? "bg-slate-800 text-slate-50"
+                            : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {processedGroups.training_forum.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Training Forum</p>
+                  <div className="space-y-1">
+                    {processedGroups.training_forum.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
@@ -332,6 +356,28 @@ export function AdminShell({ user, navGroups, children }: AdminShellProps) {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Report</p>
               <div className="space-y-1">
                 {processedGroups.report.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeNav}
+                    className={cn(
+                      "block rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer",
+                      item.active
+                        ? "bg-slate-800 text-slate-50"
+                        : "text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {processedGroups.training_forum.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Training Forum</p>
+              <div className="space-y-1">
+                {processedGroups.training_forum.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}

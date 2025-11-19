@@ -10,10 +10,11 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Competency, CompetencyLevel } from "@/db/schema";
-import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction } from "./actions";
+import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction, createProjectAssignmentRequestAction } from "./actions";
 import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
+import { getPARStatusLabel, getPARStatusBadgeClass } from "@/lib/par-config";
 import { X, Check, Info } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
@@ -71,15 +72,24 @@ type ValidationScheduleRequest = {
   description: string | null;
 };
 
+type ProjectAssignmentRequest = {
+  id: string;
+  parId: string;
+  competencyLevelId: string;
+  status: number;
+};
+
 interface LearnerDashboardClientProps {
   competencies: CompetencyWithLevels[];
   userId: string;
   trainingRequests?: TrainingRequest[];
   projectApprovals?: ProjectApproval[];
   validationScheduleRequests?: ValidationScheduleRequest[];
+  projectAssignmentRequests?: ProjectAssignmentRequest[];
   statusLabels: string[];
   vpaStatusLabels: string[];
   vsrStatusLabels: string[];
+  parStatusLabels: string[];
 }
 
 type LevelType = "basic" | "competent" | "advanced";
@@ -93,6 +103,7 @@ type TableRow = {
   trainingRequest: TrainingRequest | null;
   projectApproval: ProjectApproval | null;
   vsr: ValidationScheduleRequest | null;
+  par: ProjectAssignmentRequest | null;
   areRequirementsMet: boolean;
   applicableRequirements: Array<{
     requiredLevel: CompetencyLevel & {
@@ -141,9 +152,11 @@ export function LearnerDashboardClient({
   trainingRequests = [],
   projectApprovals = [],
   validationScheduleRequests = [],
+  projectAssignmentRequests = [],
   statusLabels,
   vpaStatusLabels,
   vsrStatusLabels,
+  parStatusLabels,
 }: LearnerDashboardClientProps) {
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -275,6 +288,10 @@ export function LearnerDashboardClient({
           (vsr) => vsr.competencyLevelId === level.id,
         ) || null;
 
+        const par = projectAssignmentRequests.find(
+          (par) => par.competencyLevelId === level.id,
+        ) || null;
+
         const applicableRequirements = getApplicableRequirements(competency, level);
         const requirementsMet = areRequirementsMet(applicableRequirements);
 
@@ -287,6 +304,7 @@ export function LearnerDashboardClient({
           trainingRequest,
           projectApproval,
           vsr,
+          par,
           areRequirementsMet: requirementsMet,
           applicableRequirements,
         });
@@ -294,7 +312,7 @@ export function LearnerDashboardClient({
     }
 
     return rows;
-  }, [competencies, trainingRequests, projectApprovals, validationScheduleRequests]);
+  }, [competencies, trainingRequests, projectApprovals, validationScheduleRequests, projectAssignmentRequests]);
 
   // Get unmet requirements for display
   const unmetRequirements = useMemo(() => {
@@ -566,6 +584,7 @@ export function LearnerDashboardClient({
                 <th className="px-4 py-3 text-left font-medium">Training Status</th>
                 <th className="px-4 py-3 text-left font-medium">Project Status</th>
                 <th className="px-4 py-3 text-left font-medium">Validation Status</th>
+                <th className="px-4 py-3 text-left font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
@@ -573,7 +592,7 @@ export function LearnerDashboardClient({
                 <React.Fragment key={competencyId}>
                   {/* Competency Header Row */}
                   <tr className="bg-slate-900/50">
-                    <td colSpan={5} className="px-4 py-3 font-semibold text-slate-200">
+                    <td colSpan={6} className="px-4 py-3 font-semibold text-slate-200">
                       {rows[0]?.competency.name}
                     </td>
                   </tr>
@@ -685,6 +704,41 @@ export function LearnerDashboardClient({
                         ) : (
                           <span className="text-slate-400">-</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-col gap-1">
+                          {row.trainingRequest?.status === 8 && row.vsr?.status === 4 && (
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                setError(null);
+                                setSuccess(null);
+                                startTransition(async () => {
+                                  const result = await createProjectAssignmentRequestAction(row.levelId);
+                                  if (result.success) {
+                                    setSuccess("Project assignment request created successfully");
+                                    router.refresh();
+                                    setTimeout(() => {
+                                      setSuccess(null);
+                                    }, 3000);
+                                  } else {
+                                    setError(result.error || "Failed to create project assignment request");
+                                  }
+                                });
+                              }}
+                              disabled={isPending || !!row.par}
+                              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isPending ? "Creating..." : "Request Project"}
+                            </button>
+                          )}
+                          {row.par && (
+                            <span className="text-xs text-slate-400">
+                              Status : {getPARStatusLabel(row.par.status, parStatusLabels)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

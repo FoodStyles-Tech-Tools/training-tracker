@@ -41,6 +41,15 @@ const serverSchema = z.object({
       "Fail", // 3
       "Pass", // 4
     ].join(",")),
+  PAR_STATUS: z
+    .string()
+    .default([
+      "New", // 0
+      "Pending Project Assignment", // 1
+      "Project Assigned", // 2
+      "Rejected Project", // 3
+      "No project match", // 4
+    ].join(",")),
 });
 
 const parsed = serverSchema.safeParse({
@@ -56,6 +65,7 @@ const parsed = serverSchema.safeParse({
   TRAINING_REQUEST_STATUS: process.env.TRAINING_REQUEST_STATUS,
   VPA_STATUS: process.env.VPA_STATUS,
   VSR_STATUS: process.env.VSR_STATUS,
+  PAR_STATUS: process.env.PAR_STATUS,
 });
 
 if (!parsed.success) {

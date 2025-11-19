@@ -12,7 +12,7 @@ type NavItem = {
   module: ModuleName;
   requiresEdit?: boolean;
   alwaysVisible?: boolean;
-  group: "learner" | "trainer" | "report" | "settings";
+  group: "learner" | "trainer" | "report" | "training_forum" | "settings";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Request Log", href: "/admin/request-log", module: "training_request", requiresEdit: true, group: "trainer" },
   { label: "Waitlist", href: "/admin/waitlist", module: "training_request", group: "report" },
   { label: "Project Submission", href: "/admin/project-submission", module: "validation_project_approval", group: "report" },
+  { label: "Project Assignment Request", href: "/admin/project-assignment-request", module: "project_assignment_request", group: "training_forum" },
   { label: "Competencies", href: "/admin/competencies", module: "competencies", group: "settings" },
   { label: "Training Batches", href: "/admin/training-batches", module: "training_batch", group: "settings" },
   { label: "Users", href: "/admin/users", module: "users", group: "settings" },
@@ -92,6 +93,10 @@ export default async function AdminLayout({
       href: item.href,
     })),
     report: allowedNav.filter((item) => item.group === "report").map((item) => ({
+      label: item.label,
+      href: item.href,
+    })),
+    training_forum: allowedNav.filter((item) => item.group === "training_forum").map((item) => ({
       label: item.label,
       href: item.href,
     })),
