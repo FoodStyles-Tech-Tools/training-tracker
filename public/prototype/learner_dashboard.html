@@ -54,6 +54,213 @@
               </div>
             </div>
 
+            <!-- Levels Overview Table -->
+            <div class="prototype-card overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm table-fixed text-slate-100">
+                  <thead class="bg-slate-950/80 text-slate-400">
+                    <tr>
+                      <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="width: 14%;">Level</th>
+                      <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="width: 16%;">Application Status</th>
+                      <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="width: 16%;">Training Status</th>
+                      <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style="width: 24%;">Project Submission</th>
+                      <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style="width: 10%;">Project Status</th>
+                      <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style="width: 10%;">Validation Status</th>
+                      <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style="width: 10%;">Project Request</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/70">
+                    <tr class="bg-slate-800/40 text-slate-100">
+                      <td colspan="7" class="px-4 py-3 text-sm font-semibold uppercase tracking-wide">
+                        Guest Hospitality Standards
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-200">
+                            Basic
+                          </span>
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-md border border-slate-800/80 bg-slate-900/60 p-1 text-slate-400 transition hover:border-blue-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                            data-detail-key="guest-hospitality-basic"
+                            aria-label="View level details"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span class="sr-only">View details</span>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2 text-slate-200">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          <span>Applied</span>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="inline-block rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-200">
+                            In queue
+                          </span>
+                          <button
+                            type="button"
+                            onclick="openHomeworkModal()"
+                            class="cursor-pointer rounded-md border border-blue-400/40 px-3 py-1 text-xs font-semibold text-blue-200 transition hover:border-blue-400 hover:bg-blue-500/10"
+                          >
+                            Submit Homework
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3"><span class="text-slate-500">-</span></td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                            Competent
+                          </span>
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-md border border-slate-800/80 bg-slate-900/60 p-1 text-slate-400 transition hover:border-blue-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                            data-detail-key="guest-hospitality-competent"
+                            aria-label="View level details"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span class="sr-only">View details</span>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3">
+                        <span class="text-slate-400">Not eligible</span>
+                      </td>
+                      <td class="px-3 py-3">
+                        <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                          Sessions Completed
+                        </span>
+                      </td>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <input
+                            type="url"
+                            placeholder="Enter document link..."
+                            class="h-8 flex-1 rounded-md border border-slate-700 bg-slate-900/80 px-3 text-[11px] text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <button
+                            type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-blue-400 transition hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M8 17v-6a4 4 0 014-4h9" />
+                              <path d="M8 12h13l-3-3" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3 text-center"><span class="text-slate-500">-</span></td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <span class="inline-block rounded-md bg-purple-500/20 px-2 py-0.5 text-xs font-semibold text-purple-200">
+                            Advanced
+                          </span>
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-md border border-slate-800/80 bg-slate-900/60 p-1 text-slate-400 transition hover:border-blue-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                            data-detail-key="guest-hospitality-advanced"
+                            aria-label="View level details"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span class="sr-only">View details</span>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                        >
+                          Apply
+                        </button>
+                      </td>
+                      <td class="px-3 py-3">
+                        <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                          Sessions Completed
+                        </span>
+                      </td>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2 text-xs">
+                          <div class="relative flex-1">
+                            <input
+                              type="url"
+                              value="https://docs.example.com/guest-hospitality-advanced-project"
+                              class="pointer-events-none h-8 w-full rounded-md border border-slate-700 bg-slate-900/50 px-3 text-[11px] text-slate-400"
+                              disabled
+                            />
+                            <a
+                              href="https://docs.example.com/guest-hospitality-advanced-project"
+                              target="_blank"
+                              rel="noreferrer"
+                              class="absolute inset-0 flex items-center rounded-md px-3 text-[11px] text-blue-300 underline hover:text-blue-200"
+                            >
+                              https://docs.example.com/guest-hospitality-advanced-project
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            class="inline-flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-md bg-transparent text-emerald-400"
+                            disabled
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M9 11l3 3L22 4"></path>
+                              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3"><span class="text-slate-500">-</span></td>
+                      <td class="px-3 py-3">
+                        <span class="inline-block rounded-md bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-200">
+                          Passed validation
+                        </span>
+                      </td>
+                      <td class="px-3 py-3 text-center">
+                        <div class="flex flex-col items-center">
+                          <button
+                            type="button"
+                            class="inline-flex h-8 w-20 items-center justify-center gap-1 rounded-md bg-blue-600 px-3 text-[11px] font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+                            <span>Request</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <!-- Dropdown for Competencies -->
             <div class="prototype-card overflow-hidden p-0">
               <div class="border-b border-slate-800 bg-slate-950/50 px-6 py-4">
@@ -1481,6 +1688,59 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
       </div>
     </div>
 
+    <!-- Detail Modal -->
+    <div
+      id="detail-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
+      onclick="closeDetailModal(event)"
+    >
+      <div class="prototype-card w-full max-w-4xl overflow-hidden" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 id="detail-competency-name" class="text-lg font-semibold text-white"></h2>
+            <span id="detail-level-badge" class="mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-semibold"></span>
+          </div>
+          <button
+            type="button"
+            class="cursor-pointer rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            onclick="closeDetailModal()"
+            aria-label="Close details"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="max-h-[70vh] space-y-6 overflow-y-auto p-6">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-200">Training plan document</h3>
+            <a
+              id="detail-training-plan-link"
+              href="#"
+              target="_blank"
+              rel="noreferrer"
+              class="text-sm text-blue-400 transition hover:text-blue-300 hover:underline"
+            >
+              -
+            </a>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-200">What team member should know</h3>
+            <div id="detail-team-knowledge" class="space-y-2 text-sm leading-relaxed text-slate-300"></div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-200">Eligibility criteria</h3>
+            <div id="detail-eligibility" class="space-y-2 text-sm leading-relaxed text-slate-300"></div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-200">Verification</h3>
+            <div id="detail-verification" class="space-y-2 text-sm leading-relaxed text-slate-300"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Apply Confirmation Modal -->
     <div
       id="apply-modal"
@@ -1708,6 +1968,45 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
     <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
     <script src="navigation.js"></script>
     <script>
+      const levelDetailData = {
+        "guest-hospitality-basic": {
+          competency: "Guest Hospitality Standards",
+          level: "Basic",
+          badgeClass: "bg-blue-500/20 text-blue-200",
+          trainingPlan: "https://docs.example.com/guest-hospitality-basic-plan",
+          teamKnowledge:
+            "<p>Understands brand values and delivers a warm greeting to every guest.</p><p>Follows checklist for opening duties with minimal supervision.</p>",
+          eligibility:
+            "<p>Completed onboarding modules and shadowed at least 2 full shifts.</p><p>Scored 85%+ on the hospitality fundamentals quiz.</p>",
+          verification:
+            "<p>Trainer signs off after observing checklist execution across two shifts.</p><p>Feedback recorded in LMS with notes and follow-up actions.</p>",
+        },
+        "guest-hospitality-competent": {
+          competency: "Guest Hospitality Standards",
+          level: "Competent",
+          badgeClass: "bg-emerald-500/20 text-emerald-200",
+          trainingPlan: "https://docs.example.com/guest-hospitality-competent-plan",
+          teamKnowledge:
+            "<p>Resolves most guest issues independently using the recovery playbook.</p><p>Coaches newer teammates on daily standards and best practices.</p>",
+          eligibility:
+            "<p>Completed Basic level verification within the last 60 days.</p><p>Logged 120+ hours on the floor with positive guest sentiment.</p>",
+          verification:
+            "<p>Trainer shadows one peak shift and a closing shift, confirming playbook usage.</p><p>Competency panel reviews guest feedback and peer endorsements.</p>",
+        },
+        "guest-hospitality-advanced": {
+          competency: "Guest Hospitality Standards",
+          level: "Advanced",
+          badgeClass: "bg-purple-500/20 text-purple-200",
+          trainingPlan: "https://docs.example.com/guest-hospitality-advanced-plan",
+          teamKnowledge:
+            "<p>Leads strategic guest recovery initiatives and mentors future trainers.</p><p>Analyzes service data to identify trends and propose improvements.</p>",
+          eligibility:
+            "<p>Maintained Competent level status for 6+ months with exceptional performance.</p><p>Completed leadership micro-learning series and trainer observation hours.</p>",
+          verification:
+            "<p>Trainer panel evaluates a live service initiative led by the candidate.</p><p>Final review with operations leadership and documentation of impact.</p>",
+        },
+      };
+
       // Tab switching functionality
       document.addEventListener("DOMContentLoaded", () => {
         // Competency dropdown switching
@@ -2189,6 +2488,17 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
           });
         });
 
+        // Detail info click handlers
+        const detailButtons = document.querySelectorAll("[data-detail-key]");
+        detailButtons.forEach((button) => {
+          button.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const detailKey = button.getAttribute("data-detail-key");
+            openDetailModal(detailKey);
+          });
+        });
+
         // Submit Homework button click handler
         const submitHomeworkButton = document.getElementById("submit-homework-button");
         if (submitHomeworkButton) {
@@ -2259,6 +2569,79 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
         document.body.style.overflow = "";
       }
 
+      function openDetailModal(detailKey) {
+        if (!detailKey) {
+          return;
+        }
+
+        const data = levelDetailData[detailKey];
+        const modal = document.getElementById("detail-modal");
+        if (!data || !modal) {
+          return;
+        }
+
+        const competencyName = document.getElementById("detail-competency-name");
+        const levelBadge = document.getElementById("detail-level-badge");
+        const trainingPlanLink = document.getElementById("detail-training-plan-link");
+        const teamKnowledge = document.getElementById("detail-team-knowledge");
+        const eligibility = document.getElementById("detail-eligibility");
+        const verification = document.getElementById("detail-verification");
+
+        if (competencyName) {
+          competencyName.textContent = data.competency;
+        }
+
+        if (levelBadge) {
+          levelBadge.textContent = data.level;
+          levelBadge.className = `mt-1 inline-block rounded-md px-2 py-0.5 text-xs font-semibold ${data.badgeClass}`;
+        }
+
+        if (trainingPlanLink) {
+          if (data.trainingPlan) {
+            trainingPlanLink.textContent = data.trainingPlan;
+            trainingPlanLink.href = data.trainingPlan;
+            trainingPlanLink.classList.remove("text-slate-500", "pointer-events-none");
+            trainingPlanLink.classList.add("text-blue-400", "hover:text-blue-300", "hover:underline");
+          } else {
+            trainingPlanLink.textContent = "-";
+            trainingPlanLink.href = "#";
+            trainingPlanLink.classList.add("text-slate-500", "pointer-events-none");
+            trainingPlanLink.classList.remove("text-blue-400", "hover:text-blue-300", "hover:underline");
+          }
+        }
+
+        if (teamKnowledge) {
+          teamKnowledge.innerHTML = data.teamKnowledge;
+        }
+
+        if (eligibility) {
+          eligibility.innerHTML = data.eligibility;
+        }
+
+        if (verification) {
+          verification.innerHTML = data.verification;
+        }
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeDetailModal(event) {
+        if (event && event.target !== event.currentTarget) {
+          return;
+        }
+
+        const modal = document.getElementById("detail-modal");
+        if (!modal) {
+          return;
+        }
+
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+      }
+
       function openApplyModal(competencyName, level, levelType) {
         const modal = document.getElementById("apply-modal");
         const modalCompetencyName = document.getElementById("modal-competency-name");
@@ -2309,10 +2692,14 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
       // Close modal on Escape key
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
+          const detailModal = document.getElementById("detail-modal");
           const applyModal = document.getElementById("apply-modal");
           const requirementsModal = document.getElementById("requirements-modal");
           const homeworkModal = document.getElementById("homework-modal");
-          if (!applyModal.classList.contains("hidden")) {
+
+          if (detailModal && !detailModal.classList.contains("hidden")) {
+            closeDetailModal();
+          } else if (!applyModal.classList.contains("hidden")) {
             closeApplyModal();
           } else if (!requirementsModal.classList.contains("hidden")) {
             closeRequirementsModal();
@@ -2503,6 +2890,20 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
         }
       }
 
+      // Toggle Request Project button based on Validation Pass visibility
+      const validationPassSection = document.getElementById("validation-pass-guest-hospitality-advanced");
+      const requestProjectButton = document.getElementById("request-project-button-guest-hospitality-advanced");
+      const syncRequestProjectVisibility = () => {
+        if (!validationPassSection || !requestProjectButton) return;
+        const isPassVisible = !validationPassSection.classList.contains("hidden");
+        requestProjectButton.classList.toggle("hidden", !isPassVisible);
+      };
+      if (validationPassSection && requestProjectButton) {
+        syncRequestProjectVisibility();
+        const observer = new MutationObserver(syncRequestProjectVisibility);
+        observer.observe(validationPassSection, { attributes: true, attributeFilter: ["class"] });
+      }
+
       // Initialize Quill editors when DOM is ready
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", initializeQuillEditors);
@@ -2512,4 +2913,3 @@ Cross-functional partners sign off on strategic inventory roadmap.</textarea>
     </script>
   </body>
 </html>
-

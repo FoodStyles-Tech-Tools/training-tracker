@@ -31,10 +31,46 @@ export default async function LearnerDashboardPage() {
     orderBy: schema.competencies.name,
   });
 
-  // Get user's training requests
-  const trainingRequests = await db.query.trainingRequest.findMany({
+  // Get user's training requests with batch information
+  const trainingRequestsData = await db.query.trainingRequest.findMany({
     where: eq(schema.trainingRequest.learnerUserId, session.user.id),
+    with: {
+      trainingBatch: {
+        columns: {
+          id: true,
+          batchName: true,
+        },
+        with: {
+          trainer: {
+            columns: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
   });
+
+  const trainingRequests = trainingRequestsData.map((tr) => ({
+    id: tr.id,
+    trId: tr.trId,
+    requestedDate: tr.requestedDate,
+    competencyLevelId: tr.competencyLevelId,
+    status: tr.status,
+    trainingBatch: tr.trainingBatch
+      ? {
+          id: tr.trainingBatch.id,
+          batchName: tr.trainingBatch.batchName,
+          trainer: tr.trainingBatch.trainer
+            ? {
+                id: tr.trainingBatch.trainer.id,
+                name: tr.trainingBatch.trainer.name,
+              }
+            : null,
+        }
+      : null,
+  }));
 
   // Get user's project approvals with assigned user information
   const projectApprovalsData = await db.query.validationProjectApproval.findMany({

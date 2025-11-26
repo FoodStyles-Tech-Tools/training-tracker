@@ -12,10 +12,10 @@ import { cn } from "@/lib/utils";
 import type { Competency, CompetencyLevel } from "@/db/schema";
 import { createTrainingRequestAction, submitHomeworkAction, submitProjectAction, createProjectAssignmentRequestAction } from "./actions";
 import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
-import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
+import { getTrainingRequestStatusLabel, getStatusBadgeClass, getTrainingRequestStatusNumber } from "@/lib/training-request-config";
 import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
 import { getPARStatusLabel, getPARStatusBadgeClass } from "@/lib/par-config";
-import { X, Check, Info } from "lucide-react";
+import { X, Check, Info, Eye, Upload, CheckCircle2, FileText } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
@@ -26,12 +26,22 @@ type CompetencyWithLevels = Competency & {
   }>;
 };
 
+type TrainingBatchInfo = {
+  id: string;
+  batchName: string;
+  trainer: {
+    id: string;
+    name: string | null;
+  } | null;
+};
+
 type TrainingRequest = {
   id: string;
   trId: string;
   requestedDate: Date;
   competencyLevelId: string;
   status: number; // Status values defined in env.TRAINING_REQUEST_STATUS
+  trainingBatch: TrainingBatchInfo | null;
 };
 
 type ProjectApproval = {
@@ -175,6 +185,8 @@ export function LearnerDashboardClient({
   const [submittingSessionId, setSubmittingSessionId] = useState<string | null>(null);
   const [projectDetails, setProjectDetails] = useState<string>("");
   const [submittingProject, setSubmittingProject] = useState(false);
+  const [inlineProjectLinks, setInlineProjectLinks] = useState<Record<string, string>>({});
+  const [inlineSubmittingLevelId, setInlineSubmittingLevelId] = useState<string | null>(null);
   const router = useRouter();
 
   // Check if a level has content (at least one field is filled)
@@ -406,19 +418,24 @@ export function LearnerDashboardClient({
     }
   }, []);
 
-  const handleOpenHomeworkModal = async () => {
-    if (!selectedRow?.trainingRequest?.id) return;
+  const handleOpenHomeworkModal = async (rowOverride?: TableRow) => {
+    const targetRow = rowOverride ?? selectedRow;
+    if (rowOverride) {
+      setSelectedRow(rowOverride);
+    }
+
+    if (!targetRow?.trainingRequest?.id) return;
 
     setShowHomeworkModal(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const response = await fetch(`/api/training-batches?trainingRequestId=${selectedRow.trainingRequest.id}`);
+      const response = await fetch(`/api/training-batches?trainingRequestId=${targetRow.trainingRequest.id}`);
       if (response.ok) {
         const data = await response.json();
         const batch = data.batches?.find((b: any) =>
-          b.learners?.some((l: any) => l.trainingRequestId === selectedRow.trainingRequest?.id)
+          b.learners?.some((l: any) => l.trainingRequestId === targetRow.trainingRequest?.id)
         );
 
         if (batch) {
@@ -452,6 +469,55 @@ export function LearnerDashboardClient({
       setError("Failed to load homework data");
     }
   };
+
+  const handleProjectLinkChange = (levelId: string, value: string) => {
+    setInlineProjectLinks((prev) => ({
+      ...prev,
+      [levelId]: value,
+    }));
+  };
+
+  const handleInlineProjectSubmit = (row: TableRow) => {
+    const link = inlineProjectLinks[row.levelId]?.trim();
+    if (!link) {
+      setError("Project document link cannot be empty");
+      return;
+    }
+
+    setInlineSubmittingLevelId(row.levelId);
+    setError(null);
+    setSuccess(null);
+
+    startTransition(async () => {
+      const result = await submitProjectAction(row.levelId, link);
+      if (result.success) {
+        setSuccess("Project submitted successfully");
+        setInlineProjectLinks((prev) => ({
+          ...prev,
+          [row.levelId]: "",
+        }));
+        router.refresh();
+        setTimeout(() => {
+          setSuccess(null);
+        }, 3000);
+      } else {
+        setError(result.error || "Failed to submit project");
+      }
+      setInlineSubmittingLevelId(null);
+    });
+  };
+
+  const sessionsCompletedStatus = useMemo(
+    () => getTrainingRequestStatusNumber("Sessions Completed", statusLabels),
+    [statusLabels],
+  );
+
+  const validationPassStatus = useMemo(() => {
+    const passIndex = vsrStatusLabels.findIndex(
+      (label) => label?.toLowerCase() === "pass",
+    );
+    return passIndex >= 0 ? passIndex : 4;
+  }, [vsrStatusLabels]);
 
   const handleCloseHomeworkModal = () => {
     setShowHomeworkModal(false);
@@ -575,24 +641,45 @@ export function LearnerDashboardClient({
 
       {/* Table */}
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead className="bg-slate-950/70 text-slate-300">
+        <div className="max-h-[78vh] overflow-auto">
+          <table className="w-full table-fixed border-collapse text-sm text-slate-100">
+            <thead className="sticky top-0 z-20 bg-slate-950 text-slate-400">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Level</th>
-                <th className="px-4 py-3 text-left font-medium">Application Status</th>
-                <th className="px-4 py-3 text-left font-medium">Training Status</th>
-                <th className="px-4 py-3 text-left font-medium">Project Status</th>
-                <th className="px-4 py-3 text-left font-medium">Validation Status</th>
-                <th className="px-4 py-3 text-left font-medium"></th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ width: "14%" }}>
+                  Level
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ width: "16%" }}>
+                  Application Status
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ width: "16%" }}>
+                  Batch Detail
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ width: "16%" }}>
+                  Training Status
+                </th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style={{ width: "10%" }}>
+                  Homework
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ width: "24%" }}>
+                  Project Submission
+                </th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style={{ width: "10%" }}>
+                  Project Status
+                </th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style={{ width: "10%" }}>
+                  Validation Status
+                </th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide" style={{ width: "10%" }}>
+                  Project Request
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
               {Object.entries(groupedRows).map(([competencyId, rows]) => (
                 <React.Fragment key={competencyId}>
                   {/* Competency Header Row */}
-                  <tr className="bg-slate-900/50">
-                    <td colSpan={6} className="px-4 py-3 font-semibold text-slate-200">
+                  <tr className="bg-slate-800/40 text-slate-100">
+                    <td colSpan={9} className="px-4 py-3 text-sm font-semibold uppercase tracking-wide">
                       {rows[0]?.competency.name}
                     </td>
                   </tr>
@@ -600,24 +687,38 @@ export function LearnerDashboardClient({
                   {rows.map((row) => (
                     <tr
                       key={`${row.competencyId}-${row.levelId}`}
-                      onClick={() => handleRowClick(row)}
-                      className="cursor-pointer transition hover:bg-slate-900/60"
+                      className="bg-slate-900/40 text-sm transition hover:bg-slate-900/70"
                     >
-                      <td className="px-4 py-3">
-                        <span
-                          className={cn(
-                            "inline-block rounded-md px-2 py-0.5 text-xs font-semibold",
-                            getLevelBadgeClass(row.level.name),
-                          )}
-                        >
-                          {row.level.name}
-                        </span>
+                      <td className="px-3 py-3 align-middle">
+                        <div className="flex items-center gap-2 text-slate-100">
+                          <span
+                            className={cn(
+                              "inline-flex h-7 min-w-[70px] items-center justify-center rounded-full px-3 text-xs font-semibold",
+                              getLevelBadgeClass(row.level.name),
+                            )}
+                          >
+                            {row.level.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRowClick(row)}
+                            className="cursor-pointer rounded-md border border-slate-800/80 bg-slate-900/60 p-1 text-slate-400 transition hover:border-blue-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                            aria-label={`View details for ${row.level.name}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-3 py-3 align-middle">
                         {row.trainingRequest ? (
-                          <div className="flex items-center gap-2 text-slate-200">
-                            <Check className="h-4 w-4 text-emerald-400" />
-                            <span>Applied</span>
+                          <div className="flex flex-col gap-0.5 text-slate-200">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-emerald-400" />
+                              <span>Applied</span>
+                            </div>
+                            <span className="text-[11px] text-slate-400">
+                              Applied on {formatDate(row.trainingRequest.requestedDate)}
+                            </span>
                           </div>
                         ) : !row.areRequirementsMet ? (
                           <div className="group relative inline-flex items-center gap-1.5">
@@ -657,27 +758,138 @@ export function LearnerDashboardClient({
                             type="button"
                             onClick={(e) => handleApply(row, e)}
                             disabled={isPending}
-                            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="cursor-pointer rounded-md border border-blue-400/40 px-3 py-1 text-xs font-semibold text-blue-200 transition hover:border-blue-400 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Apply
                           </button>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        {row.trainingRequest ? (
-                          <span
-                            className={cn(
-                              "inline-block rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
-                              getStatusBadgeClass(row.trainingRequest.status),
-                            )}
-                          >
-                            {getTrainingRequestStatusLabel(row.trainingRequest.status, statusLabels)}
-                          </span>
+                      <td className="px-3 py-3 align-middle">
+                        {row.trainingRequest?.trainingBatch ? (
+                          <div className="space-y-0.5 text-xs">
+                            <div className="font-semibold text-slate-100">
+                              {row.trainingRequest.trainingBatch.batchName}
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              Trainer:{" "}
+                              {row.trainingRequest.trainingBatch.trainer?.name || "Unassigned"}
+                            </div>
+                          </div>
                         ) : (
                           <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3 align-middle">
+                        {row.trainingRequest ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={cn(
+                                "inline-block rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
+                                getStatusBadgeClass(row.trainingRequest.status),
+                              )}
+                            >
+                              {getTrainingRequestStatusLabel(row.trainingRequest.status, statusLabels)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center align-middle">
+                        {row.trainingRequest ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenHomeworkModal(row)}
+                            className={cn(
+                              "inline-flex items-center justify-center rounded-md border px-2 py-1 text-slate-300 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60",
+                              row.trainingRequest.status === 4
+                                ? "border-blue-400/60 text-blue-200 hover:border-blue-400 hover:bg-blue-500/10"
+                                : "border-slate-700 text-slate-300 hover:border-blue-400 hover:text-blue-200",
+                            )}
+                            aria-label={
+                              row.trainingRequest.status === 4
+                                ? "Submit or view homework"
+                                : "View homework submissions"
+                            }
+                          >
+                            <FileText className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 align-middle">
+                        {(() => {
+                          const inlineLinkValue = inlineProjectLinks[row.levelId] ?? "";
+                          const isSubmitDisabled =
+                            inlineSubmittingLevelId === row.levelId ||
+                            isPending ||
+                            inlineLinkValue.trim() === "";
+
+                          const renderReadOnlyInput = (link: string) => (
+                            <div className="relative flex-1 min-w-0">
+                              <Input
+                                type="url"
+                                value={link}
+                                readOnly
+                                disabled
+                                className="pointer-events-none h-8 rounded-md border border-slate-800 bg-slate-900/50 px-3 text-[11px] text-transparent caret-transparent selection:bg-transparent"
+                              />
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="pointer-events-auto absolute inset-0 flex items-center rounded-md px-3 text-[11px] text-blue-300 underline hover:text-blue-200 truncate"
+                                title={link}
+                              >
+                                {link}
+                              </a>
+                            </div>
+                          );
+
+                          if (row.projectApproval?.projectDetails?.trim()) {
+                            return (
+                              <div className="flex items-center gap-2 text-xs">
+                                {renderReadOnlyInput(row.projectApproval.projectDetails)}
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  disabled
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-emerald-700"
+                                >
+                                  <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                                </Button>
+                              </div>
+                            );
+                          }
+
+                          if (row.trainingRequest?.status === sessionsCompletedStatus) {
+                            return (
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="url"
+                                  placeholder="Enter document link..."
+                                  value={inlineLinkValue}
+                                  onChange={(e) => handleProjectLinkChange(row.levelId, e.target.value)}
+                                  className="h-8 flex-1 rounded-md border border-slate-800 bg-slate-900/70 px-3 text-[11px] text-slate-200 placeholder-slate-500"
+                                />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => handleInlineProjectSubmit(row)}
+                                  disabled={isSubmitDisabled}
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                                >
+                                  <Upload className="h-7 w-7" />
+                                </Button>
+                              </div>
+                            );
+                          }
+
+                          return <span className="text-slate-400">-</span>;
+                        })()}
+                      </td>
+                      <td className="px-3 py-3 text-center align-middle">
                         {row.projectApproval ? (
                           <span
                             className={cn(
@@ -691,7 +903,7 @@ export function LearnerDashboardClient({
                           <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3 text-center align-middle">
                         {row.vsr ? (
                           <span
                             className={cn(
@@ -705,9 +917,9 @@ export function LearnerDashboardClient({
                           <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex flex-col gap-1">
-                          {row.trainingRequest?.status === 8 && row.vsr?.status === 4 && (
+                      <td className="px-3 py-3 text-center align-middle">
+                        {row.vsr?.status === validationPassStatus ? (
+                          <div className="flex flex-col items-center text-xs text-slate-400">
                             <button
                               type="button"
                               onClick={async (e) => {
@@ -727,18 +939,25 @@ export function LearnerDashboardClient({
                                   }
                                 });
                               }}
-                              disabled={isPending || !!row.par}
-                              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={
+                                isPending ||
+                                !!row.par ||
+                                row.trainingRequest?.status !== 8 ||
+                                row.vsr?.status !== validationPassStatus
+                              }
+                              className={cn(
+                                "rounded-md px-3 py-1 text-xs font-semibold transition",
+                                row.par
+                                  ? "border border-emerald-400/60 bg-emerald-400/5 text-emerald-200 cursor-default"
+                                  : "cursor-pointer border border-blue-400/40 text-blue-200 hover:border-blue-400 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed",
+                              )}
                             >
-                              {isPending ? "Creating..." : "Request Project"}
+                              <span>{row.par ? "Requested" : "Request"}</span>
                             </button>
-                          )}
-                          {row.par && (
-                            <span className="text-xs text-slate-400">
-                              Status : {getPARStatusLabel(row.par.status, parStatusLabels)}
-                            </span>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -795,7 +1014,7 @@ export function LearnerDashboardClient({
                   type="button"
                   onClick={handleApply.bind(null, selectedRow)}
                   disabled={isPending}
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer rounded-md border border-blue-400/40 px-3 py-1 text-xs font-semibold text-blue-200 transition hover:border-blue-400 hover:bg-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPending ? "Applying..." : "Apply"}
                 </button>
