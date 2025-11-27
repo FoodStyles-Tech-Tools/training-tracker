@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/alert";
 import { Pagination } from "@/components/admin/pagination";
-import { X, ChevronDown } from "lucide-react";
+import { X, ChevronDown, Pencil } from "lucide-react";
 import type { TrainingRequest, Competency } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { updateTrainingRequestAction, getTrainingRequestById } from "./actions";
@@ -92,6 +92,21 @@ export function TrainingRequestManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
+  
+  // Batch assignment state
+  const [batchAssignmentRequest, setBatchAssignmentRequest] = useState<TrainingRequestWithRelations | null>(null);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [availableBatches, setAvailableBatches] = useState<Array<{
+    id: string;
+    batchName: string;
+    spotLeft: number;
+    capacity: number;
+    currentParticipant: number;
+    trainer: { id: string; name: string };
+    competency: { id: string; name: string };
+    level: { id: string; name: string };
+  }>>([]);
+  const [isLoadingBatches, setIsLoadingBatches] = useState(false);
   
   // Update local state when prop changes (e.g., from external refresh)
   useEffect(() => {
@@ -392,19 +407,21 @@ export function TrainingRequestManager({
       });
 
       if (result.success) {
-        // Update the local state with the new data
-        // Preserve all date fields if not explicitly changed
-        const updatedRequest = {
-          ...selectedRequest,
-          ...data,
-          // Preserve dates if not explicitly changed
-          responseDate: data.responseDate !== undefined ? data.responseDate : selectedRequest.responseDate,
-          responseDue: data.responseDue !== undefined ? data.responseDue : selectedRequest.responseDue,
-          expectedUnblockedDate: data.expectedUnblockedDate !== undefined ? data.expectedUnblockedDate : selectedRequest.expectedUnblockedDate,
-          noFollowUpDate: data.noFollowUpDate !== undefined ? data.noFollowUpDate : selectedRequest.noFollowUpDate,
-          followUpDate: data.followUpDate !== undefined ? data.followUpDate : selectedRequest.followUpDate,
-          updatedAt: new Date(),
-        };
+        // Fetch updated request to get batch info
+        const fetchResult = await getTrainingRequestById(selectedRequest.id);
+        const updatedRequest = fetchResult.success && fetchResult.data 
+          ? fetchResult.data as TrainingRequestWithRelations
+          : {
+              ...selectedRequest,
+              ...data,
+              // Preserve dates if not explicitly changed
+              responseDate: data.responseDate !== undefined ? data.responseDate : selectedRequest.responseDate,
+              responseDue: data.responseDue !== undefined ? data.responseDue : selectedRequest.responseDue,
+              expectedUnblockedDate: data.expectedUnblockedDate !== undefined ? data.expectedUnblockedDate : selectedRequest.expectedUnblockedDate,
+              noFollowUpDate: data.noFollowUpDate !== undefined ? data.noFollowUpDate : selectedRequest.noFollowUpDate,
+              followUpDate: data.followUpDate !== undefined ? data.followUpDate : selectedRequest.followUpDate,
+              updatedAt: new Date(),
+            };
         
         setTrainingRequests((prev) =>
           prev.map((tr) =>
@@ -425,6 +442,109 @@ export function TrainingRequestManager({
         }, 500);
       } else {
         setMessage({ text: result.error || "Failed to update training request", tone: "error" });
+      }
+    });
+  };
+
+  const handleOpenBatchAssignment = async (request: TrainingRequestWithRelations) => {
+    setBatchAssignmentRequest(request);
+    setIsBatchModalOpen(true);
+    setIsLoadingBatches(true);
+    
+    try {
+      // Include current batch in available batches if already assigned
+      const response = await fetch(`/api/training-batches?availableForTrainingRequestId=${request.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        let batches = data.batches || [];
+        
+        // If request already has a batch, include it in the list (for reassignment)
+        if (request.trainingBatch) {
+          const currentBatch = batches.find((b: any) => b.id === request.trainingBatch?.id);
+          if (!currentBatch) {
+            // Fetch current batch details if not in available list
+            const batchResponse = await fetch(`/api/training-batches/${request.trainingBatch.id}`);
+            if (batchResponse.ok) {
+              const batchData = await batchResponse.json();
+              if (batchData.batch) {
+                batches.unshift({
+                  id: batchData.batch.id,
+                  batchName: batchData.batch.batchName,
+                  spotLeft: batchData.batch.spotLeft,
+                  capacity: batchData.batch.capacity,
+                  currentParticipant: batchData.batch.currentParticipant,
+                  trainer: {
+                    id: batchData.batch.trainer.id,
+                    name: batchData.batch.trainer.name,
+                  },
+                  competency: {
+                    id: batchData.batch.competencyLevel.competency.id,
+                    name: batchData.batch.competencyLevel.competency.name,
+                  },
+                  level: {
+                    id: batchData.batch.competencyLevel.id,
+                    name: batchData.batch.competencyLevel.name,
+                  },
+                });
+              }
+            }
+          }
+        }
+        
+        setAvailableBatches(batches);
+      } else {
+        setMessage({ text: "Failed to fetch available batches", tone: "error" });
+        setAvailableBatches([]);
+      }
+    } catch (error) {
+      setMessage({ text: "Failed to fetch available batches", tone: "error" });
+      setAvailableBatches([]);
+    } finally {
+      setIsLoadingBatches(false);
+    }
+  };
+
+
+  const handleCloseBatchModal = () => {
+    setIsBatchModalOpen(false);
+    setBatchAssignmentRequest(null);
+    setAvailableBatches([]);
+  };
+
+  const handleAssignBatch = async (batchId: string) => {
+    if (!batchAssignmentRequest) return;
+
+    setMessage(null);
+    startTransition(async () => {
+      const result = await updateTrainingRequestAction({
+        id: batchAssignmentRequest.id,
+        trainingBatchId: batchId,
+        // Status will be automatically set to 2 (In Queue) by the action
+      });
+
+      if (result.success) {
+        // Fetch updated request to get batch info
+        const fetchResult = await getTrainingRequestById(batchAssignmentRequest.id);
+        if (fetchResult.success && fetchResult.data) {
+          const updatedRequest = fetchResult.data as TrainingRequestWithRelations;
+          
+          setTrainingRequests((prev) =>
+            prev.map((tr) =>
+              tr.id === batchAssignmentRequest.id ? updatedRequest : tr
+            )
+          );
+          
+          // Show success message
+          setMessage({ text: `${batchAssignmentRequest.trId} assigned to batch successfully`, tone: "success" });
+          
+          // Close modal
+          handleCloseBatchModal();
+        } else {
+          setMessage({ text: "Batch assigned but failed to refresh data", tone: "error" });
+          handleCloseBatchModal();
+        }
+      } else {
+        setMessage({ text: result.error || "Failed to assign batch", tone: "error" });
       }
     });
   };
@@ -913,7 +1033,34 @@ export function TrainingRequestManager({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-slate-300">
-                      {tr.trainingBatch?.batchName || "-"}
+                      {tr.trainingBatch ? (
+                        <div className="flex items-center gap-2">
+                          <span>{tr.trainingBatch.batchName}</span>
+                          {canEdit && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenBatchAssignment(tr)}
+                              disabled={tr.status !== 2}
+                              className="rounded-md border border-blue-400 bg-white p-1.5 text-blue-600 hover:bg-blue-50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={tr.status === 2 ? "Reassign batch" : "Batch can only be reassigned when status is In Queue"}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ) : canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenBatchAssignment(tr)}
+                          disabled={tr.status !== 1}
+                          className="rounded-md border border-blue-400 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          title={tr.status === 1 ? "Assign batch" : "Batch can only be assigned when status is Looking for trainer"}
+                        >
+                          Assign
+                        </button>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-300">
                       {tr.trainingBatch?.trainer.name || "-"}
@@ -975,6 +1122,87 @@ export function TrainingRequestManager({
           }}
         />
       )}
+
+      {/* Batch Assignment Modal */}
+      {batchAssignmentRequest && (
+        <Modal
+          open={isBatchModalOpen}
+          onClose={handleCloseBatchModal}
+          title={batchAssignmentRequest.trainingBatch ? "Reassign Batch" : "Assign Batch"}
+        >
+          <div className="space-y-4">
+            <div className="text-sm text-slate-300">
+              <p>{batchAssignmentRequest.trainingBatch ? "Select a new batch for" : "Select a batch for"} <strong>{batchAssignmentRequest.trId}</strong></p>
+              {batchAssignmentRequest.trainingBatch && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Current batch: <strong>{batchAssignmentRequest.trainingBatch.batchName}</strong>
+                </p>
+              )}
+              <p className="text-xs text-slate-400 mt-1">
+                Competency: {batchAssignmentRequest.competencyLevel.competency.name} - {batchAssignmentRequest.competencyLevel.name}
+              </p>
+            </div>
+
+            {isLoadingBatches ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-slate-400">Loading available batches...</div>
+              </div>
+            ) : availableBatches.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                No available batches found. All batches are full or don't match the competency level.
+              </div>
+            ) : (
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {availableBatches.map((batch) => {
+                  const isCurrentBatch = batchAssignmentRequest.trainingBatch?.id === batch.id;
+                  return (
+                    <button
+                      key={batch.id}
+                      type="button"
+                      onClick={() => handleAssignBatch(batch.id)}
+                      disabled={isPending}
+                      className={`w-full text-left p-3 rounded-md border transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isCurrentBatch
+                          ? "border-blue-500 bg-blue-900/20 hover:bg-blue-900/30"
+                          : "border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-blue-500"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-slate-100">
+                            {batch.batchName}
+                            {isCurrentBatch && (
+                              <span className="ml-2 text-xs text-blue-400">(Current)</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1">
+                            Trainer: {batch.trainer.name} | Spots left: {batch.spotLeft} / {batch.capacity}
+                          </div>
+                        </div>
+                        <div className="text-blue-400">
+                          {isPending ? "Assigning..." : isCurrentBatch ? "Keep" : "Select"}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseBatchModal}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
     </div>
   );
 }

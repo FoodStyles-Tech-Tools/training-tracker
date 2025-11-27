@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
-import type { TrainingRequest, Competency, ValidationProjectApproval, ValidationScheduleRequest } from "@/db/schema";
+import type { TrainingRequest, ValidationProjectApproval, ValidationScheduleRequest } from "@/db/schema";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass } from "@/lib/training-request-config";
 import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
 import { getVSRStatusLabel, getVSRStatusBadgeClass } from "@/lib/vsr-config";
+import { ChevronDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
 function formatDate(date: Date | string | null | undefined): string {
@@ -73,7 +74,6 @@ interface WaitlistClientProps {
   trainingRequests: TrainingRequestWithRelations[];
   vpas: VPAWithRelations[];
   vsrs: VSRWithRelations[];
-  competencies: Competency[];
   statusLabels: string[];
   vpaStatusLabels: string[];
   vsrStatusLabels: string[];
@@ -83,12 +83,10 @@ export function WaitlistClient({
   trainingRequests: initialTrainingRequests,
   vpas: initialVPAs,
   vsrs: initialVSRs,
-  competencies,
   statusLabels,
   vpaStatusLabels,
   vsrStatusLabels,
 }: WaitlistClientProps) {
-  const [selectedCompetency, setSelectedCompetency] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"training-request" | "validation-project" | "validation-schedule" | "project-assignment">("training-request");
   const [sortColumn, setSortColumn] = useState<string | null>("requestedDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -96,6 +94,73 @@ export function WaitlistClient({
   const [vpaSortDirection, setVpaSortDirection] = useState<"asc" | "desc">("asc");
   const [vsrSortColumn, setVsrSortColumn] = useState<string | null>("requestedDate");
   const [vsrSortDirection, setVsrSortDirection] = useState<"asc" | "desc">("asc");
+  const [competencyDropdownOpen, setCompetencyDropdownOpen] = useState(false);
+  const [selectedCompetencies, setSelectedCompetencies] = useState<string[]>([]);
+  const competencyDropdownRef = useRef<HTMLDivElement>(null);
+
+  const competencyOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    initialTrainingRequests.forEach((tr) => {
+      map.set(tr.competencyLevel.competency.id, tr.competencyLevel.competency.name);
+    });
+    initialVPAs.forEach((vpa) => {
+      map.set(vpa.competencyLevel.competency.id, vpa.competencyLevel.competency.name);
+    });
+    initialVSRs.forEach((vsr) => {
+      map.set(vsr.competencyLevel.competency.id, vsr.competencyLevel.competency.name);
+    });
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [initialTrainingRequests, initialVPAs, initialVSRs]);
+
+  useEffect(() => {
+    setSelectedCompetencies((prev) => {
+      if (prev.length === 0) return prev;
+      const validIds = new Set(competencyOptions.map((option) => option.id));
+      const filtered = prev.filter((id) => validIds.has(id));
+      return filtered.length === prev.length ? prev : filtered;
+    });
+  }, [competencyOptions]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (competencyDropdownRef.current && !competencyDropdownRef.current.contains(event.target as Node)) {
+        setCompetencyDropdownOpen(false);
+      }
+    };
+
+    if (competencyDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [competencyDropdownOpen]);
+
+  const competencyNameMap = useMemo(() => {
+    return new Map(competencyOptions.map((option) => [option.id, option.name]));
+  }, [competencyOptions]);
+
+  const toggleCompetencySelection = (id: string) => {
+    setSelectedCompetencies((prev) =>
+      prev.includes(id) ? prev.filter((competencyId) => competencyId !== id) : [...prev, id],
+    );
+  };
+
+  const clearCompetencyFilters = () => {
+    setSelectedCompetencies([]);
+  };
+
+  const isCompetencySelected = (id: string) => selectedCompetencies.includes(id);
+
+  const competencyFilterLabel =
+    selectedCompetencies.length === 0
+      ? "All competencies"
+      : selectedCompetencies.length === 1
+        ? competencyNameMap.get(selectedCompetencies[0]) || "1 selected"
+        : `${selectedCompetencies.length} selected`;
 
   // Handle header click for sorting
   const handleHeaderClick = (column: string) => {
@@ -170,21 +235,18 @@ export function WaitlistClient({
   };
 
   // Filter and sort training requests
-  const filteredRequests = useMemo(() => {
-    // Don't show any data if no competency is selected
-    if (!selectedCompetency) {
-      return [];
-    }
+  const sortedTrainingRequests = useMemo(() => {
+    const filtered =
+      selectedCompetencies.length === 0
+        ? initialTrainingRequests
+        : initialTrainingRequests.filter((tr) =>
+            selectedCompetencies.includes(tr.competencyLevel.competency.id),
+          );
 
-    let filtered = initialTrainingRequests;
-    
-    // Filter by competency
-    filtered = filtered.filter(
-      (tr) => tr.competencyLevel.competency.id === selectedCompetency
-    );
+    const data = [...filtered];
 
     // Sort by column if specified
-    return filtered.sort((a, b) => {
+    return data.sort((a, b) => {
       if (!sortColumn) return 0;
 
       let aValue: any;
@@ -194,6 +256,10 @@ export function WaitlistClient({
         case "requestedDate":
           aValue = a.requestedDate instanceof Date ? a.requestedDate : new Date(a.requestedDate);
           bValue = b.requestedDate instanceof Date ? b.requestedDate : new Date(b.requestedDate);
+          break;
+        case "competency":
+          aValue = a.competencyLevel.competency.name.toLowerCase();
+          bValue = b.competencyLevel.competency.name.toLowerCase();
           break;
         case "level":
           aValue = a.competencyLevel.name.toLowerCase();
@@ -221,24 +287,19 @@ export function WaitlistClient({
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [initialTrainingRequests, selectedCompetency, sortColumn, sortDirection]);
+  }, [initialTrainingRequests, selectedCompetencies, sortColumn, sortDirection]);
 
   // Filter and sort VPAs
-  const filteredVPAs = useMemo(() => {
-    // Don't show any data if no competency is selected
-    if (!selectedCompetency) {
-      return [];
-    }
+  const sortedVPAs = useMemo(() => {
+    const filtered =
+      selectedCompetencies.length === 0
+        ? initialVPAs
+        : initialVPAs.filter((vpa) => selectedCompetencies.includes(vpa.competencyLevel.competency.id));
 
-    let filtered = initialVPAs;
-    
-    // Filter by competency
-    filtered = filtered.filter(
-      (vpa) => vpa.competencyLevel.competency.id === selectedCompetency
-    );
+    const data = [...filtered];
 
     // Sort by column if specified
-    return filtered.sort((a, b) => {
+    return data.sort((a, b) => {
       if (!vpaSortColumn) return 0;
 
       let aValue: any;
@@ -248,6 +309,10 @@ export function WaitlistClient({
         case "requestedDate":
           aValue = a.requestedDate instanceof Date ? a.requestedDate : (a.requestedDate ? new Date(a.requestedDate) : null);
           bValue = b.requestedDate instanceof Date ? b.requestedDate : (b.requestedDate ? new Date(b.requestedDate) : null);
+          break;
+        case "competency":
+          aValue = a.competencyLevel.competency.name.toLowerCase();
+          bValue = b.competencyLevel.competency.name.toLowerCase();
           break;
         case "level":
           aValue = a.competencyLevel.name.toLowerCase();
@@ -275,24 +340,19 @@ export function WaitlistClient({
       if (aValue > bValue) return vpaSortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [initialVPAs, selectedCompetency, vpaSortColumn, vpaSortDirection]);
+  }, [initialVPAs, selectedCompetencies, vpaSortColumn, vpaSortDirection]);
 
   // Filter and sort VSRs
-  const filteredVSRs = useMemo(() => {
-    // Don't show any data if no competency is selected
-    if (!selectedCompetency) {
-      return [];
-    }
+  const sortedVSRs = useMemo(() => {
+    const filtered =
+      selectedCompetencies.length === 0
+        ? initialVSRs
+        : initialVSRs.filter((vsr) => selectedCompetencies.includes(vsr.competencyLevel.competency.id));
 
-    let filtered = initialVSRs;
-    
-    // Filter by competency
-    filtered = filtered.filter(
-      (vsr) => vsr.competencyLevel.competency.id === selectedCompetency
-    );
+    const data = [...filtered];
 
     // Sort by column if specified
-    return filtered.sort((a, b) => {
+    return data.sort((a, b) => {
       if (!vsrSortColumn) return 0;
 
       let aValue: any;
@@ -302,6 +362,10 @@ export function WaitlistClient({
         case "requestedDate":
           aValue = a.requestedDate instanceof Date ? a.requestedDate : (a.requestedDate ? new Date(a.requestedDate) : null);
           bValue = b.requestedDate instanceof Date ? b.requestedDate : (b.requestedDate ? new Date(b.requestedDate) : null);
+          break;
+        case "competency":
+          aValue = a.competencyLevel.competency.name.toLowerCase();
+          bValue = b.competencyLevel.competency.name.toLowerCase();
           break;
         case "level":
           aValue = a.competencyLevel.name.toLowerCase();
@@ -329,7 +393,7 @@ export function WaitlistClient({
       if (aValue > bValue) return vsrSortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [initialVSRs, selectedCompetency, vsrSortColumn, vsrSortDirection]);
+  }, [initialVSRs, selectedCompetencies, vsrSortColumn, vsrSortDirection]);
 
   // Get level badge class
   const getLevelBadgeClass = (level: string): string => {
@@ -353,33 +417,102 @@ export function WaitlistClient({
         </p>
       </div>
 
-      {/* Competency Filter */}
       <Card>
         <CardContent className="p-6">
           <div className="space-y-2">
-            <label htmlFor="competency-select" className="block text-sm font-medium text-slate-300">
-              Select Competency
-            </label>
-            <Select
-              id="competency-select"
-              value={selectedCompetency}
-              onChange={(e) => setSelectedCompetency(e.target.value)}
-              className="w-full"
-            >
-              <option value="">-- Select a competency --</option>
-              {competencies.map((comp) => (
-                <option key={comp.id} value={comp.id}>
-                  {comp.name}
-                </option>
-              ))}
-            </Select>
+            <label className="block text-sm font-medium text-slate-300">Competencies</label>
+            <div className="relative" ref={competencyDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setCompetencyDropdownOpen((open) => !open)}
+                className={cn(
+                  "flex h-10 w-full items-center justify-between rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
+                  selectedCompetencies.length > 0 && "border-blue-500",
+                )}
+              >
+                <span className="truncate">{competencyFilterLabel}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 text-slate-400 transition-transform",
+                    competencyDropdownOpen && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {selectedCompetencies.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedCompetencies.map((id) => {
+                    const name = competencyNameMap.get(id);
+                    if (!name) return null;
+                    return (
+                      <div
+                        key={id}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-blue-500 bg-blue-900/30 px-2 py-1 text-xs text-slate-100"
+                      >
+                        <span>{name}</span>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleCompetencySelection(id);
+                          }}
+                          className="text-slate-400 transition hover:text-slate-100"
+                          aria-label={`Remove ${name}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {competencyDropdownOpen && (
+                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-700 bg-slate-900 shadow-lg">
+                  {competencyOptions.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-slate-400">No competencies found</div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          clearCompetencyFilters();
+                        }}
+                        className="flex w-full items-center justify-between px-3 py-2 text-sm text-blue-300 transition hover:bg-slate-800"
+                      >
+                        Clear filter
+                        {selectedCompetencies.length > 0 && (
+                          <span className="text-xs text-slate-400">
+                            {selectedCompetencies.length} selected
+                          </span>
+                        )}
+                      </button>
+                      <div className="border-t border-slate-800/60" />
+                      {competencyOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isCompetencySelected(option.id)}
+                            onChange={() => toggleCompetencySelection(option.id)}
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span>{option.name}</span>
+                        </label>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabs and Tables Container - Only show when competency is selected */}
-      {selectedCompetency && (
-        <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden p-0">
           {/* Tab Navigation */}
           <div className="flex gap-2 border-b border-slate-800/80 bg-slate-950/50 px-6 pt-4">
             <button
@@ -391,7 +524,7 @@ export function WaitlistClient({
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
-              Training Request ({filteredRequests.length})
+              Training Request ({sortedTrainingRequests.length})
             </button>
             <button
               type="button"
@@ -402,7 +535,7 @@ export function WaitlistClient({
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
-              Validation Project Approval ({filteredVPAs.length})
+              Validation Project Approval ({sortedVPAs.length})
             </button>
             <button
               type="button"
@@ -413,7 +546,7 @@ export function WaitlistClient({
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
-              Validation Schedule Request ({filteredVSRs.length})
+              Validation Schedule Request ({sortedVSRs.length})
             </button>
             <button
               type="button"
@@ -448,6 +581,15 @@ export function WaitlistClient({
                       </th>
                       <th
                         className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                        onClick={() => handleHeaderClick("competency")}
+                      >
+                        <span className="flex items-center">
+                          Competency
+                          {getSortIndicator("competency")}
+                        </span>
+                      </th>
+                      <th
+                        className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
                         onClick={() => handleHeaderClick("level")}
                       >
                         <span className="flex items-center">
@@ -476,14 +618,14 @@ export function WaitlistClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {filteredRequests.length === 0 ? (
+                    {sortedTrainingRequests.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                        <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                           No training requests found
                         </td>
                       </tr>
                     ) : (
-                      filteredRequests.map((tr, index) => {
+                      sortedTrainingRequests.map((tr, index) => {
                         const statusLabel = getTrainingRequestStatusLabel(tr.status, statusLabels);
                         const statusBadgeClass = getStatusBadgeClass(tr.status);
 
@@ -492,6 +634,9 @@ export function WaitlistClient({
                             <td className="px-4 py-3 text-slate-400">{index + 1}</td>
                             <td className="px-4 py-3 text-slate-300">
                               {formatDate(tr.requestedDate)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-100">
+                              {tr.competencyLevel.competency.name}
                             </td>
                             <td className="px-4 py-3">
                               <span
@@ -535,6 +680,15 @@ export function WaitlistClient({
                       </th>
                       <th
                         className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                        onClick={() => handleVPAHeaderClick("competency")}
+                      >
+                        <span className="flex items-center">
+                          Competency
+                          {getVPASortIndicator("competency")}
+                        </span>
+                      </th>
+                      <th
+                        className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
                         onClick={() => handleVPAHeaderClick("level")}
                       >
                         <span className="flex items-center">
@@ -563,14 +717,14 @@ export function WaitlistClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {filteredVPAs.length === 0 ? (
+                    {sortedVPAs.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                        <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                           No validation project approvals found
                         </td>
                       </tr>
                     ) : (
-                      filteredVPAs.map((vpa, index) => {
+                      sortedVPAs.map((vpa, index) => {
                         const statusLabel = getVPAStatusLabel(vpa.status, vpaStatusLabels);
                         const statusBadgeClass = getVPAStatusBadgeClass(vpa.status);
 
@@ -579,6 +733,9 @@ export function WaitlistClient({
                             <td className="px-4 py-3 text-slate-400">{index + 1}</td>
                             <td className="px-4 py-3 text-slate-300">
                               {formatDate(vpa.requestedDate)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-100">
+                              {vpa.competencyLevel.competency.name}
                             </td>
                             <td className="px-4 py-3">
                               <span
@@ -622,6 +779,15 @@ export function WaitlistClient({
                       </th>
                       <th
                         className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
+                        onClick={() => handleVSRHeaderClick("competency")}
+                      >
+                        <span className="flex items-center">
+                          Competency
+                          {getVSRSortIndicator("competency")}
+                        </span>
+                      </th>
+                      <th
+                        className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
                         onClick={() => handleVSRHeaderClick("level")}
                       >
                         <span className="flex items-center">
@@ -650,14 +816,14 @@ export function WaitlistClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {filteredVSRs.length === 0 ? (
+                    {sortedVSRs.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                        <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                           No validation schedule requests found
                         </td>
                       </tr>
                     ) : (
-                      filteredVSRs.map((vsr, index) => {
+                      sortedVSRs.map((vsr, index) => {
                         const statusLabel = getVSRStatusLabel(vsr.status, vsrStatusLabels);
                         const statusBadgeClass = getVSRStatusBadgeClass(vsr.status);
 
@@ -666,6 +832,9 @@ export function WaitlistClient({
                             <td className="px-4 py-3 text-slate-400">{index + 1}</td>
                             <td className="px-4 py-3 text-slate-300">
                               {formatDate(vsr.requestedDate)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-100">
+                              {vsr.competencyLevel.competency.name}
                             </td>
                             <td className="px-4 py-3">
                               <span
@@ -699,6 +868,7 @@ export function WaitlistClient({
                     <tr>
                       <th className="px-4 py-3 text-left font-medium">No</th>
                       <th className="px-4 py-3 text-left font-medium">Request Date</th>
+                      <th className="px-4 py-3 text-left font-medium">Competency</th>
                       <th className="px-4 py-3 text-left font-medium">Level</th>
                       <th className="px-4 py-3 text-left font-medium">Learner</th>
                       <th className="px-4 py-3 text-left font-medium">Status</th>
@@ -706,7 +876,7 @@ export function WaitlistClient({
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                         No data available
                       </td>
                     </tr>
@@ -716,7 +886,6 @@ export function WaitlistClient({
             )}
           </div>
         </Card>
-      )}
     </div>
   );
 }

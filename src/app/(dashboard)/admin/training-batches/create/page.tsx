@@ -4,7 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
-import { TrainingBatchForm } from "../training-batch-form";
+import { CreateTrainingBatchStepper } from "../create-training-batch-stepper";
 
 export default async function CreateTrainingBatchPage() {
   const session = await requireSession();
@@ -61,7 +61,7 @@ export default async function CreateTrainingBatchPage() {
             </p>
           </div>
         </div>
-        <TrainingBatchForm competencies={competencies} trainers={trainers} />
+        <CreateTrainingBatchStepper competencies={competencies} trainers={trainers} />
       </div>
     </Suspense>
   );

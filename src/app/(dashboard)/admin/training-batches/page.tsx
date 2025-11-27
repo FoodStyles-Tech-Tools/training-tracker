@@ -31,6 +31,9 @@ export default async function TrainingBatchesPage() {
           },
         },
       },
+      sessions: {
+        orderBy: (sessions, { asc }) => [asc(sessions.sessionNumber)],
+      },
     },
     orderBy: desc(schema.trainingBatch.createdAt),
   });

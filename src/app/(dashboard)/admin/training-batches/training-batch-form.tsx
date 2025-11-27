@@ -18,7 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Modal } from "@/components/ui/modal";
-import { Search, X, Check } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, X, Check, Info } from "lucide-react";
 import {
   createTrainingBatchAction,
   updateTrainingBatchAction,
@@ -26,37 +28,17 @@ import {
   type TrainingBatchFormInput,
 } from "./actions";
 
-// Session Date Input Component
-function SessionDateInput({
-  sessionNum,
-  sessionDateRefs,
-  sessionDateFpRefs,
-  form,
-}: {
-  sessionNum: number;
-  sessionDateRefs: React.MutableRefObject<Map<number, HTMLInputElement>>;
-  sessionDateFpRefs: React.MutableRefObject<Map<number, flatpickr.Instance | null>>;
-  form: ReturnType<typeof useForm<FormValues>>;
-}) {
-  const inputRef = (el: HTMLInputElement | null) => {
-    if (el) {
-      sessionDateRefs.current.set(sessionNum, el);
-    }
-  };
-
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={`session-${sessionNum}-date`}>Session {sessionNum}</Label>
-      <Input
-        id={`session-${sessionNum}-date`}
-        ref={inputRef}
-        type="text"
-        placeholder="Select date"
-        readOnly
-        className="cursor-pointer"
-      />
-    </div>
-  );
+// Format date for display
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+  
+  const day = d.getDate().toString().padStart(2, "0");
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
 }
 
 const trainingBatchSchema = z
@@ -64,7 +46,7 @@ const trainingBatchSchema = z
     batchName: z.string().min(1, "Batch name is required"),
     competencyLevelId: z.string().uuid("Invalid competency level ID"),
     trainerUserId: z.string().uuid("Invalid trainer ID"),
-    sessionCount: z.number().int().min(1, "Session count must be at least 1"),
+    sessionCount: z.number().int().min(1, "Session count must be at least 1").max(6, "Session count cannot exceed 6"),
     durationHrs: z.number().min(0).step(0.5).optional().nullable(),
     estimatedStart: z.date().optional().nullable(),
     batchStartDate: z.date().optional().nullable(),
@@ -140,6 +122,7 @@ export function TrainingBatchForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isFinishingBatch, setIsFinishingBatch] = useState(false);
+  const [showFinishBatchConfirm, setShowFinishBatchConfirm] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   const [availableLearners, setAvailableLearners] = useState<
     Array<{ id: string; name: string; email: string; trainingRequestId: string }>
@@ -155,6 +138,20 @@ export function TrainingBatchForm({
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [isLoadingLearners, setIsLoadingLearners] = useState(false);
+  
+  // Attendance assignment modal state
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [selectedSessionForAttendance, setSelectedSessionForAttendance] = useState<number | null>(null);
+  const [attendanceSelections, setAttendanceSelections] = useState<Record<string, boolean>>({});
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+  // Attendance data: Map<sessionId, Map<learnerId, attended>>
+  const [attendanceData, setAttendanceData] = useState<Map<string, Map<string, boolean>>>(new Map());
+  
+  // Ref to store alert functions for use in flatpickr callbacks
+  const alertFunctionsRef = useRef({ setAlertMessage, setAlertOpen });
+  useEffect(() => {
+    alertFunctionsRef.current = { setAlertMessage, setAlertOpen };
+  }, [setAlertMessage, setAlertOpen]);
 
   // Refs for flatpickr instances
   const estimatedStartRef = useRef<HTMLInputElement>(null);
@@ -165,6 +162,13 @@ export function TrainingBatchForm({
   const sessionDateFpRefs = useRef<Map<number, flatpickr.Instance | null>>(new Map());
 
   const isEditing = Boolean(batch);
+  const isFinished = Boolean(batch?.batchFinishDate);
+  
+  // Check if any session has been started (has a date)
+  const hasSessionStarted = useMemo(() => {
+    if (!batch?.sessions) return false;
+    return batch.sessions.some((session) => session.sessionDate !== null && session.sessionDate !== undefined);
+  }, [batch?.sessions]);
 
   // Initialize form with default values or existing batch data
   const defaultValues: FormValues = batch
@@ -213,10 +217,21 @@ export function TrainingBatchForm({
     name: "sessionCount",
   });
 
+  // Ensure sessionCount is always a valid number
+  const sessionCount = watchedSessionCount || 6;
+
   const watchedLearnerIds = useWatch({
     control: form.control,
     name: "learnerIds",
   });
+
+  // Generate batch name when competency level changes (only for new batches)
+  useEffect(() => {
+    if (!isEditing && watchedCompetencyLevelId) {
+      generateBatchName(watchedCompetencyLevelId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedCompetencyLevelId, isEditing]);
 
   // Fetch available learners when competency level changes
   useEffect(() => {
@@ -256,11 +271,34 @@ export function TrainingBatchForm({
   // Update session dates array when session count changes
   useEffect(() => {
     const currentSessionDates = form.getValues("sessionDates") || [];
-    const newSessionDates = Array.from({ length: watchedSessionCount }, (_, i) =>
+    const newSessionDates = Array.from({ length: sessionCount }, (_, i) =>
       i < currentSessionDates.length ? currentSessionDates[i] : null,
     );
     form.setValue("sessionDates", newSessionDates);
-  }, [watchedSessionCount, form]);
+  }, [sessionCount, form]);
+
+  // Fetch attendance data when editing
+  useEffect(() => {
+    if (isEditing && batch?.id) {
+      fetch(`/api/training-batches/${batch.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.attendance) {
+            const attendanceMap = new Map<string, Map<string, boolean>>();
+            data.attendance.forEach((att: { sessionId: string; learnerUserId: string; attended: boolean }) => {
+              if (!attendanceMap.has(att.sessionId)) {
+                attendanceMap.set(att.sessionId, new Map());
+              }
+              attendanceMap.get(att.sessionId)!.set(att.learnerUserId, att.attended);
+            });
+            setAttendanceData(attendanceMap);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching attendance:", error);
+        });
+    }
+  }, [isEditing, batch?.id]);
 
   // Initialize flatpickr for estimated start and batch start date
   useEffect(() => {
@@ -294,10 +332,11 @@ export function TrainingBatchForm({
           disableMobile: false,
           animate: true,
           allowInput: false,
-          clickOpens: true,
+          clickOpens: !isFinished,
+          disabled: isFinished,
           defaultDate: initialValue || undefined,
           onChange: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
-            if (selectedDates.length > 0) {
+            if (selectedDates.length > 0 && !isFinished) {
               onChange(selectedDates[0]);
             }
           },
@@ -399,12 +438,48 @@ export function TrainingBatchForm({
                 disableMobile: false,
                 animate: true,
                 allowInput: false,
-                clickOpens: true,
+                clickOpens: !isFinished,
+                disabled: isFinished,
                 defaultDate: initialDate || undefined,
                 onChange: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
-                  if (selectedDates.length > 0) {
+                  if (selectedDates.length > 0 && !isFinished) {
                     const date = selectedDates[0];
                     const currentSessionDates = form.getValues("sessionDates") || [];
+                    
+                    // Validation: Check if lower session has a higher date
+                    let hasError = false;
+                    let errorMessage = "";
+                    
+                    // Check previous sessions (lower session numbers should have earlier or equal dates)
+                    for (let j = 0; j < i - 1; j++) {
+                      const prevDate = currentSessionDates[j];
+                      if (prevDate && date < prevDate) {
+                        hasError = true;
+                        errorMessage = "You can't have a higher session date";
+                        break;
+                      }
+                    }
+                    
+                    // Check next sessions (higher session numbers should have later or equal dates)
+                    if (!hasError) {
+                      for (let j = i; j < currentSessionDates.length; j++) {
+                        const nextDate = currentSessionDates[j];
+                        if (nextDate && date > nextDate) {
+                          hasError = true;
+                          errorMessage = "You can't have a higher session date";
+                          break;
+                        }
+                      }
+                    }
+                    
+                    if (hasError) {
+                      // Show warning and revert to previous date
+                      alertFunctionsRef.current.setAlertMessage(errorMessage);
+                      alertFunctionsRef.current.setAlertOpen(true);
+                      instance.setDate(initialDate || undefined, false);
+                      return;
+                    }
+                    
                     const newSessionDates = [...currentSessionDates];
                     // Ensure array is long enough
                     while (newSessionDates.length < i) {
@@ -412,6 +487,22 @@ export function TrainingBatchForm({
                     }
                     newSessionDates[i - 1] = date;
                     form.setValue("sessionDates", newSessionDates);
+
+                    // Save to backend immediately if editing
+                    if (isEditing && batch) {
+                      fetch(`/api/training-batches/${batch.id}/session-date`, {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          sessionNumber: i,
+                          sessionDate: date.toISOString(),
+                        }),
+                      }).catch((error) => {
+                        console.error("Error saving session date:", error);
+                      });
+                    }
                   }
                 },
                 onReady: (selectedDates: Date[], dateStr: string, instance: flatpickr.Instance) => {
@@ -447,7 +538,7 @@ export function TrainingBatchForm({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [watchedSessionCount, form]);
+  }, [sessionCount, form]);
 
   // Close flatpickr calendars and learner dropdown when clicking outside
   useEffect(() => {
@@ -487,6 +578,47 @@ export function TrainingBatchForm({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const generateBatchName = async (competencyLevelId: string) => {
+    try {
+      // Fetch existing batches for this competency level
+      const response = await fetch(`/api/training-batches?competencyLevelId=${competencyLevelId}&pageSize=1000`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const existingBatches = data.batches || [];
+        
+        // Extract batch numbers from batch names (e.g., "Batch 1" -> 1, "Batch 2" -> 2)
+        const batchNumbers = existingBatches
+          .map((b: { batchName: string }) => {
+            const match = b.batchName.match(/^Batch\s+(\d+)$/i);
+            return match ? parseInt(match[1], 10) : null;
+          })
+          .filter((num: number | null): num is number => num !== null)
+          .sort((a: number, b: number) => a - b);
+        
+        // Find the next available batch number
+        let nextBatchNumber = 1;
+        for (const num of batchNumbers) {
+          if (num === nextBatchNumber) {
+            nextBatchNumber++;
+          } else {
+            break;
+          }
+        }
+        
+        // Set the generated batch name
+        form.setValue("batchName", `Batch ${nextBatchNumber}`);
+      } else {
+        // If fetch fails, default to Batch 1
+        form.setValue("batchName", "Batch 1");
+      }
+    } catch (error) {
+      console.error("Error generating batch name:", error);
+      // Default to Batch 1 on error
+      form.setValue("batchName", "Batch 1");
+    }
+  };
 
   const fetchAvailableLearners = async (competencyLevelId: string) => {
     setIsLoadingLearners(true);
@@ -646,16 +778,55 @@ export function TrainingBatchForm({
   });
   const allSessionDatesFilled = useMemo(() => {
     const sessionDates = watchedSessionDates || [];
-    const sessionCount = watchedSessionCount;
     if (sessionDates.length !== sessionCount) return false;
     return sessionDates.every((date) => date !== null && date !== undefined);
-  }, [watchedSessionDates, watchedSessionCount]);
+  }, [watchedSessionDates, sessionCount]);
 
-  // Handle finish batch
-  const handleFinishBatch = async () => {
+  // Check if all learners have attendance marked for all sessions
+  const allLearnersAttendedAllSessions = useMemo(() => {
+    if (!isEditing || !batch) return false;
+    
+    const learners = batch.learners || [];
+    const sessions = batch.sessions || [];
+    
+    // If no learners or no sessions, return false
+    if (learners.length === 0 || sessions.length === 0) return false;
+    
+    // Check if all session dates are filled first
+    if (!allSessionDatesFilled) return false;
+    
+    // Check that every learner has attended every session
+    for (const learner of learners) {
+      for (const session of sessions) {
+        const sessionId = session.id;
+        const learnerId = learner.learnerUserId;
+        
+        // Check if this learner attended this session
+        const attended = attendanceData.has(sessionId)
+          ? attendanceData.get(sessionId)?.get(learnerId) ?? false
+          : false;
+        
+        if (!attended) {
+          return false; // Found a learner who hasn't attended a session
+        }
+      }
+    }
+    
+    return true; // All learners attended all sessions
+  }, [isEditing, batch, attendanceData, allSessionDatesFilled]);
+
+  // Handle finish batch - show confirmation
+  const handleFinishBatch = () => {
+    if (!batch) return;
+    setShowFinishBatchConfirm(true);
+  };
+
+  // Confirm and finish batch
+  const handleConfirmFinishBatch = async () => {
     if (!batch) return;
     
     setIsFinishingBatch(true);
+    setShowFinishBatchConfirm(false);
     setMessage(null);
     
     try {
@@ -716,7 +887,7 @@ export function TrainingBatchForm({
   }, [competencies, batch]);
 
   return (
-    <form id={isEditing ? "training-batch-edit-form" : undefined} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form id={isEditing ? "training-batch-edit-form" : undefined} onSubmit={isFinished ? (e) => e.preventDefault() : form.handleSubmit(onSubmit)} className="space-y-6">
       {message && (
         <Alert variant={message.tone === "success" ? "success" : "error"}>
           {message.text}
@@ -734,6 +905,9 @@ export function TrainingBatchForm({
                 id="batch-name"
                 {...form.register("batchName")}
                 placeholder="e.g. Batch 1"
+                disabled={true}
+                className="bg-slate-800/50 cursor-not-allowed"
+                title="Batch name is automatically generated based on competency and level"
               />
               {form.formState.errors.batchName && (
                 <p className="text-xs text-red-400">{form.formState.errors.batchName.message}</p>
@@ -755,6 +929,7 @@ export function TrainingBatchForm({
                       form.setValue("learnerIds", []);
                       form.setValue("trainerUserId", "");
                     }}
+                    disabled={isEditing || isFinished}
                   >
                     <option value="">Select a competency and level</option>
                     {allLevels.map((level) => (
@@ -784,7 +959,7 @@ export function TrainingBatchForm({
                     onChange={(e) => {
                       field.onChange(e.target.value);
                     }}
-                    disabled={!selectedCompetency}
+                    disabled={isFinished || !selectedCompetency}
                   >
                     <option value="">
                       {selectedCompetency
@@ -816,12 +991,34 @@ export function TrainingBatchForm({
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="session-count">Session Count</Label>
+              <Controller
+                name="sessionCount"
+                control={form.control}
+                render={({ field }) => (
               <Input
                 id="session-count"
                 type="number"
-                min="1"
-                {...form.register("sessionCount", { valueAsNumber: true })}
+                    min={1}
+                    max={6}
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                      if (value === "" || isNaN(value)) {
+                        field.onChange(1);
+                      } else if (value < 1) {
+                        field.onChange(1);
+                      } else if (value > 6) {
+                        field.onChange(6);
+                      } else {
+                        field.onChange(value);
+                      }
+                    }}
+                    onBlur={field.onBlur}
                 placeholder="Enter session count"
+                    disabled={isFinished || hasSessionStarted}
+                    className={hasSessionStarted ? "bg-slate-800/50 cursor-not-allowed" : ""}
+                  />
+                )}
               />
               {form.formState.errors.sessionCount && (
                 <p className="text-xs text-red-400">
@@ -839,6 +1036,8 @@ export function TrainingBatchForm({
                 step="0.5"
                 {...form.register("durationHrs", { valueAsNumber: true })}
                 placeholder="Enter duration in hours"
+                disabled={isFinished || hasSessionStarted}
+                className={hasSessionStarted ? "bg-slate-800/50 cursor-not-allowed" : ""}
               />
               {form.formState.errors.durationHrs && (
                 <p className="text-xs text-red-400">
@@ -855,7 +1054,8 @@ export function TrainingBatchForm({
                 type="text"
                 placeholder="Select date"
                 readOnly
-                className="cursor-pointer"
+                className={isFinished ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                disabled={isFinished}
               />
             </div>
 
@@ -867,7 +1067,8 @@ export function TrainingBatchForm({
                 type="text"
                 placeholder="Select date"
                 readOnly
-                className="cursor-pointer"
+                className={isFinished ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                disabled={isFinished}
               />
             </div>
           </div>
@@ -905,6 +1106,7 @@ export function TrainingBatchForm({
                     }
                   },
                 })}
+                disabled={isFinished}
               />
               {form.formState.errors.capacity && (
                 <p className="text-xs text-red-400">{form.formState.errors.capacity.message}</p>
@@ -931,6 +1133,7 @@ export function TrainingBatchForm({
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onFocus={() => setDropdownOpen(true)}
                   className="pr-10"
+                  disabled={isFinished}
                 />
                 <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
@@ -946,9 +1149,10 @@ export function TrainingBatchForm({
                       <span>{learner.name}</span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveLearner(learner.id)}
-                        className="text-slate-400 hover:text-slate-100 transition"
+                        onClick={() => !isFinished && handleRemoveLearner(learner.id)}
+                        className={`text-slate-400 transition ${isFinished ? "cursor-not-allowed opacity-50" : "hover:text-slate-100 cursor-pointer"}`}
                         aria-label={`Remove ${learner.name}`}
+                        disabled={isFinished}
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -979,18 +1183,20 @@ export function TrainingBatchForm({
                           <div
                             key={learner.id}
                             onClick={() => {
-                              if (!isDisabled) {
+                              if (!isDisabled && !isFinished) {
                                 handleLearnerToggle(learner);
                               }
                             }}
-                            className={`px-3 py-2 cursor-pointer transition ${
-                              isSelected
-                                ? "bg-blue-900/50"
+                            className={`px-3 py-2 transition ${
+                              isFinished
+                                ? "opacity-50 cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-blue-900/50 cursor-pointer"
                                 : isDisabled
                                   ? "opacity-50 cursor-not-allowed"
-                                  : "hover:bg-slate-800"
+                                    : "hover:bg-slate-800 cursor-pointer"
                             }`}
-                            title={isDisabled ? "Capacity limit reached" : ""}
+                            title={isFinished ? "Batch is finished" : isDisabled ? "Capacity limit reached" : ""}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -1024,20 +1230,312 @@ export function TrainingBatchForm({
           <p className="text-sm text-slate-400">Set the dates for each training session.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {Array.from({ length: watchedSessionCount }, (_, i) => i + 1).map((sessionNum) => (
-            <SessionDateInput
-              key={sessionNum}
-              sessionNum={sessionNum}
-              sessionDateRefs={sessionDateRefs}
-              sessionDateFpRefs={sessionDateFpRefs}
-              form={form}
-            />
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm" style={{ tableLayout: "fixed" }}>
+            <thead className="bg-slate-950/70 text-slate-300">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium border border-slate-700" style={{ width: "20%" }}>Learner</th>
+                {Array.from({ length: sessionCount }, (_, i) => i + 1).map((sessionNum) => (
+                  <th key={sessionNum} className="px-4 py-3 text-center font-medium border border-slate-700" style={{ width: `${80 / sessionCount}%` }}>
+                    Session {sessionNum}
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <td className="px-4 py-2 border border-slate-700"></td>
+                {Array.from({ length: sessionCount }, (_, i) => {
+                  const sessionNum = i + 1;
+                  const sessionDates = watchedSessionDates || form.getValues("sessionDates") || [];
+                  const currentDate = sessionDates[sessionNum - 1] || null;
+                  const previousSessionStarted = sessionNum === 1 || (sessionDates[sessionNum - 2] !== null && sessionDates[sessionNum - 2] !== undefined);
+                  const isStarted = currentDate !== null && currentDate !== undefined;
+                  
+                  // Check if there are learners
+                  const hasLearners = isEditing && batch
+                    ? batch.learners.length > 0
+                    : selectedLearners.length > 0;
+
+                  const handleStartSession = async () => {
+                    if (!previousSessionStarted) {
+                      setAlertMessage(`Session ${sessionNum} cannot be started when Session ${sessionNum - 1} is not started`);
+                      setAlertOpen(true);
+                      return;
+                    }
+
+                    if (!hasLearners) {
+                      setAlertMessage("Cannot start session. There are no learners assigned to this batch.");
+                      setAlertOpen(true);
+                      return;
+                    }
+
+                    if (!batch) {
+                      setAlertMessage("Batch not found");
+                      setAlertOpen(true);
+                      return;
+                    }
+
+                    // Set date to today and save to backend immediately
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    try {
+                      // Update session date in backend immediately
+                      const response = await fetch(`/api/training-batches/${batch.id}/session-date`, {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          sessionNumber: sessionNum,
+                          sessionDate: today.toISOString(),
+                        }),
+                      });
+
+                      if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        setAlertMessage(errorData.error || "Failed to save session date");
+                        setAlertOpen(true);
+                        return;
+                      }
+
+                      // Update form state
+                      const currentSessionDates = form.getValues("sessionDates") || [];
+                      const newSessionDates = [...currentSessionDates];
+                      while (newSessionDates.length < sessionNum) {
+                        newSessionDates.push(null);
+                      }
+                      newSessionDates[sessionNum - 1] = today;
+                      form.setValue("sessionDates", newSessionDates);
+
+                      // Update flatpickr instance if it exists
+                      const fp = sessionDateFpRefs.current.get(sessionNum);
+                      if (fp) {
+                        fp.setDate(today, false);
+                      }
+                    } catch (error) {
+                      setAlertMessage(error instanceof Error ? error.message : "Failed to save session date");
+                      setAlertOpen(true);
+                      return;
+                    }
+
+                    // Show attendance modal
+                    setSelectedSessionForAttendance(sessionNum);
+                    setAttendanceModalOpen(true);
+                    // Initialize attendance selections - all learners default to attended
+                    const learnerIds = form.getValues("learnerIds") || [];
+                    const initialSelections: Record<string, boolean> = {};
+                    learnerIds.forEach((id) => {
+                      initialSelections[id] = true; // Default to attended
+                    });
+                    setAttendanceSelections(initialSelections);
+                  };
+
+                  const handleDateClick = () => {
+                    const fp = sessionDateFpRefs.current.get(sessionNum);
+                    if (fp) {
+                      fp.open();
+                    }
+                  };
+
+                  return (
+                    <td key={sessionNum} className="px-4 py-2 border border-slate-700">
+                      {!isStarted ? (
+                        <div className="relative group w-full">
+                          <Button
+                            type="button"
+                            onClick={handleStartSession}
+                            disabled={isFinished || !previousSessionStarted || !hasLearners}
+                            className="w-full rounded-md border border-blue-400 bg-white px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                          >
+                            Start Session
+                            {((!previousSessionStarted && sessionNum > 1) || !hasLearners) && (
+                              <Info className="h-4 w-4" />
+                            )}
+                          </Button>
+                          {!previousSessionStarted && sessionNum > 1 && (
+                            <div className="absolute left-1/2 bottom-full mb-2 hidden group-hover:block z-50 transform -translate-x-1/2 pointer-events-none">
+                              <div className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 shadow-xl whitespace-nowrap">
+                                <div className="text-xs text-slate-200">
+                                  Require session {sessionNum - 1}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {previousSessionStarted && !hasLearners && (
+                            <div className="absolute left-1/2 bottom-full mb-2 hidden group-hover:block z-50 transform -translate-x-1/2 pointer-events-none">
+                              <div className="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 shadow-xl whitespace-nowrap">
+                                <div className="text-xs text-slate-200">
+                                  There's no learner
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <Input
+                          ref={(el) => {
+                            if (el) {
+                              sessionDateRefs.current.set(sessionNum, el);
+                            }
+                          }}
+                          type="text"
+                          value={formatDate(currentDate)}
+                          readOnly
+                          className={isFinished ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                          onClick={isFinished ? undefined : handleDateClick}
+                          disabled={isFinished}
+                        />
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                // Get learners: from batch.learners if editing, or selectedLearners if creating
+                const learners = isEditing && batch
+                  ? batch.learners.map((l) => ({ id: l.learnerUserId, name: l.learner.name, email: l.learner.email }))
+                  : selectedLearners;
+
+                if (learners.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={sessionCount + 1} className="px-4 py-4 text-center text-slate-400 border border-slate-700">
+                        No learners assigned to this batch
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return learners.map((learner) => (
+                  <tr key={learner.id}>
+                    <td className="px-4 py-2 border border-slate-700">
+                      <div>
+                        <p className="text-sm font-medium text-slate-200">{learner.name}</p>
+                        <p className="text-xs text-slate-400">{learner.email}</p>
+                      </div>
+                    </td>
+                    {Array.from({ length: sessionCount }, (_, i) => {
+                      const sessionNum = i + 1;
+                      const sessionDates = watchedSessionDates || form.getValues("sessionDates") || [];
+                      const currentDate = sessionDates[sessionNum - 1] || null;
+                      const isStarted = currentDate !== null && currentDate !== undefined;
+
+                      // Get attendance for this learner and session
+                      const session = batch?.sessions?.find((s) => s.sessionNumber === sessionNum);
+                      const sessionId = session?.id;
+                      const attended = sessionId && attendanceData.has(sessionId)
+                        ? attendanceData.get(sessionId)?.get(learner.id) ?? false
+                        : false;
+
+                      // Check if all previous sessions were attended (for disabling checkbox)
+                      let canMarkAttendance = true;
+                      if (sessionNum > 1 && !attended) {
+                        for (let prevSessionNum = 1; prevSessionNum < sessionNum; prevSessionNum++) {
+                          const prevSession = batch?.sessions?.find((s) => s.sessionNumber === prevSessionNum);
+                          if (prevSession) {
+                            const prevSessionId = prevSession.id;
+                            const prevAttended = attendanceData.has(prevSessionId)
+                              ? attendanceData.get(prevSessionId)?.get(learner.id) ?? false
+                              : false;
+
+                            if (!prevAttended) {
+                              canMarkAttendance = false;
+                              break;
+                            }
+                          }
+                        }
+                      }
+
+                      const handleAttendanceChange = async (checked: boolean) => {
+                        if (!batch || !sessionId || isFinished) return;
+
+                        // If marking as attended, validate that all previous sessions were attended
+                        if (checked && sessionNum > 1) {
+                          // Check all previous sessions
+                          for (let prevSessionNum = 1; prevSessionNum < sessionNum; prevSessionNum++) {
+                            const prevSession = batch.sessions?.find((s) => s.sessionNumber === prevSessionNum);
+                            if (prevSession) {
+                              const prevSessionId = prevSession.id;
+                              const prevAttended = attendanceData.has(prevSessionId)
+                                ? attendanceData.get(prevSessionId)?.get(learner.id) ?? false
+                                : false;
+
+                              if (!prevAttended) {
+                                setAlertMessage(
+                                  `Cannot mark attendance for Session ${sessionNum}. Learner must attend Session ${prevSessionNum} first.`,
+                                );
+                                setAlertOpen(true);
+                                return;
+                              }
+                            }
+                          }
+                        }
+
+                        // Update local state immediately
+                        const newAttendanceData = new Map(attendanceData);
+                        if (!newAttendanceData.has(sessionId)) {
+                          newAttendanceData.set(sessionId, new Map());
+                        }
+                        newAttendanceData.get(sessionId)!.set(learner.id, checked);
+                        setAttendanceData(newAttendanceData);
+
+                        // Save to server
+                        try {
+                          const response = await fetch(`/api/training-batches/${batch.id}/attendance`, {
+                            method: "PATCH",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              sessionId,
+                              attendance: [{ learnerId: learner.id, attended: checked }],
+                            }),
+                          });
+
+                          if (!response.ok) {
+                            // Revert on error
+                            const oldAttendanceData = new Map(attendanceData);
+                            setAttendanceData(oldAttendanceData);
+                            const errorData = await response.json().catch(() => ({}));
+                            setAlertMessage(errorData.error || "Failed to update attendance");
+                            setAlertOpen(true);
+                          }
+                        } catch (error) {
+                          // Revert on error
+                          const oldAttendanceData = new Map(attendanceData);
+                          setAttendanceData(oldAttendanceData);
+                          setAlertMessage(error instanceof Error ? error.message : "Failed to update attendance");
+                          setAlertOpen(true);
+                        }
+                      };
+
+                      return (
+                        <td key={sessionNum} className="px-4 py-2 text-center border border-slate-700">
+                          {isStarted ? (
+                            <Checkbox
+                              checked={attended}
+                              onChange={(e) => handleAttendanceChange(e.target.checked)}
+                              disabled={isFinished || !canMarkAttendance}
+                              disabled={!canMarkAttendance}
+                              title={!canMarkAttendance ? `Cannot mark attendance. Previous sessions must be attended first.` : undefined}
+                            />
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ));
+              })()}
+            </tbody>
+          </table>
         </div>
 
-        {/* Finish Batch button - only show when editing and all session dates are filled */}
-        {isEditing && batch && allSessionDatesFilled && (
+        {/* Finish Batch button - only show when editing, all session dates are filled, and all learners attended all sessions */}
+        {isEditing && batch && allSessionDatesFilled && allLearnersAttendedAllSessions && (
           <div className="flex flex-col items-end gap-2">
             <Button
               type="button"
@@ -1100,6 +1598,199 @@ export function TrainingBatchForm({
           <Button onClick={closeAlert}>OK</Button>
         </div>
       </Modal>
+
+      {/* Attendance Assignment Modal */}
+      {selectedSessionForAttendance && batch && (
+        <Modal
+          open={attendanceModalOpen}
+          onClose={() => {
+            setAttendanceModalOpen(false);
+            setSelectedSessionForAttendance(null);
+            setAttendanceSelections({});
+          }}
+          title={`Assign Attendance - Session ${selectedSessionForAttendance}`}
+          contentClassName="max-w-2xl max-h-[80vh] overflow-hidden"
+        >
+          <div className="space-y-4">
+            <div className="text-sm text-slate-300">
+              <p>Select learners who attended Session {selectedSessionForAttendance}</p>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto border border-slate-700 rounded-md">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-800/50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-slate-300 font-medium">Name</th>
+                    <th className="px-4 py-2 text-left text-slate-300 font-medium">Email</th>
+                    <th className="px-4 py-2 text-center text-slate-300 font-medium">Attended</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {selectedLearners.map((learner) => (
+                    <tr key={learner.id} className="hover:bg-slate-800/30">
+                      <td className="px-4 py-2 text-slate-200">{learner.name}</td>
+                      <td className="px-4 py-2 text-slate-400">{learner.email}</td>
+                      <td className="px-4 py-2 text-center">
+                        <Checkbox
+                          checked={attendanceSelections[learner.id] ?? true}
+                          onChange={(e) => {
+                            setAttendanceSelections((prev) => ({
+                              ...prev,
+                              [learner.id]: e.target.checked,
+                            }));
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-700">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setAttendanceModalOpen(false);
+                  setSelectedSessionForAttendance(null);
+                  setAttendanceSelections({});
+                }}
+                disabled={isSavingAttendance}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  if (!batch || !selectedSessionForAttendance) return;
+
+                  setIsSavingAttendance(true);
+                  try {
+                    // Get session ID from batch sessions
+                    const session = batch.sessions.find((s) => s.sessionNumber === selectedSessionForAttendance);
+                    if (!session) {
+                      setAlertMessage("Session not found");
+                      setAlertOpen(true);
+                      setIsSavingAttendance(false);
+                      return;
+                    }
+
+                    // Note: Date is already saved to backend when "Start Session" is clicked
+                    // Just update form state and flatpickr instance here
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const currentSessionDates = form.getValues("sessionDates") || [];
+                    const newSessionDates = [...currentSessionDates];
+                    while (newSessionDates.length < selectedSessionForAttendance) {
+                      newSessionDates.push(null);
+                    }
+                    newSessionDates[selectedSessionForAttendance - 1] = today;
+                    form.setValue("sessionDates", newSessionDates);
+
+                    // Update flatpickr instance
+                    const fp = sessionDateFpRefs.current.get(selectedSessionForAttendance);
+                    if (fp) {
+                      fp.setDate(today, false);
+                    }
+
+                    // If this is Session 1, update training request status to "In Progress" before saving attendance
+                    if (selectedSessionForAttendance === 1) {
+                      try {
+                        const startSessionResponse = await fetch(`/api/training-batches/${batch.id}/start-session-1`, {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                        });
+
+                        if (!startSessionResponse.ok) {
+                          const errorData = await startSessionResponse.json().catch(() => ({}));
+                          setAlertMessage(errorData.error || "Failed to start session");
+                          setAlertOpen(true);
+                          setIsSavingAttendance(false);
+                          return;
+                        }
+                      } catch (error) {
+                        setAlertMessage(error instanceof Error ? error.message : "Failed to start session");
+                        setAlertOpen(true);
+                        setIsSavingAttendance(false);
+                        return;
+                      }
+                    }
+
+                    // Save attendance
+                    const attendanceArray = Object.entries(attendanceSelections).map(([learnerId, attended]) => ({
+                      learnerId,
+                      attended,
+                    }));
+
+                    const response = await fetch(`/api/training-batches/${batch.id}/attendance`, {
+                      method: "PATCH",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        sessionId: session.id,
+                        attendance: attendanceArray,
+                      }),
+                    });
+
+                    if (response.ok) {
+                      // Update attendanceData state
+                      const newAttendanceData = new Map(attendanceData);
+                      if (!newAttendanceData.has(session.id)) {
+                        newAttendanceData.set(session.id, new Map());
+                      }
+                      Object.entries(attendanceSelections).forEach(([learnerId, attended]) => {
+                        newAttendanceData.get(session.id)!.set(learnerId, attended);
+                      });
+                      setAttendanceData(newAttendanceData);
+
+                      setAttendanceModalOpen(false);
+                      setSelectedSessionForAttendance(null);
+                      setAttendanceSelections({});
+                      setMessage({ text: `Session ${selectedSessionForAttendance} started and attendance saved`, tone: "success" });
+                      setTimeout(() => setMessage(null), 5000);
+                    } else {
+                      const errorData = await response.json().catch(() => ({}));
+                      setAlertMessage(errorData.error || "Failed to save attendance");
+                      setAlertOpen(true);
+                    }
+                  } catch (error) {
+                    setAlertMessage(error instanceof Error ? error.message : "Failed to save attendance");
+                    setAlertOpen(true);
+                  } finally {
+                    setIsSavingAttendance(false);
+                  }
+                }}
+                disabled={isSavingAttendance || selectedLearners.length === 0}
+              >
+                {isSavingAttendance ? "Saving..." : "Start Session & Save Attendance"}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Finish Batch Confirmation Dialog */}
+      <ConfirmDialog
+        open={showFinishBatchConfirm}
+        title="Finish Batch"
+        description="Are you sure to mark this batch as completed? This will lock all data from any changes."
+        confirmLabel="Yes"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmFinishBatch}
+        onCancel={() => setShowFinishBatchConfirm(false)}
+        confirmProps={{
+          disabled: isFinishingBatch,
+          className: "bg-green-600 hover:bg-green-700 text-white",
+        }}
+        cancelProps={{
+          disabled: isFinishingBatch,
+        }}
+      />
     </form>
   );
 }

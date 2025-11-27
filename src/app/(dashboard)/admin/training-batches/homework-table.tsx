@@ -35,6 +35,7 @@ interface HomeworkTableProps {
       };
     }
   >;
+  disabled?: boolean;
 }
 
 export function HomeworkTable({
@@ -42,6 +43,7 @@ export function HomeworkTable({
   sessions,
   learners,
   homework,
+  disabled = false,
 }: HomeworkTableProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
@@ -77,6 +79,8 @@ export function HomeworkTable({
     sessionId: string,
     completed: boolean,
   ) => {
+    if (disabled) return;
+    
     const key = `${learnerId}-${sessionId}`;
     const currentState = homeworkState.get(key) || { completed: false, homeworkUrl: "" };
     setHomeworkState((prev) => {
@@ -113,6 +117,8 @@ export function HomeworkTable({
   };
 
   const handleCheckAll = (sessionId: string, checked: boolean) => {
+    if (disabled) return;
+    
     const updates: Array<{ learnerId: string; completed: boolean; homeworkUrl?: string }> = [];
     learners.forEach((learner) => {
       const key = `${learner.id}-${sessionId}`;
@@ -210,6 +216,7 @@ export function HomeworkTable({
                         }
                       }}
                       onChange={(e) => handleCheckAll(session.id, e.target.checked)}
+                      disabled={disabled || isPending}
                       className="h-4 w-4 rounded border-slate-700 bg-slate-900"
                     />
                   </div>
@@ -239,7 +246,7 @@ export function HomeworkTable({
                             onChange={(e) =>
                               handleHomeworkChange(learner.id, session.id, e.target.checked)
                             }
-                            disabled={isPending}
+                            disabled={disabled || isPending}
                             className="h-4 w-4 rounded border-slate-700 bg-slate-900"
                           />
                           {state.homeworkUrl && (

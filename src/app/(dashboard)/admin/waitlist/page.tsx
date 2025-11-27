@@ -1,4 +1,4 @@
-import { asc, eq, and, inArray } from "drizzle-orm";
+import { asc, inArray } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
@@ -94,12 +94,6 @@ export default async function WaitlistPage() {
     orderBy: asc(schema.validationScheduleRequest.requestedDate),
   });
 
-  // Get all competencies for filter
-  const competencies = await db.query.competencies.findMany({
-    where: eq(schema.competencies.isDeleted, false),
-    orderBy: schema.competencies.name,
-  });
-
   // Parse status labels from environment variables
   const statusLabels = env.TRAINING_REQUEST_STATUS.split(",").map((s) => s.trim());
   const vpaStatusLabels = env.VPA_STATUS.split(",").map((s) => s.trim());
@@ -110,7 +104,6 @@ export default async function WaitlistPage() {
       trainingRequests={trainingRequests}
       vpas={vpas}
       vsrs={vsrs}
-      competencies={competencies}
       statusLabels={statusLabels}
       vpaStatusLabels={vpaStatusLabels}
       vsrStatusLabels={vsrStatusLabels}

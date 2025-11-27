@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and, or, like, desc, asc, inArray } from "drizzle-orm";
+import { eq, and, or, like, desc, asc, inArray, gt } from "drizzle-orm";
 
 import { db, schema } from "@/db";
 import { PermissionError, ensurePermission } from "@/lib/permissions";
@@ -25,9 +25,11 @@ export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const competency = searchParams.get("competency");
   const level = searchParams.get("level");
+  const competencyLevelId = searchParams.get("competencyLevelId");
   const batchName = searchParams.get("batch");
   const trainer = searchParams.get("trainer");
   const trainingRequestId = searchParams.get("trainingRequestId");
+  const availableForTrainingRequestId = searchParams.get("availableForTrainingRequestId");
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("pageSize") || "50");
 
@@ -67,8 +69,118 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // If availableForTrainingRequestId is provided, fetch available batches for that training request
+  if (availableForTrainingRequestId) {
+    const trainingRequest = await db.query.trainingRequest.findFirst({
+      where: eq(schema.trainingRequest.id, availableForTrainingRequestId),
+      with: {
+        competencyLevel: {
+          with: {
+            competency: true,
+          },
+        },
+        trainingBatch: {
+          with: {
+            trainer: true,
+          },
+        },
+      },
+    });
+
+    if (!trainingRequest) {
+      return NextResponse.json({ error: "Training request not found" }, { status: 404 });
+    }
+
+    // Get batches that match the competency level and have spots left
+    // Also include the current batch if assigned (for reassignment)
+    const availableBatches = await db
+      .select({
+        id: schema.trainingBatch.id,
+        batchName: schema.trainingBatch.batchName,
+        sessionCount: schema.trainingBatch.sessionCount,
+        durationHrs: schema.trainingBatch.durationHrs,
+        estimatedStart: schema.trainingBatch.estimatedStart,
+        batchStartDate: schema.trainingBatch.batchStartDate,
+        capacity: schema.trainingBatch.capacity,
+        currentParticipant: schema.trainingBatch.currentParticipant,
+        spotLeft: schema.trainingBatch.spotLeft,
+        createdAt: schema.trainingBatch.createdAt,
+        competency: {
+          id: schema.competencies.id,
+          name: schema.competencies.name,
+        },
+        level: {
+          id: schema.competencyLevels.id,
+          name: schema.competencyLevels.name,
+        },
+        trainer: {
+          id: schema.users.id,
+          name: schema.users.name,
+        },
+      })
+      .from(schema.trainingBatch)
+      .leftJoin(
+        schema.competencyLevels,
+        eq(schema.trainingBatch.competencyLevelId, schema.competencyLevels.id),
+      )
+      .leftJoin(
+        schema.competencies,
+        eq(schema.competencyLevels.competencyId, schema.competencies.id),
+      )
+      .leftJoin(schema.users, eq(schema.trainingBatch.trainerUserId, schema.users.id))
+      .where(
+        and(
+          eq(schema.trainingBatch.competencyLevelId, trainingRequest.competencyLevelId),
+          gt(schema.trainingBatch.spotLeft, 0), // Has spots left
+        ),
+      )
+      .orderBy(desc(schema.trainingBatch.createdAt));
+
+    // If there's a current batch and it's not in the list, add it (for reassignment)
+    if (trainingRequest.trainingBatchId && trainingRequest.trainingBatch) {
+      const currentBatchInList = availableBatches.find(b => b.id === trainingRequest.trainingBatchId);
+      if (!currentBatchInList) {
+        availableBatches.unshift({
+          id: trainingRequest.trainingBatch.id,
+          batchName: trainingRequest.trainingBatch.batchName,
+          sessionCount: trainingRequest.trainingBatch.sessionCount || 0,
+          durationHrs: trainingRequest.trainingBatch.durationHrs,
+          estimatedStart: trainingRequest.trainingBatch.estimatedStart,
+          batchStartDate: trainingRequest.trainingBatch.batchStartDate,
+          capacity: trainingRequest.trainingBatch.capacity,
+          currentParticipant: trainingRequest.trainingBatch.currentParticipant,
+          spotLeft: trainingRequest.trainingBatch.spotLeft,
+          createdAt: trainingRequest.trainingBatch.createdAt,
+          competency: {
+            id: trainingRequest.competencyLevel.competency.id,
+            name: trainingRequest.competencyLevel.competency.name,
+          },
+          level: {
+            id: trainingRequest.competencyLevel.id,
+            name: trainingRequest.competencyLevel.name,
+          },
+          trainer: {
+            id: trainingRequest.trainingBatch.trainer.id,
+            name: trainingRequest.trainingBatch.trainer.name,
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({
+      batches: availableBatches,
+      total: availableBatches.length,
+      page: 1,
+      pageSize: availableBatches.length,
+    });
+  }
+
   // Build where conditions
   const conditions: any[] = [];
+
+  if (competencyLevelId) {
+    conditions.push(eq(schema.trainingBatch.competencyLevelId, competencyLevelId));
+  }
 
   if (competency) {
     conditions.push(like(schema.competencies.name, `%${competency}%`));
@@ -237,7 +349,7 @@ export async function POST(req: NextRequest) {
       // Add learners
       if (learnerIds && learnerIds.length > 0) {
         // Get training requests for these learners and competency level
-        // Only allow learners with status: In Queue (2), No batch match (3), or Drop off (7)
+        // Only allow learners with status: Looking for trainer (1), No batch match (3), On Hold (6), or Drop off (7)
         const trainingRequests = await tx
           .select()
           .from(schema.trainingRequest)

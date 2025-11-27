@@ -15,7 +15,7 @@ import { getVSRStatusBadgeClass } from "@/lib/vsr-config";
 import { getTrainingRequestStatusLabel, getStatusBadgeClass, getTrainingRequestStatusNumber } from "@/lib/training-request-config";
 import { getVPAStatusLabel, getVPAStatusBadgeClass } from "@/lib/vpa-config";
 import { getPARStatusLabel, getPARStatusBadgeClass } from "@/lib/par-config";
-import { X, Check, Info, Eye, Upload, CheckCircle2, FileText } from "lucide-react";
+import { X, Check, Info, Eye, Upload, CheckCircle2, FileText, RefreshCw, CircleCheck } from "lucide-react";
 
 type CompetencyWithLevels = Competency & {
   levels: CompetencyLevel[];
@@ -188,6 +188,37 @@ export function LearnerDashboardClient({
   const [inlineProjectLinks, setInlineProjectLinks] = useState<Record<string, string>>({});
   const [inlineSubmittingLevelId, setInlineSubmittingLevelId] = useState<string | null>(null);
   const router = useRouter();
+
+  // Initialize inline project links with existing project details for rejected projects
+  useEffect(() => {
+    const links: Record<string, string> = {};
+    projectApprovals.forEach((pa) => {
+      // Only pre-populate for rejected projects (status 2)
+      if (pa.status === 2 && pa.projectDetails) {
+        // Extract URL from projectDetails
+        const projectDetails = pa.projectDetails;
+        const textContent = projectDetails.replace(/<[^>]*>/g, "").trim();
+        const urlPattern = /(https?:\/\/[^\s]+)/gi;
+        const match = textContent.match(urlPattern);
+        if (match && match.length > 0) {
+          links[pa.competencyLevelId] = match[0];
+        } else if (textContent.startsWith("http://") || textContent.startsWith("https://")) {
+          links[pa.competencyLevelId] = textContent;
+        }
+      }
+    });
+    setInlineProjectLinks((prev) => {
+      // Only update if there are new links, don't overwrite user edits
+      const updated = { ...prev };
+      Object.keys(links).forEach((levelId) => {
+        // Only set if not already set (to preserve user edits)
+        if (!prev[levelId]) {
+          updated[levelId] = links[levelId];
+        }
+      });
+      return updated;
+    });
+  }, [projectApprovals]);
 
   // Check if a level has content (at least one field is filled)
   const hasLevelContent = (level: CompetencyLevel | undefined): boolean => {
@@ -847,22 +878,93 @@ export function LearnerDashboardClient({
                             </div>
                           );
 
-                          if (row.projectApproval?.projectDetails?.trim()) {
+                          // Helper function to extract URL from projectDetails
+                          const extractUrlFromProjectDetails = (projectDetails: string | null | undefined): string | null => {
+                            if (!projectDetails) return null;
+                            const textContent = projectDetails.replace(/<[^>]*>/g, "").trim();
+                            const urlPattern = /(https?:\/\/[^\s]+)/gi;
+                            const match = textContent.match(urlPattern);
+                            if (match && match.length > 0) {
+                              return match[0];
+                            }
+                            if (textContent.startsWith("http://") || textContent.startsWith("https://")) {
+                              return textContent;
+                            }
+                            return null;
+                          };
+
+                          // If project is approved (status 1), show read-only with checkmark
+                          if (row.projectApproval?.status === 1 && row.projectApproval?.projectDetails?.trim()) {
+                            const url = extractUrlFromProjectDetails(row.projectApproval.projectDetails);
+                            if (url) {
+                              return (
+                                <div className="flex items-center gap-2 text-xs">
+                                  {renderReadOnlyInput(url)}
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled
+                                    className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-emerald-700"
+                                  >
+                                    <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                                  </Button>
+                                </div>
+                              );
+                            }
+                          }
+
+                          // If project is pending (status 0) after resubmission, show read-only with latest URL
+                          if (row.projectApproval?.status === 0 && row.projectApproval?.projectDetails?.trim()) {
+                            const url = extractUrlFromProjectDetails(row.projectApproval.projectDetails);
+                            if (url) {
+                              return (
+                                <div className="flex items-center gap-2 text-xs">
+                                  {renderReadOnlyInput(url)}
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled
+                                    className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-emerald-700"
+                                  >
+                                    <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                                  </Button>
+                                </div>
+                              );
+                            }
+                          }
+
+                          // If project is rejected (status 2), show editable input with resubmit button
+                          if (row.projectApproval?.status === 2) {
+                            const rejectedLinkValue = inlineProjectLinks[row.levelId] ?? "";
+                            const isResubmitDisabled =
+                              inlineSubmittingLevelId === row.levelId ||
+                              isPending ||
+                              rejectedLinkValue.trim() === "";
+                            
                             return (
-                              <div className="flex items-center gap-2 text-xs">
-                                {renderReadOnlyInput(row.projectApproval.projectDetails)}
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="url"
+                                  placeholder="Enter document link..."
+                                  value={rejectedLinkValue}
+                                  onChange={(e) => handleProjectLinkChange(row.levelId, e.target.value)}
+                                  className="h-8 flex-1 rounded-md border border-slate-800 bg-slate-900/70 px-3 text-[11px] text-slate-200 placeholder-slate-500"
+                                />
                                 <Button
                                   type="button"
                                   size="sm"
-                                  disabled
-                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-emerald-700"
+                                  onClick={() => handleInlineProjectSubmit(row)}
+                                  disabled={isResubmitDisabled}
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-blue-400 hover:text-blue-300 hover:bg-transparent disabled:opacity-50"
+                                  title="Resubmit"
                                 >
-                                  <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                                  <RefreshCw className="h-7 w-7" />
                                 </Button>
                               </div>
                             );
                           }
 
+                          // If sessions completed, show submit input
                           if (row.trainingRequest?.status === sessionsCompletedStatus) {
                             return (
                               <div className="flex items-center gap-2">
@@ -878,7 +980,8 @@ export function LearnerDashboardClient({
                                   size="sm"
                                   onClick={() => handleInlineProjectSubmit(row)}
                                   disabled={isSubmitDisabled}
-                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-transparent text-blue-400 hover:text-blue-300 hover:bg-transparent disabled:opacity-50"
+                                  title="Submit"
                                 >
                                   <Upload className="h-7 w-7" />
                                 </Button>

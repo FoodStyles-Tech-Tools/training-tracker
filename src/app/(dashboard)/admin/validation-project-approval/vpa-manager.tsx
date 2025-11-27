@@ -6,11 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Modal } from "@/components/ui/modal";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Pagination } from "@/components/admin/pagination";
 import type { ValidationProjectApproval, Competency, User } from "@/db/schema";
 import { getVPAStatusLabel, getVPAStatusBadgeClass, getVPALevelBadgeClass } from "@/lib/vpa-config";
 import { updateVPAAction, getVPAById } from "./actions";
 import { VPAModal } from "./vpa-modal";
+import { ExternalLink, Check, X } from "lucide-react";
 
 // Helper function to format dates as "d M Y" (e.g., "20 Nov 2025")
 function formatDate(date: Date | string | null | undefined): string {
@@ -38,6 +43,29 @@ function formatDateTime(date: Date | string | null | undefined): string {
   const hours = d.getHours().toString().padStart(2, "0");
   const minutes = d.getMinutes().toString().padStart(2, "0");
   return `${day} ${month} ${year} ${hours}:${minutes}`;
+}
+
+// Helper function to extract URL from projectDetails
+function extractUrl(projectDetails: string | null | undefined): string | null {
+  if (!projectDetails) return null;
+  
+  // Remove HTML tags
+  const textContent = projectDetails.replace(/<[^>]*>/g, "").trim();
+  
+  // Try to find URL pattern
+  const urlPattern = /(https?:\/\/[^\s]+)/gi;
+  const match = textContent.match(urlPattern);
+  
+  if (match && match.length > 0) {
+    return match[0];
+  }
+  
+  // If no URL pattern found, check if the whole text is a URL
+  if (textContent.startsWith("http://") || textContent.startsWith("https://")) {
+    return textContent;
+  }
+  
+  return null;
 }
 
 type VPAWithRelations = ValidationProjectApproval & {
@@ -84,6 +112,9 @@ export function VPAManager({
   const [vpas, setVPAs] = useState<VPAWithRelations[]>(initialVPAs);
   const [selectedVPA, setSelectedVPA] = useState<VPAWithRelations | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [selectedVPAForReject, setSelectedVPAForReject] = useState<VPAWithRelations | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ text: string; tone: "success" | "error" } | null>(null);
   
@@ -104,6 +135,7 @@ export function VPAManager({
     level: "",
     status: "",
     customFilter: "" as "" | "dueIn24h" | "dueIn3d" | "overdue",
+    excludeCompleted: true,
   });
   const activeCustomFilterLabel = filters.customFilter
     ? customFilterLabels[filters.customFilter]
@@ -162,6 +194,11 @@ export function VPAManager({
   // Filtered and sorted VPAs
   const filteredVPAs = useMemo(() => {
     const filtered = vpas.filter((vpa) => {
+      // Exclude completed: only show status 0 (Pending Validation Project Approval) when excludeCompleted is true
+      if (filters.excludeCompleted && vpa.status !== 0) {
+        return false;
+      }
+      
       if (filters.name && !vpa.learner.name.toLowerCase().includes(filters.name.toLowerCase())) {
         return false;
       }
@@ -366,6 +403,77 @@ export function VPAManager({
     });
   };
 
+  const handleApprove = async (vpa: VPAWithRelations) => {
+    if (!canEdit) return;
+    
+    setMessage(null);
+    startTransition(async () => {
+      const result = await updateVPAAction({
+        id: vpa.id,
+        status: 1, // Approved
+        responseDate: new Date(),
+      });
+
+      if (result.success) {
+        setVPAs((prev) =>
+          prev.map((item) =>
+            item.id === vpa.id
+              ? { ...item, status: 1, responseDate: new Date(), updatedAt: new Date() }
+              : item
+          )
+        );
+        setMessage({ text: `${vpa.vpaId} Successfully approved`, tone: "success" });
+      } else {
+        setMessage({ text: result.error || "Failed to approve validation project approval", tone: "error" });
+      }
+    });
+  };
+
+  const handleReject = (vpa: VPAWithRelations) => {
+    if (!canEdit) return;
+    setSelectedVPAForReject(vpa);
+    setRejectionReason("");
+    setIsRejectionModalOpen(true);
+  };
+
+  const handleCancelRejection = () => {
+    setIsRejectionModalOpen(false);
+    setSelectedVPAForReject(null);
+    setRejectionReason("");
+  };
+
+  const handleConfirmRejection = async () => {
+    if (!selectedVPAForReject || !rejectionReason.trim()) {
+      return;
+    }
+
+    setMessage(null);
+    startTransition(async () => {
+      const result = await updateVPAAction({
+        id: selectedVPAForReject.id,
+        status: 2, // Rejected
+        responseDate: new Date(),
+        rejectionReason: rejectionReason.trim(),
+      });
+
+      if (result.success) {
+        setVPAs((prev) =>
+          prev.map((item) =>
+            item.id === selectedVPAForReject.id
+              ? { ...item, status: 2, responseDate: new Date(), rejectionReason: rejectionReason.trim(), updatedAt: new Date() }
+              : item
+          )
+        );
+        setMessage({ text: `${selectedVPAForReject.vpaId} Successfully rejected`, tone: "success" });
+        setIsRejectionModalOpen(false);
+        setSelectedVPAForReject(null);
+        setRejectionReason("");
+      } else {
+        setMessage({ text: result.error || "Failed to reject validation project approval", tone: "error" });
+      }
+    });
+  };
+
   const handleClearFilters = () => {
     setFilters({
       name: "",
@@ -500,6 +608,16 @@ export function VPAManager({
             >
               Overdue ({filterCounts.overdue})
             </Button>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="exclude-completed"
+                checked={filters.excludeCompleted}
+                onChange={(e) => setFilters({ ...filters, excludeCompleted: e.target.checked })}
+              />
+              <label htmlFor="exclude-completed" className="text-sm text-slate-300 cursor-pointer">
+                Exclude Completed
+              </label>
+            </div>
             <div className="flex-1"></div>
             <Button
               type="button"
@@ -580,6 +698,12 @@ export function VPAManager({
                     {getSortIndicator("status")}
                   </span>
                 </th>
+                <th className="px-4 py-3 text-left font-medium text-slate-300">
+                  Project URL
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-slate-300">
+                  Validate
+                </th>
                 <th
                   className="px-4 py-3 text-left font-medium cursor-pointer hover:bg-slate-900/50 transition-colors select-none"
                   onClick={() => handleHeaderClick("responseDue")}
@@ -603,7 +727,7 @@ export function VPAManager({
             <tbody className="divide-y divide-slate-800/80">
               {filteredVPAs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={10} className="px-4 py-8 text-center text-slate-400">
                     No validation project approvals found
                   </td>
                 </tr>
@@ -656,6 +780,52 @@ export function VPAManager({
                           {getVPAStatusLabel(vpa.status, statusLabels)}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const projectUrl = extractUrl(vpa.projectDetails);
+                          return projectUrl ? (
+                            <a
+                              href={projectUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center text-blue-400 hover:text-blue-300 transition"
+                              title={projectUrl}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          ) : (
+                            <span className="text-slate-500">-</span>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {canEdit && vpa.status === 0 ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleApprove(vpa)}
+                              disabled={isPending}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-green-400 text-green-600 hover:bg-green-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                              title="Approve"
+                            >
+                              <Check className="h-4 w-4 stroke-[2.5]" />
+                              <span className="text-sm font-medium">Approve</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleReject(vpa)}
+                              disabled={isPending}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-red-400 text-red-600 hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                              title="Reject"
+                            >
+                              <X className="h-4 w-4 stroke-[2.5]" />
+                              <span className="text-sm font-medium">Reject</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500">-</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-slate-400">
                         {responseDue ? formatDate(responseDue) : "-"}
                       </td>
@@ -702,6 +872,78 @@ export function VPAManager({
           }}
         />
       )}
+
+      {/* Rejection Reason Modal */}
+      <Modal
+        open={isRejectionModalOpen}
+        onClose={handleCancelRejection}
+        contentClassName="max-w-2xl"
+        overlayClassName="bg-black/60 backdrop-blur-sm z-[70]"
+      >
+        <div className="flex items-center justify-between border-b border-slate-800/80 bg-slate-950/70 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Rejection Reason</h2>
+            <p className="text-sm text-slate-400">Please provide a reason for rejecting this validation project</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleCancelRejection}
+            className="rounded-md p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            aria-label="Close modal"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-6">
+          <form
+            className="space-y-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleConfirmRejection();
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason-text">Rejection Reason</Label>
+              <Textarea
+                id="rejection-reason-text"
+                rows={6}
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter the reason for rejecting this validation project..."
+                required
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelRejection}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="force-white-text rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                disabled={isPending || !rejectionReason.trim()}
+              >
+                {isPending ? "Processing..." : "Confirm Rejection"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </div>
   );
 }

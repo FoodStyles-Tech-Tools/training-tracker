@@ -7,7 +7,6 @@ import { db, schema } from "@/db";
 import { requireSession } from "@/lib/session";
 import { ensurePermission } from "@/lib/permissions";
 import { TrainingBatchForm } from "../../training-batch-form";
-import { AttendanceTable } from "../../attendance-table";
 import { HomeworkTable } from "../../homework-table";
 import { Button } from "@/components/ui/button";
 
@@ -98,20 +97,6 @@ export default async function EditTrainingBatchPage({
       competencyIds: user.trainerCompetencies?.map((ct) => ct.competencyId) || [],
     }));
 
-  // Get attendance data
-  const attendance = await db.query.trainingBatchAttendanceSessions.findMany({
-    where: eq(schema.trainingBatchAttendanceSessions.trainingBatchId, id),
-    with: {
-      session: true,
-      learner: {
-        columns: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
   // Get homework data
   const homework = await db.query.trainingBatchHomeworkSessions.findMany({
     where: eq(schema.trainingBatchHomeworkSessions.trainingBatchId, id),
@@ -142,17 +127,12 @@ export default async function EditTrainingBatchPage({
           competencies={competencies}
           trainers={trainers}
         />
-        <AttendanceTable
-          batch={batch}
-          sessions={batch.sessions}
-          learners={batch.learners.map((l) => l.learner)}
-          attendance={attendance}
-        />
         <HomeworkTable
           batch={batch}
           sessions={batch.sessions}
           learners={batch.learners.map((l) => l.learner)}
           homework={homework}
+          disabled={!!batch.batchFinishDate}
         />
 
         {/* Save button - below homework */}
@@ -163,7 +143,7 @@ export default async function EditTrainingBatchPage({
           >
             Cancel
           </Link>
-          <Button type="submit" form="training-batch-edit-form">
+          <Button type="submit" form="training-batch-edit-form" disabled={!!batch.batchFinishDate}>
             Save
           </Button>
         </div>

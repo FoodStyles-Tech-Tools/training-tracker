@@ -43,26 +43,49 @@
                 View all pending requests across competencies organized by request type.
               </p>
             </div>
-
-            <!-- Competency Dropdown -->
             <div class="prototype-card">
               <div class="space-y-2 p-6">
-                <label for="competency-select" class="block text-sm font-medium text-slate-300">Select Competency</label>
-                <select
-                  id="competency-select"
-                  onchange="handleCompetencyChange()"
-                  class="w-full rounded-md border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  <option value="">-- Select a competency --</option>
-                  <option value="guest-hospitality">Guest Hospitality Standards</option>
-                  <option value="food-safety">Food Safety & Sanitation</option>
-                  <option value="customer-recovery">Customer Recovery Playbook</option>
-                </select>
+                <label class="block text-sm font-medium text-slate-300">Competencies</label>
+                <div id="competency-filter" class="relative">
+                  <button
+                    type="button"
+                    onclick="toggleCompetencyDropdown()"
+                    class="flex h-10 w-full items-center justify-between rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-left text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                  >
+                    <span id="competency-filter-label" class="truncate">All competencies</span>
+                    <svg
+                      id="competency-filter-chevron"
+                      class="h-4 w-4 text-slate-400 transition-transform"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.668l3.71-3.437a.75.75 0 0 1 1.04 1.08l-4.25 3.938a.75.75 0 0 1-1.04 0l-4.25-3.938a.75.75 0 0 1 .02-1.06z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  <div id="selected-competency-tags" class="mt-2 flex flex-wrap gap-2"></div>
+                  <div
+                    id="competency-dropdown"
+                    class="absolute z-50 mt-1 hidden max-h-60 w-full overflow-auto rounded-md border border-slate-700 bg-slate-900 shadow-lg"
+                  >
+                    <button
+                      type="button"
+                      onclick="clearCompetencySelection()"
+                      class="flex w-full items-center justify-between px-3 py-2 text-sm text-blue-300 hover:bg-slate-800"
+                    >
+                      Clear selection
+                    </button>
+                    <div class="border-t border-slate-800/50"></div>
+                    <div id="competency-options-container"></div>
+                  </div>
+                </div>
               </div>
             </div>
-                
             <!-- Tabs and Tables Container -->
-            <div id="tables-container" class="prototype-card overflow-hidden p-0 hidden">
+            <div id="tables-container" class="prototype-card overflow-hidden p-0">
               <!-- Tab Navigation -->
               <div class="flex gap-2 border-b border-slate-800/80 bg-slate-950/50 px-6 pt-4">
                 <button
@@ -109,6 +132,7 @@
                         <tr>
                           <th class="px-4 py-3 text-left font-medium">No</th>
                           <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Competency</th>
                           <th class="px-4 py-3 text-left font-medium">Level</th>
                           <th class="px-4 py-3 text-left font-medium">Learner</th>
                           <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -129,6 +153,7 @@
                         <tr>
                           <th class="px-4 py-3 text-left font-medium">No</th>
                           <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Competency</th>
                           <th class="px-4 py-3 text-left font-medium">Level</th>
                           <th class="px-4 py-3 text-left font-medium">Learner</th>
                           <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -149,6 +174,7 @@
                         <tr>
                           <th class="px-4 py-3 text-left font-medium">No</th>
                           <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Competency</th>
                           <th class="px-4 py-3 text-left font-medium">Level</th>
                           <th class="px-4 py-3 text-left font-medium">Learner</th>
                           <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -169,6 +195,7 @@
                         <tr>
                           <th class="px-4 py-3 text-left font-medium">No</th>
                           <th class="px-4 py-3 text-left font-medium">Request Date</th>
+                          <th class="px-4 py-3 text-left font-medium">Competency</th>
                           <th class="px-4 py-3 text-left font-medium">Level</th>
                           <th class="px-4 py-3 text-left font-medium">Learner</th>
                           <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -281,6 +308,12 @@
         },
       };
 
+      const competencyLabels = {
+        'guest-hospitality': 'Guest Hospitality Standards',
+        'food-safety': 'Food Safety & Sanitation',
+        'customer-recovery': 'Customer Recovery Playbook',
+      };
+
       function getLevelBadgeClass(level) {
         const levelClasses = {
           'Basic': 'bg-blue-500/20 text-blue-200',
@@ -310,17 +343,18 @@
         tbody.innerHTML = '';
         
         if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">No data available</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No data available</td></tr>';
           return;
         }
 
-        data.forEach((row) => {
+        data.forEach((row, index) => {
           const tr = document.createElement('tr');
           tr.className = 'hover:bg-slate-900/60';
           
           tr.innerHTML = `
-            <td class="px-4 py-3 text-slate-400">${row.no}</td>
+            <td class="px-4 py-3 text-slate-400">${index + 1}</td>
             <td class="px-4 py-3 text-slate-300">${row.requestDate}</td>
+            <td class="px-4 py-3 text-slate-100">${row.competency || '-'}</td>
             <td class="px-4 py-3">
               <span class="inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getLevelBadgeClass(row.level)}">
                 ${row.level}
@@ -338,49 +372,43 @@
         });
       }
 
-      function updateTabCounts(competency) {
-        const data = waitlistData[competency];
-        if (!data) return;
+      function getCombinedData(requestType) {
+        const combined = [];
+        Object.entries(waitlistData).forEach(([competencyKey, competencyData]) => {
+          (competencyData[requestType] || []).forEach((row) => {
+            combined.push({
+              ...row,
+              competency: competencyLabels[competencyKey] || competencyKey,
+            });
+          });
+        });
+        return combined;
+      }
 
-        const tabMappings = {
-          'training-request': 'training-request',
-          'validation-project': 'validation-project',
-          'validation-schedule': 'validation-schedule',
-          'project-assignment': 'project-assignment',
-        };
-
-        Object.keys(tabMappings).forEach((tabKey) => {
-          const count = data[tabMappings[tabKey]]?.length || 0;
+      function updateTabCounts(aggregatedData) {
+        Object.entries(aggregatedData).forEach(([tabKey, rows]) => {
           const countEl = document.getElementById('count-' + tabKey);
           if (countEl) {
-            countEl.textContent = count;
+            countEl.textContent = rows.length;
           }
         });
       }
 
-      function handleCompetencyChange() {
-        const select = document.getElementById('competency-select');
-        const tablesContainer = document.getElementById('tables-container');
-        const selectedCompetency = select.value;
-        
-        if (selectedCompetency && waitlistData[selectedCompetency]) {
-          tablesContainer.classList.remove('hidden');
-          
-          // Update all tables
-          const data = waitlistData[selectedCompetency];
-          renderTable('training-request-tbody', data['training-request'] || []);
-          renderTable('validation-project-tbody', data['validation-project'] || []);
-          renderTable('validation-schedule-tbody', data['validation-schedule'] || []);
-          renderTable('project-assignment-tbody', data['project-assignment'] || []);
-          
-          // Update tab counts
-          updateTabCounts(selectedCompetency);
-          
-          // Switch to first tab
-          switchTab('training-request');
-        } else {
-          tablesContainer.classList.add('hidden');
-        }
+      function renderAllTables() {
+        const aggregatedData = {
+          'training-request': getCombinedData('training-request'),
+          'validation-project': getCombinedData('validation-project'),
+          'validation-schedule': getCombinedData('validation-schedule'),
+          'project-assignment': getCombinedData('project-assignment'),
+        };
+
+        renderTable('training-request-tbody', aggregatedData['training-request']);
+        renderTable('validation-project-tbody', aggregatedData['validation-project']);
+        renderTable('validation-schedule-tbody', aggregatedData['validation-schedule']);
+        renderTable('project-assignment-tbody', aggregatedData['project-assignment']);
+
+        updateTabCounts(aggregatedData);
+        switchTab('training-request');
       }
 
       function switchTab(tabName) {
@@ -408,6 +436,10 @@
           tab.classList.add('border-blue-500', 'text-blue-400');
         }
       }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        renderAllTables();
+      });
     </script>
     <style>
       /* Tab Navigation Styling */

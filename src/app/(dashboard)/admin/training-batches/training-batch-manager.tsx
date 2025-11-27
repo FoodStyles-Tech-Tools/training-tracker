@@ -78,7 +78,43 @@ type TrainingBatchWithRelations = TrainingBatch & {
       email: string;
     };
   }>;
+  sessions?: Array<{
+    id: string;
+    sessionNumber: number;
+    sessionDate: Date | null;
+  }>;
 };
+
+// Helper function to get batch status
+function getBatchStatus(batch: TrainingBatchWithRelations): "Open" | "Started" | "Finished" {
+  // Finished: batchFinishDate is set
+  if (batch.batchFinishDate) {
+    return "Finished";
+  }
+  
+  // Started: Session 1 has a date
+  const session1 = batch.sessions?.find((s) => s.sessionNumber === 1);
+  if (session1?.sessionDate) {
+    return "Started";
+  }
+  
+  // Open: No sessions started
+  return "Open";
+}
+
+// Helper function to get batch status badge class
+function getBatchStatusBadgeClass(status: "Open" | "Started" | "Finished"): string {
+  switch (status) {
+    case "Open":
+      return "bg-slate-500/20 text-slate-200";
+    case "Started":
+      return "bg-blue-500/20 text-blue-200";
+    case "Finished":
+      return "bg-emerald-500/20 text-emerald-200";
+    default:
+      return "bg-slate-500/20 text-slate-200";
+  }
+}
 
 interface TrainingBatchManagerProps {
   trainingBatches: TrainingBatchWithRelations[];
@@ -571,13 +607,14 @@ export function TrainingBatchManager({
                     {getSortIndicator("estimatedStart")}
                   </span>
                 </th>
+                <th className="px-4 py-3 text-left font-medium">Batch Status</th>
                 <th className="px-4 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
               {filteredBatches.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={9} className="px-4 py-8 text-center text-slate-400">
                     No training batches found
                   </td>
                 </tr>
@@ -585,6 +622,7 @@ export function TrainingBatchManager({
                 paginatedBatches.map((batch, index) => {
                   const learnersCount = batch.learners.length;
                   const spotLeft = batch.capacity - learnersCount;
+                  const batchStatus = getBatchStatus(batch);
                   
                   return (
                     <tr key={batch.id} className="hover:bg-slate-900/60">
@@ -622,6 +660,13 @@ export function TrainingBatchManager({
                       </td>
                       <td className="px-4 py-3 text-slate-300">
                         {formatDate(batch.estimatedStart)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block max-w-[140px] rounded-md px-2 py-0.5 text-sm font-semibold ${getBatchStatusBadgeClass(batchStatus)}`}
+                        >
+                          {batchStatus}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

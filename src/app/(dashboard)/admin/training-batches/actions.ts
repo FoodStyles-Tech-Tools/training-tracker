@@ -98,7 +98,7 @@ export async function createTrainingBatchAction(
       // Add learners
       if (parsed.learnerIds && parsed.learnerIds.length > 0) {
         // Get training requests for these learners and competency level
-        // Only allow learners with status: In Queue (2), No batch match (3), or Drop off (7)
+        // Only allow learners with status: Looking for trainer (1), No batch match (3), On Hold (6), or Drop off (7)
         const trainingRequests = await tx
           .select()
           .from(schema.trainingRequest)
@@ -712,10 +712,54 @@ export async function updateAttendanceAction(
   const session = await requireSession();
 
   try {
+    // Get batch and session data
+    const batch = await db.query.trainingBatch.findFirst({
+      where: eq(schema.trainingBatch.id, batchId),
+      with: {
+        sessions: {
+          orderBy: (sessions, { asc }) => [asc(sessions.sessionNumber)],
+        },
+      },
+    });
+
+    if (!batch) {
+      return { success: false, error: "Batch not found" };
+    }
+
+    const sessionData = batch.sessions.find((s) => s.id === sessionId);
+    if (!sessionData) {
+      return { success: false, error: "Session not found" };
+    }
+
     await db.transaction(async (tx) => {
       // Update attendance for each learner
       for (const item of attendance) {
         const { learnerId, attended } = item;
+
+        // If marking as attended, validate that all previous sessions were attended
+        if (attended && sessionData.sessionNumber > 1) {
+          // Get all previous sessions
+          const previousSessions = batch.sessions.filter(
+            (s) => s.sessionNumber < sessionData.sessionNumber,
+          );
+
+          // Check attendance for all previous sessions
+          for (const prevSession of previousSessions) {
+            const prevAttendance = await tx.query.trainingBatchAttendanceSessions.findFirst({
+              where: and(
+                eq(schema.trainingBatchAttendanceSessions.trainingBatchId, batchId),
+                eq(schema.trainingBatchAttendanceSessions.learnerUserId, learnerId),
+                eq(schema.trainingBatchAttendanceSessions.sessionId, prevSession.id),
+              ),
+            });
+
+            if (!prevAttendance || !prevAttendance.attended) {
+              throw new Error(
+                `Cannot mark attendance for Session ${sessionData.sessionNumber}. Learner must attend Session ${prevSession.sessionNumber} first.`,
+              );
+            }
+          }
+        }
 
         // Check if attendance record exists
         const existing = await tx.query.trainingBatchAttendanceSessions.findFirst({
@@ -748,16 +792,62 @@ export async function updateAttendanceAction(
           });
         }
       }
+
+      // If this is Session 1, update training request status to "In Progress" (4)
+      if (sessionData.sessionNumber === 1) {
+        // Get all batch learners with their training request IDs
+        const batchLearners = await tx.query.trainingBatchLearners.findMany({
+          where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
+        });
+
+        if (batchLearners.length > 0) {
+          const trainingRequestIds = batchLearners.map((bl) => bl.trainingRequestId);
+
+          // Update all training requests to "In Progress" (status 4)
+          await tx
+            .update(schema.trainingRequest)
+            .set({
+              status: 4, // In Progress
+              updatedAt: new Date(),
+            })
+            .where(inArray(schema.trainingRequest.id, trainingRequestIds));
+        }
+      }
+
+      // If this is the last session and attendance is marked, update status to "Sessions Completed" (5)
+      const isLastSession = sessionData.sessionNumber === batch.sessionCount;
+      if (isLastSession) {
+        // Get batch learners to find training request IDs
+        const batchLearners = await tx.query.trainingBatchLearners.findMany({
+          where: eq(schema.trainingBatchLearners.trainingBatchId, batchId),
+        });
+
+        // Create a map of learnerId to trainingRequestId
+        const learnerToRequestMap = new Map(
+          batchLearners.map((bl) => [bl.learnerUserId, bl.trainingRequestId]),
+        );
+
+        // Update training request status for each learner who attended the last session
+        for (const item of attendance) {
+          const { learnerId, attended } = item;
+
+          if (attended) {
+            const trainingRequestId = learnerToRequestMap.get(learnerId);
+            if (trainingRequestId) {
+              await tx
+                .update(schema.trainingRequest)
+                .set({
+                  status: 5, // Sessions Completed
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.trainingRequest.id, trainingRequestId));
+            }
+          }
+        }
+      }
     });
 
-    // Get batch and session info for logging
-    const batch = await db.query.trainingBatch.findFirst({
-      where: eq(schema.trainingBatch.id, batchId),
-    });
-    const sessionData = await db.query.trainingBatchSessions.findFirst({
-      where: eq(schema.trainingBatchSessions.id, sessionId),
-    });
-
+    // Batch and sessionData are already fetched above
     // Log activity
     if (batch && sessionData) {
       await logActivity({
